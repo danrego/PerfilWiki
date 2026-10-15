@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "date": "2026-10-15",
+  "bundleSha256": "e308c96134301e363573c66bc0c52d4c207dc0f24278ab38e8fdd376cb6838dc",
+  "node": {
+    "registeredTests": 104,
+    "failures": 0,
+    "inheritedMetricCasesWithinSuite": 20
+  },
+  "browsers": [
+    {
+      "browser": "chrome",
+      "version": "155.0.8059.40",
+      "checks": 110,
+      "failures": 0,
+      "requestedViewportWidth": 320,
+      "actualViewportWidth": 320,
+      "documentScrollWidth": 320
+    },
+    {
+      "browser": "firefox",
+      "version": "158.0",
+      "checks": 110,
+      "failures": 0,
+      "requestedViewportWidth": 320,
+      "actualViewportWidth": 320,
+      "documentScrollWidth": 305
+    },
+    {
+      "browser": "safari",
+      "version": "27.0.1",
+      "checks": 110,
+      "failures": 0,
+      "requestedViewportWidth": 320,
+      "actualViewportWidth": 336,
+      "documentScrollWidth": 319
+    }
+  ],
+  "scope": {
+    "syntheticDataOnly": true,
+    "localhostOnly": true,
+    "authenticatedWikimediaSessions": 0,
+    "wikimediaWrites": 0,
+    "realClipboardWrites": 0
+  },
+  "cssValidation": "CSS_VALIDATION.json",
+  "limitations": [
+    "Browser checks use synthetic responses and cannot certify future external service availability.",
+    "No installed authenticated Wikimedia userpage was operated."
+  ]
+}

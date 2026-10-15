@@ -1,0 +1,138 @@
+O '''PerfilWiki''' reúne as caixas de estatísticas e o painel de atividade para páginas de usuário da Wikipédia em português. O programa consulta os dados públicos da sua conta e mostra os resultados na sua sessão, mantendo as caixas, o calendário, as metas de dias seguidos e as listas de artigos com suas visualizações.
+
+Esta documentação acompanha a versão '''1.0.0'''. Os endereços compartilhados abaixo são os destinos previstos para a instalação. O pacote não confirma que esses arquivos já tenham sido publicados na Wikipédia. A instalação compartilhada precisa ser concluída antes de usar a importação.
+
+== Instalar na sua conta ==
+
+=== Carregar o programa ===
+
+Entre na sua conta da Wikipédia em português e abra [[Especial:Minha página/common.js|seu common.js]] em "Editar código-fonte". Preserve o código que já estiver no arquivo e acrescente uma só cópia do arquivo inteiro <code>Carregador_PerfilWiki.js</code>, disponível no índice da distribuição.<ref>[https://www.mediawiki.org/wiki/Manual:Interface/JavaScript JavaScript pessoal no MediaWiki].</ref>
+
+O carregador confere a conta e a página antes de buscar o programa. Use o arquivo completo, pois uma importação isolada buscaria o programa também nas páginas onde a rotina não será usada. O destino <code>Usuário:Daniel G Rego/PerfilWiki.js</code> dentro dele aponta para o programa compartilhado. Seus números vêm da conta configurada.
+
+Sem configuração adicional, o programa usa a conta conectada e o fuso do navegador, com UTC como alternativa se o fuso não puder ser obtido. Para escolher outro fuso, coloque a configuração antes do carregador completo:
+
+<syntaxhighlight lang="javascript">
+window.PerfilWikiConfig = {
+    timeZone: 'America/Sao_Paulo'
+};
+</syntaxhighlight>
+
+Cole o conteúdo inteiro de <code>Carregador_PerfilWiki.js</code> logo depois dessa configuração. Não acrescente outra chamada de importação.
+
+O campo opcional <code>user</code> aceita o nome exato da própria conta. O programa só inicia quando a conta conectada corresponde à configurada. Não acrescente campos que não estejam nesta documentação.
+
+=== Colocar as caixas e o painel na página ===
+
+O índice <code>INICIO.html</code> da distribuição traz dois trechos iniciais, <code>Contadores_iniciais.wiki</code> e <code>Atividade_inicial.wiki</code>. Abra [[Especial:Minha página|sua página de usuário]] em "Editar código-fonte" e coloque cada trecho onde quiser mostrar as caixas e o painel. Preserve os outros textos e as categorias.
+
+Informe o nome da sua conta no índice antes de copiar ou baixar os trechos. Ele substitui <code>SEU_NOME_DE_USUARIO</code> na marca <code>data-perfilwiki-user</code> dos dois blocos e prepara os destinos pessoais. Se usar os arquivos diretamente, substitua essa marca manualmente pelo nome exato da conta.
+
+As caixas começam com "Aguardando dados". Não copie os números da página de outra pessoa. O painel de atividade usa o identificador <code>dan-pu-ritmo</code> e deve aparecer uma só vez na mesma página. As caixas também precisam manter uma só ocorrência de cada identificador fornecido pelo índice.
+
+A aparência pública usa a folha compartilhada:
+
+<syntaxhighlight lang="wikitext">
+<templatestyles src="Usuário:Daniel G Rego/PerfilWiki-estilos" />
+</syntaxhighlight>
+
+A página de estilos precisa ter o modelo de conteúdo <code>sanitized-css</code> antes de ser usada por <code>templatestyles</code>. TemplateStyles aceita um conjunto menor de regras que um navegador comum.<ref>[https://www.mediawiki.org/wiki/Extension:TemplateStyles Estilos de conteúdo com TemplateStyles].</ref>
+
+Salve, feche as abas antigas da Wikipédia e reabra a versão de leitura da sua página. O programa inicia nas páginas do grupo "Usuário" da própria conta, na Wikipédia em português. O editor e a previsão não iniciam essa rotina.
+
+Na primeira consulta, mantenha a página aberta e visível enquanto o histórico e as visualizações são consultados em lotes. Contas com muitos artigos podem precisar de mais tempo. As consultas não continuam depois que a página é fechada.
+
+== Migrar do RitmoPU e do EstatisticasPU ==
+
+Guarde uma cópia do trecho atual do seu common.js. Retire apenas as configurações e os carregadores antigos de RitmoPU e EstatisticasPU, inclusive chamadas colocadas dentro de outras funções. Acrescente a chamada única do PerfilWiki e sua configuração opcional. Preserve o RevisaWiki e os outros scripts.
+
+Se as caixas e o painel já estiverem na posição desejada, conserve a disposição e os identificadores compatíveis. Atualize a chamada dos estilos e substitua somente os blocos indicados pelo índice. Não substitua a página pessoal inteira por um modelo de outra conta.
+
+Feche as abas antigas depois de salvar. Um programa antigo ainda aberto pode continuar consultando dados até ser encerrado. O PerfilWiki confere a conta, o projeto e o fuso antes de aceitar um cache anterior. Quando não puder reaproveitá-lo, fará uma nova coleta. As chaves de outros programas não devem ser apagadas para instalar a ferramenta.
+
+== Atualizar os números para visitantes ==
+
+O common.js pessoal atualiza a tela da própria conta. Quem visita a página vê o wikitexto salvo nela.<ref>[https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#Personal_scripts Carregamento dos scripts pessoais].</ref> O PerfilWiki não salva páginas, não pede tokens de edição e não faz edições em seu nome.
+
+No menu "Ferramentas", "Baixar contadores atualizados" prepara <code>PerfilWiki_contadores.wiki</code>, e "Baixar painel atualizado" prepara <code>PerfilWiki_atividade.wiki</code>. Abra o arquivo em um editor de texto e confira a conta, os valores e a data. Substitua somente o bloco correspondente na sua página, usando o texto inteiro do arquivo. Se o trecho já trouxer a chamada dos estilos, evite duplicá-la.
+
+Use "Mostrar previsão" antes de salvar. O download não publica o arquivo, e uma consulta nova no navegador não altera a cópia pública. Você pode atualizar as caixas e o painel em momentos diferentes, por isso confira a data de cada trecho.
+
+Na sua sessão, "Última edição" usa um tempo relativo que avança enquanto a página fica aberta. A cópia pública usa "Última edição consultada" e uma data completa. Essa data se refere à edição recebida naquela consulta e não muda sozinha depois de salva.
+
+<span id="Como_os_dados_são_contados"></span>
+== O que cada caixa conta ==
+
+{| class="wikitable"
+! Caixa !! Regra
+|-
+| Contribuições || Total de edições informado para a conta global. Pode abranger projetos de outros idiomas e projetos que não são Wikipédias.
+|-
+| Agradecimentos recebidos || Soma dos agradecimentos públicos nos projetos ligados à conta global em que o registro está disponível.
+|-
+| Artigos criados || Contagem do XTools nas Wikipédias ligadas à conta, sem redirecionamentos e incluindo artigos apagados pelo filtro da consulta. As Wikipédias de teste ficam fora, e o campo de apagados não é somado uma segunda vez.
+|-
+| Artigos diferentes editados || Artigos da Wikipédia em português que continuam existentes no domínio principal e não são redirecionamentos. Cada página entra uma vez.
+|-
+| Reversões || Edições da conta na Wikipédia em português com as etiquetas <code>mw-rollback</code>, <code>mw-undo</code> ou <code>mw-manual-revert</code>. A etiqueta <code>mw-reverted</code> não entra, pois pertence à edição desfeita.
+|-
+| Predefinições, módulos e scripts criados || Páginas técnicas distintas criadas pela conta na Wikipédia em português, com conferência da autoria e do tipo atual.
+|-
+| Melhor sequência || Maior sequência de dias com edições públicas na Wikipédia em português, no fuso configurado.
+|-
+| Na Wikipédia || Anos completos desde a data pública de registro da conta na Wikipédia em português. Se a data não estiver disponível, a caixa aguarda dados. A cópia pública usa <code>Tempo decorrido</code> com a data consultada.
+|}
+
+Dez edições no mesmo artigo somam dez contribuições e um artigo diferente. As reversões sem uma das etiquetas aceitas não são descobertas por uma análise do conteúdo das edições. Um grupo que ainda não terminou de consultar todos os projetos conserva seu último total completo.
+
+=== Criações técnicas ===
+
+Uma criação precisa ter a marca de página nova e uma revisão sem revisão anterior, além dos números válidos da página e da revisão. O script confere se a página ainda existe, se não virou redirecionamento e qual é seu modelo de conteúdo.<ref>[https://www.mediawiki.org/wiki/API:Usercontribs Campos do histórico público de edições].</ref>
+
+Entram predefinições em wikitexto, módulos Scribunto e JavaScript nos grupos "Usuário" e "MediaWiki". CSS, JSON, páginas apagadas e redirecionamentos ficam fora. Editar código criado por outra pessoa não faz a página entrar nessa caixa.
+
+Os filtros de nome retiram subpáginas de documentação, testes e rascunhos reconhecidas pelo código. Entre os nomes estão <code>doc</code>, <code>documentacao</code>, <code>documentation</code>, <code>teste</code>, <code>test</code>, <code>testcases</code>, <code>sandbox</code> e <code>caixa de areia</code>, com os separadores previstos. Arquivos JavaScript terminados com nomes de teste, como <code>test.js</code>, <code>teste.js</code> e <code>spec.js</code>, também ficam fora. Esses filtros conferem nomes, sem examinar o conteúdo de toda página de teste com um nome diferente.
+
+== Calendário, sequência e metas ==
+
+Um dia entra na atividade quando há pelo menos uma edição pública nele, no fuso escolhido. Entram artigos e os outros grupos de páginas da Wikipédia em português. As antigas atualizações da subpágina <code>Usuário:NOME/PU/Estatísticas</code> da própria conta ficam fora, para que essas atualizações não mantenham uma sequência por conta própria.
+
+Se houve edição ontem e ainda não houve hoje, a sequência permanece até o fim de hoje. A melhor sequência define as metas já alcançadas. A sequência em andamento define o progresso até a próxima meta.
+
+O calendário mostra doze semanas. O resumo dos últimos 30 dias separa o número de edições do número de artigos diferentes editados. O histórico é percorrido por todos os lotes da consulta, usando a continuação devolvida pela API, sem limitar a sequência às edições mais recentes.<ref>[https://www.mediawiki.org/wiki/API:Continue Continuação das consultas da API].</ref>
+
+== Visualizações dos artigos ==
+
+Cada artigo começa no primeiro dia completo em UTC depois da sua primeira edição pública nele. Se a edição foi em 10 de outubro UTC, a contagem começa em 11 de outubro. O dia da edição fica fora, pois a consulta diária não separa acessos anteriores e posteriores à edição. Editar novamente o artigo não reinicia a contagem.
+
+As abas de 30 dias, 90 dias e 12 meses respeitam o início individual de cada artigo e terminam no último dia completo em UTC. Doze meses seguem o calendário e podem abranger 365 ou 366 dias. "Total acumulado" soma a série disponível depois do corte individual. O serviço fornece dados desde 1 de julho de 2015, sem recuperar acessos anteriores a essa data.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html Séries de visualizações da Wikimedia].</ref>
+
+Os totais somam todos os artigos aceitos, existentes no domínio principal e sem redirecionamentos. A lista mostra até 500 por período, com dez linhas no início e mais cem a cada expansão. Concluir a classificação dos artigos mais vistos não significa que a soma de todos os artigos já terminou.
+
+As consultas usam os títulos atuais, todos os meios de acesso e o tráfego classificado pelo serviço como de usuários. Uma pessoa pode abrir a página mais de uma vez. Os números não contam leitores únicos nem permitem afirmar que as visitas aconteceram por causa da sua edição.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/concepts/page-views.html Definição de visualização na Wikimedia].</ref> Uma página que mudou de nome também pode ter acessos antigos no título anterior que não entram na consulta pelo título atual.
+
+Uma falha de conexão não vira zero. O painel conserva o último resultado completo quando há dados novos pendentes. Respostas 404 e dias omitidos exigem conferência de disponibilidade antes de serem aceitos como ausência de acessos.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/troubleshooting.html Disponibilidade e erros da API de visualizações].</ref>
+
+As miniaturas dos primeiros artigos são opcionais e usam a consulta de imagens livres do PageImages.<ref>[https://www.mediawiki.org/wiki/Extension:PageImages Consulta de imagens com PageImages].</ref> Se uma imagem falhar, o título e o valor continuam disponíveis. A imagem não altera a contagem.
+
+== Consultas e cópia local ==
+
+O programa faz pedidos públicos de leitura, com <code>GET</code> e <code>credentials: 'omit'</code>. O nome da conta e os títulos consultados fazem parte desses pedidos. O navegador guarda dados para retomar as consultas, separados por conta e fuso, e confere sua identidade antes de usá-los.
+
+O histórico da Wikipédia em português é compartilhado pelos cálculos de atividade e pelos contadores que precisam dele. Os outros projetos da conta global são consultados para os números de alcance global. O intervalo regular de atualização é de cinco minutos. Uma coleta incompleta pode continuar em lotes, respeitando as pausas solicitadas pelos serviços.
+
+Se o navegador impedir o armazenamento, os resultados da sessão podem permanecer em memória, mas uma visita futura talvez precise repetir as consultas. Sair da página cancela os pedidos daquele ciclo. Uma resposta antiga não deve substituir os dados de uma coleta nova.
+
+== Manter uma cópia própria ==
+
+Quem mantém uma cópia própria publica o JavaScript completo em uma subpágina <code>.js</code> e os estilos em uma página com modelo de conteúdo <code>sanitized-css</code>. A única chamada de importação dentro do carregador completo deve apontar para essa cópia. Preserve as verificações de conta e página. Os campos opcionais <code>stylesPage</code> e <code>documentationPage</code> em <code>PerfilWikiConfig</code> permitem indicar os novos destinos usados nos trechos exportados.
+
+Atualize os arquivos completos da mesma distribuição. Depois, encerre as abas antigas e reabra a página. O índice traz conteúdo inteiro, resumo de edição, download e ligação direta ao editor para cada arquivo. Essas ligações não fazem a publicação.
+
+== Retirar a ferramenta ==
+
+Retire do common.js a configuração e a chamada que importa o PerfilWiki. Feche as abas antigas. Se quiser retirar também a apresentação pública, apague somente os blocos das caixas e do painel. Os outros textos, as categorias e os demais scripts podem permanecer.
+
+== Referências ==
+
+<references />

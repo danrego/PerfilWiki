@@ -1,0 +1,8 @@
+{
+  "cssSanitizerVersion": "v6.2.1",
+  "cssSanitizerCommit": "60973b8355c72a4acdddca3dcaa93bc901e0ccf2",
+  "stylesheetSha256": "e34067ba6f94653200a38cfe6c1c62476b522ba184f27a6b4e99d403b6298974",
+  "parserErrors": [],
+  "sanitizerErrors": [],
+  "method": "Exact byte identity with the locally validated stylesheet using Wikimedia CSS sanitizer and TemplateStyles rule construction. This result does not load site-specific Wikimedia hooks."
+}

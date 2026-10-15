@@ -63,7 +63,7 @@ async function main() {
                             await driver.setViewport(320, 1000);
                             const width = JSON.parse(await driver.evaluate('JSON.stringify({width:window.innerWidth,scrollWidth:document.documentElement.scrollWidth})'));
                             if (width.scrollWidth > width.width) throw new Error('Mobile document overflows: ' + JSON.stringify(width));
-                            await driver.screenshot(path.join(output, name + '-320.png'));
+                            await driver.screenshot(path.join(output, name + '-' + width.width + '.png'));
                             report.mobile = width; await driver.setViewport(1280, 1000);
                         }
                     }

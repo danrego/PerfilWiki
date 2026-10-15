@@ -183,7 +183,7 @@
         h.push('</div><div id="dan-pu-ritmo-install" style="margin-top:18px;padding-top:14px;border-top:1px solid #eaecf0;color:#54595d;font-size:12px;">Gostou deste painel? ' + wikiLink(presentation.documentationPage || 'Usuário:Daniel G Rego/PerfilWiki', 'Veja como adicionar à sua página de usuário.', wiki) + '</div></div>');
         // Newlines between inline cells make the wiki parser insert a paragraph
         // inside the CSS grid. Keep the exported HTML fragment contiguous.
-        return (wiki ? '<templatestyles src="' + escape(presentation.stylesPage || 'Usuário:Daniel G Rego/PerfilWiki-estilos') + '" />' : '') + h.join('');
+        return (wiki ? '<templatestyles src="' + escape(presentation.stylesPage || 'Usuário:Daniel G Rego/RitmoPU-estilos') + '" />' : '') + h.join('');
     }
     return Object.freeze({ streakGoal: streakGoal, html: function (s, all) { return render(s, false, all); }, wikitext: function (s, options) { return render(s, true, options || false); } });
 }));

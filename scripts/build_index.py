@@ -14,6 +14,7 @@ import re
 
 
 HOST = "Usuário:Daniel G Rego/PerfilWiki"
+STYLES_PAGE = "Usuário:Daniel G Rego/RitmoPU-estilos"
 FILES = [
     ("Carregador_PerfilWiki.js", "Seu common.js", "personal", "common",
      "Acrescente o carregador uma só vez. Preserve o restante do common.js. Ao migrar, retire apenas os carregadores antigos de RitmoPU e EstatisticasPU."),
@@ -21,8 +22,8 @@ FILES = [
      "Coloque este trecho onde deseja mostrar as caixas. Ele começa sem números pessoais. Quem já tem as caixas pode conservar sua disposição e seus identificadores."),
     ("Atividade_inicial.wiki", "Seu painel de atividade", "personal", "pu",
      "Coloque este trecho onde deseja mostrar o calendário e as listas. Mantenha um só painel de atividade e preserve os outros textos da página."),
-    ("PerfilWiki-estilos.css", "Manutenção dos estilos compartilhados", "maintenance", HOST + "-estilos",
-     "Arquivo completo para quem mantém a instalação compartilhada. Antes de usá-lo em templatestyles, a página precisa ter o modelo de conteúdo sanitized-css."),
+    ("PerfilWiki-estilos.css", "Manutenção dos estilos compartilhados", "maintenance", STYLES_PAGE,
+     "A instalação compartilhada usa a página RitmoPU-estilos, que já tem o modelo CSS higienizado. O nome do arquivo local continua PerfilWiki-estilos.css. Não crie outra página de estilos em texto wiki."),
     ("PerfilWiki.js", "Manutenção do programa compartilhado", "maintenance", HOST + ".js",
      "Arquivo completo para quem mantém a instalação compartilhada. Substitua a versão anterior inteira, sem acrescentar outra cópia ao fim."),
     ("Documentacao_PerfilWiki.wiki", "Documentação na Wikipédia", "maintenance", HOST,
@@ -217,9 +218,10 @@ def render_card(spec, payload, prefix):
     href = "#username" if scope == "personal" else editor_url(target)
     destination = "Informe sua conta acima para preparar o destino." if scope == "personal" else target
     disabled = "true" if scope == "personal" else "false"
+    model_link = ('<a class="button secondary" href="' + esc(editor_url(target).replace('&action=edit', '&action=info')) + '" target="_blank" rel="noopener noreferrer">Conferir modelo da página</a>') if name == 'PerfilWiki-estilos.css' else ''
     return f'''<article class="card" data-file="{esc(name)}" data-scope="{scope}" data-target="{esc(target)}">
 <h3>{esc(title)}</h3><p class="path destination">{esc(destination)}</p><p>{esc(description)}</p>
-<div class="actions"><button type="button" data-copy="content">Copiar arquivo inteiro</button><button type="button" class="secondary" data-copy="summary">Copiar resumo</button><a class="button secondary" data-editor href="{esc(href)}" aria-disabled="{disabled}" target="_blank" rel="noopener noreferrer">Abrir editor</a><a class="button secondary" data-download href="{esc(prefix + name)}" download="{esc(name)}">Baixar {esc(name)}</a></div>
+<div class="actions"><button type="button" data-copy="content">Copiar arquivo inteiro</button><button type="button" class="secondary" data-copy="summary">Copiar resumo</button><a class="button secondary" data-editor href="{esc(href)}" aria-disabled="{disabled}" target="_blank" rel="noopener noreferrer">Abrir editor</a><a class="button secondary" data-download href="{esc(prefix + name)}" download="{esc(name)}">Baixar {esc(name)}</a>{model_link}</div>
 <p class="status" role="status" aria-live="polite"></p><p class="hash">{item['bytes']} bytes · SHA-256: {item['sha256']}</p>
 <details><summary>Ver texto completo e copiar pelo teclado</summary><label>Arquivo inteiro: {esc(name)}<textarea class="full-text" readonly spellcheck="false"></textarea></label><label>Resumo de edição<textarea class="summary-text" readonly spellcheck="false"></textarea></label></details></article>'''
 
@@ -241,7 +243,7 @@ def render_index(version, releases, payload, *, distribution=False):
 <section class="notice"><p>Os destinos compartilhados abaixo são os endereços previstos para a instalação. Este pacote não confirma que os arquivos já tenham sido publicados na Wikipédia. Use a importação depois que o responsável tiver instalado o programa e os estilos nesses destinos.</p><p>Copiar e baixar não salva páginas. "Abrir editor" abre a Wikipédia somente quando você clica. A conferência e a decisão de salvar ficam com você.</p></section>
 <section class="account" aria-label="Preparar destinos pessoais"><label for="username">Seu nome de usuário na Wikipédia em português</label><input id="username" type="text" autocomplete="off" spellcheck="false" placeholder="Nome da conta"><p class="help">Digite sem "Usuário:". O nome prepara os destinos do common.js e da subpágina /PU e substitui SEU_NOME_DE_USUARIO nas marcas das caixas e da atividade. Os botões desses dois trechos copiam e baixam a versão preparada para sua conta. Se preferir a página principal de usuário, cole nela somente os trechos correspondentes.</p><p id="account-status" class="help" role="status" aria-live="polite"></p></section>
 <section id="personal"><h2>Sua instalação</h2><p class="section-help">Mantenha uma só chamada do PerfilWiki. O carregador usa a conta conectada e o fuso do navegador, com UTC como alternativa. A configuração opcional fica antes da importação. Preserve RevisaWiki e os outros scripts.</p><p class="section-help">Ao migrar uma página pronta, conserve os textos e a disposição das caixas e do painel. Substitua somente os trechos correspondentes. Não copie uma página pessoal inteira nem os números de outra conta.</p><div class="grid">{personal}</div></section>
-<section id="maintenance"><h2>Arquivos compartilhados, para manutenção</h2><p class="section-help">Estas etapas são para quem instala ou atualiza os arquivos compartilhados. Uma pessoa que usa a instalação pronta só precisa dos três trechos acima. Instale primeiro os estilos com modelo sanitized-css, depois o programa e a documentação.</p><div class="grid">{maintenance}</div></section>
+<section id="maintenance"><h2>Arquivos compartilhados, para manutenção</h2><p class="section-help">Estas etapas são para quem instala ou atualiza os arquivos compartilhados. Uma pessoa que usa a instalação pronta só precisa dos três trechos acima. Use a folha compartilhada RitmoPU-estilos, que já está preparada para TemplateStyles. Atualize o programa e a documentação antes dos trechos pessoais.</p><div class="grid">{maintenance}</div></section>
 <section id="history"><h2>Versões</h2><p>Histórico preparado a partir dos mesmos metadados da distribuição. O <a href="{root_prefix}CHANGELOG.md">CHANGELOG</a> guarda as notas de cada lançamento.</p><div class="history">{''.join(history)}</div></section>
 <footer><p>Na sua sessão, o programa consulta dados públicos e atualiza a tela. Para os visitantes, baixe os contadores e a atividade e substitua manualmente os blocos correspondentes na página. Uma falha de consulta não vira zero.</p><p>O total de visualizações soma todos os artigos aceitos. A lista apresenta até 500 por período. Edições e agradecimentos podem abranger os projetos da conta global, enquanto a atividade e as visualizações usam a Wikipédia em português.</p><p>Este índice não busca arquivos pela rede. Cada botão usa o texto inteiro incorporado, com tamanho e SHA-256 indicados acima. Se o navegador não permitir copiar, abra o texto completo e use o teclado.</p></footer></main>
 <script id="release-files" type="application/json">{embedded}</script><script>{SCRIPT}</script></body></html>

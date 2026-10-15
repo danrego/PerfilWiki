@@ -18,7 +18,7 @@ Para reconstruir somente os índices depois de preparar os arquivos de distribui
 python3 scripts/build_index.py
 ```
 
-O índice da raiz e o índice dentro de `dist/1.0.0` usam caminhos relativos próprios. A construção não busca dados externos nem inclui uma fotografia pessoal de resultados.
+O índice da raiz e o índice dentro de `dist/1.0.1` usam caminhos relativos próprios. A construção não busca dados externos nem inclui uma fotografia pessoal de resultados.
 
 ## Executar os contratos locais
 
@@ -46,7 +46,9 @@ A folha destinada à Wikipédia precisa passar pelo sanitizador de TemplateStyle
 
 A revisão visual deve conferir as caixas e a atividade em suas posições independentes, em telas largas e estreitas. Confira abas, expansões, teclado, foco e falhas das miniaturas. As imagens opcionais não podem mudar uma soma nem impedir a leitura do título.
 
-Os testes locais de regras não substituem essa revisão visual. Um teste de navegador deve registrar o navegador usado, os passos e os limites da sessão. Na versão 1.0.0, passaram os 104 testes registrados no Node, com 20 casos herdados de métricas dentro dessa execução. Chrome 155.0.8059.40, Firefox 158.0 e Safari 27.0.1 passaram por 110 verificações cada, com respostas simuladas em localhost. A conferência cobriu os cinco cenários de execução, os dois índices e a apresentação estreita, com 320 pixels no Chrome e no Firefox e 336 pixels no Safari, o mínimo obtido nessa sessão WebDriver. O relatório resumido está em [VALIDACAO.json](VALIDACAO.json). Nenhuma sessão autenticada da Wikimedia foi operada e a área de transferência real não foi alterada.
+Os testes locais de regras não substituem essa revisão visual. Um teste de navegador deve registrar o navegador usado, os passos e os limites da sessão. Na versão 1.0.1, passaram os 107 testes registrados no Node, com 20 casos herdados de métricas dentro dessa execução. Chrome 155.0.8059.40, Firefox 158.0 e Safari 27.0.1 passaram por 112 verificações cada, com respostas simuladas em localhost. A conferência cobriu os cinco cenários de execução, os dois índices e a apresentação estreita, com 320 pixels no Chrome e no Firefox e 336 pixels no Safari, o mínimo obtido nessa sessão WebDriver. O relatório resumido está em [VALIDACAO.json](VALIDACAO.json). Nenhuma sessão autenticada da Wikimedia foi operada e a área de transferência real não foi alterada.
+
+A correção também passou por uma previsão anônima na API real do MediaWiki, sem salvar a página. A resposta não trouxe avisos nem erro de modelo do TemplateStyles e conservou as oito caixas e a marca da conta. A consulta pública do modelo confirmou `sanitized-css` na folha compartilhada existente. Os testes locais de navegador, por si só, não conferem o modelo de uma página hospedada na Wikipédia.
 
 ## Repetir os testes de navegador
 

@@ -1,4 +1,4 @@
-/* PerfilWiki 1.0.0. Shared scheduler and anonymous transport. Daniel G Rego, CC BY-SA 4.0. */
+/* PerfilWiki 1.0.1. Shared scheduler and anonymous transport. Daniel G Rego, CC BY-SA 4.0. */
 (function (win) {
     'use strict';
     var mw = win.mw, core = win.PerfilWikiCoordinator, view = win.PerfilWikiActivityView, codec = win.PerfilWikiCache, presenter = win.PerfilWikiPresenter;
@@ -521,7 +521,7 @@
             schedule(1500);
         });
     }
-    win.PerfilWiki = Object.freeze({ version: '1.0.0', readOnly: true, refreshInterval: REFRESH,
+    win.PerfilWiki = Object.freeze({ version: '1.0.1', readOnly: true, refreshInterval: REFRESH,
         refresh: function () { return refresh(true); }, download: download, downloadActivity: download, downloadCards: downloadCards,
         getState: function () { return current ? JSON.parse(JSON.stringify(current)) : null; } });
     // Compatibility sentinels stop old loaders from starting a second scheduler.

@@ -19,7 +19,7 @@
         var zone = input.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
         if (typeof zone !== 'string') { throw new Error('Fuso inválido.'); }
         new Intl.DateTimeFormat('pt-BR', {timeZone: zone}).format(new Date(0));
-        var stylesPage = input.stylesPage || 'Usuário:Daniel G Rego/PerfilWiki-estilos';
+        var stylesPage = input.stylesPage || 'Usuário:Daniel G Rego/RitmoPU-estilos';
         var documentationPage = input.documentationPage || 'Usuário:Daniel G Rego/PerfilWiki';
         if (!title(stylesPage) || !title(documentationPage)) { throw new Error('Título de página inválido.'); }
         return {metrics: {user:user, project:'pt.wikipedia.org', timeZone:zone, activityRefreshMs:300000,

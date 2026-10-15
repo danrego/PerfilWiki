@@ -37,6 +37,17 @@ const indexExpression = `(async function(){
       var href=card.querySelector('[data-download]').href, downloaded=href.startsWith('blob:')?await blobs.get(href).text():await(await fetch(href)).text();
       check(card.dataset.file+' download exact content and SHA256',downloaded===expected&&(item.template||await sha(downloaded)===item.sha256),{characters:downloaded.length});
       check(card.dataset.file+' editor link stays beside copy controls',!!card.querySelector('.actions [data-editor]')&&card.querySelector('[data-editor]').href.startsWith('https://pt.wikipedia.org/w/index.php?title='),{});
+      if(card.dataset.file==='PerfilWiki-estilos.css'){
+        var target=new URL(card.querySelector('[data-editor]').href).searchParams.get('title').replace(/_/g,' ');
+        var models={'Usuário:Daniel G Rego/RitmoPU-estilos':'sanitized-css','Usuário:Daniel G Rego/PerfilWiki-estilos':'wikitext'};
+        check('CSS installation target has the required content model in the regression fixture',target==='Usuário:Daniel G Rego/RitmoPU-estilos'&&models[target]==='sanitized-css',{target:target,model:models[target]});
+        var info=Array.from(card.querySelectorAll('.actions a')).find(a=>new URL(a.href).searchParams.get('action')==='info');
+        check('CSS page-model check has a separate read-only information link',!!info&&new URL(info.href).searchParams.get('title').replace(/_/g,' ')===target,{href:info&&info.href,clicked:false});
+      }
+      if(card.dataset.file==='Atividade_inicial.wiki'||card.dataset.file==='Contadores_iniciais.wiki'||card.dataset.file==='PU_com_PerfilWiki.wiki'){
+        var refs=Array.from(expected.matchAll(/<templatestyles\\s+src="([^"]+)"/g)).map(m=>m[1]);
+        check(card.dataset.file+' contains the valid shared stylesheet and no broken renamed reference',refs.indexOf('Usuário:Daniel G Rego/RitmoPU-estilos')>=0&&refs.indexOf('Usuário:Daniel G Rego/PerfilWiki-estilos')<0,{references:refs});
+      }
       if(!largest||expected.length>largest.expected.length)largest={card:card,expected:expected};
     }
     rejectCopy=true;largest.card.querySelector('[data-copy="content"]').click();await new Promise(r=>setTimeout(r,50));

@@ -10,6 +10,8 @@ const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 
 const repository = path.resolve(__dirname, '..');
+const version = JSON.parse(fs.readFileSync(path.join(repository, 'package.json'), 'utf8')).version;
+const stylesPage = 'Usuário:Daniel G Rego/RitmoPU-estilos';
 const python = process.env.PYTHON || 'python3';
 const names = ['PerfilWiki.js', 'PerfilWiki-estilos.css', 'Carregador_PerfilWiki.js',
     'Contadores_iniciais.wiki', 'Atividade_inicial.wiki', 'Documentacao_PerfilWiki.wiki', 'Notas_da_versao.txt'];
@@ -42,9 +44,9 @@ before(() => {
 after(() => { if (temporary) fs.rmSync(temporary, { recursive: true, force: true }); });
 
 test('a relocated source checkout builds all seven release assets and two offline indexes', () => {
-    assert.equal(metadata.version, '1.0.0');
+    assert.equal(metadata.version, version);
     assert.deepEqual(metadata.files, names.slice().sort());
-    assert.deepEqual(metadata.indexes, ['INICIO.html', 'dist/1.0.0/INICIO.html']);
+    assert.deepEqual(metadata.indexes, ['INICIO.html', 'dist/' + version + '/INICIO.html']);
     for (const name of names) assert.ok(read(name).trim(), name);
     assert.ok(fs.readFileSync(path.join(temporary, 'INICIO.html'), 'utf8').includes('Copiar arquivo inteiro'));
     assert.ok(read('INICIO.html').includes('Copiar resumo'));
@@ -74,7 +76,8 @@ test('starter markup has one generic owner token, no personal values and stable 
     for (const name of ['Contadores_iniciais.wiki', 'Atividade_inicial.wiki']) {
         const markup = read(name);
         assert.equal((markup.match(/data-perfilwiki-user="SEU_NOME_DE_USUARIO"/g) || []).length, 1);
-        assert.match(markup, /<templatestyles src="Usuário:Daniel G Rego\/PerfilWiki-estilos" \/>/);
+        assert.ok(markup.includes('<templatestyles src="' + stylesPage + '" />'));
+        assert.doesNotMatch(markup, /<templatestyles src="Usuário:Daniel G Rego\/PerfilWiki-estilos"/);
         assert.doesNotMatch(markup, /data-perfilwiki-user="Daniel G Rego"/);
         assert.doesNotMatch(markup, /\d[.,]\d{3}/);
     }
@@ -85,6 +88,24 @@ test('starter markup has one generic owner token, no personal values and stable 
         assert.equal((cards.match(new RegExp('id="' + id + '"', 'g')) || []).length, 1, id);
     }
     assert.equal((read('Atividade_inicial.wiki').match(/id="dan-pu-ritmo"/g) || []).length, 1);
+});
+
+test('the shared CSS copy card opens the same existing content-model-compatible target used by starters', () => {
+    const html = read('INICIO.html');
+    const card = html.match(/<article\b[^>]*data-file="PerfilWiki-estilos\.css"[\s\S]*?<\/article>/);
+    assert.ok(card, 'CSS maintenance card exists');
+    const href = card[0].match(/data-editor href="([^"]+)"/);
+    assert.ok(href, 'CSS editor stays beside its copy controls');
+    const url = new URL(href[1].replace(/&amp;/g, '&'));
+    assert.equal(url.origin, 'https://pt.wikipedia.org');
+    assert.equal(url.searchParams.get('title').replace(/_/g, ' '), stylesPage);
+    assert.equal(url.searchParams.get('action'), 'edit');
+    assert.equal(url.searchParams.has('contentmodel'), false, 'No privilege-dependent content-model change is requested');
+    const info = card[0].match(/href="([^"]*action=info)"/);
+    assert.ok(info, 'A separate read-only page-information link allows a manual content-model check');
+    const infoUrl = new URL(info[1].replace(/&amp;/g, '&'));
+    assert.equal(infoUrl.searchParams.get('title').replace(/_/g, ' '), stylesPage);
+    assert.equal(infoUrl.searchParams.get('action'), 'info');
 });
 
 function loadLoader(changes = {}, windowChanges = {}) {
@@ -118,7 +139,7 @@ test('loader does nothing on edits, other projects, other users, anonymous views
 test('documentation is copied whole and release notes come from the same checked metadata', () => {
     assert.equal(read('Documentacao_PerfilWiki.wiki'), fs.readFileSync(path.join(temporary, 'docs/Documentacao_PerfilWiki.wiki'), 'utf8'));
     const releases = JSON.parse(fs.readFileSync(path.join(temporary, 'docs/RELEASES.json'), 'utf8'));
-    assert.equal(releases[0].version, '1.0.0');
+    assert.equal(releases[0].version, version);
     assert.equal(releases[0].date, '2026-10-15');
     for (const change of releases[0].changes) assert.ok(read('Notas_da_versao.txt').includes(change));
 });
@@ -179,13 +200,14 @@ test('loader version follows release metadata for the next build', () => {
     const originalPackage = fs.readFileSync(packageFile, 'utf8');
     const originalReleases = fs.readFileSync(releasesFile, 'utf8');
     try {
-        fs.writeFileSync(packageFile, JSON.stringify(Object.assign(JSON.parse(originalPackage), { version: '1.0.1' })));
+        const nextVersion = version.split('.').map((part, i) => i === 2 ? Number(part) + 1 : part).join('.');
+        fs.writeFileSync(packageFile, JSON.stringify(Object.assign(JSON.parse(originalPackage), { version: nextVersion })));
         const releases = JSON.parse(originalReleases);
-        releases[0].version = '1.0.1';
+        releases[0].version = nextVersion;
         fs.writeFileSync(releasesFile, JSON.stringify(releases));
         const result = build();
         assert.equal(result.status, 0, result.stderr);
-        assert.match(fs.readFileSync(path.join(temporary, 'dist/1.0.1/Carregador_PerfilWiki.js'), 'utf8'), /^\/\* PerfilWiki 1\.0\.1\./);
+        assert.ok(fs.readFileSync(path.join(temporary, 'dist', nextVersion, 'Carregador_PerfilWiki.js'), 'utf8').startsWith('/* PerfilWiki ' + nextVersion + '.'));
     } finally {
         fs.writeFileSync(packageFile, originalPackage);
         fs.writeFileSync(releasesFile, originalReleases);

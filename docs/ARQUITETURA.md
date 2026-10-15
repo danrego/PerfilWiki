@@ -28,6 +28,8 @@ A rotina exige a Wikipédia em português, uma página de leitura do grupo "Usu�
 
 Os arquivos iniciais usam `data-perfilwiki-user="SEU_NOME_DE_USUARIO"`. O índice substitui a marca pelo nome informado antes de copiar ou baixar os trechos. A importação continua usando a conta conectada. A marca no HTML informa a quem o bloco pertence e precisa corresponder a essa conta.
 
+O arquivo de origem `PerfilWiki-estilos.css` contém as regras da aparência. O destino público padrão é `Usuário:Daniel G Rego/RitmoPU-estilos`, uma folha já preparada com o modelo de conteúdo `sanitized-css`. O nome do arquivo da distribuição não determina o modelo de conteúdo de uma página na Wikipédia. A sessão do usuário recebe os mesmos estilos incorporados ao JavaScript, e a cópia pública depende da chamada de TemplateStyles.
+
 As caixas e a atividade mantêm contêineres separados. Os identificadores antigos compatíveis permitem conservar sua posição na página. A ferramenta não recebe uma página pessoal completa como modelo nem precisa reordenar os outros textos.
 
 ## Histórico e contadores
@@ -64,7 +66,7 @@ O programa não envia esse texto para salvar uma página. A pessoa abre o arquiv
 
 ## Construção da distribuição
 
-`npm run build` executa `scripts/build.py`. O script lê a versão em `package.json`, confere `docs/RELEASES.json`, reúne os módulos e escreve os arquivos completos em `dist/1.0.0` para esta versão.
+`npm run build` executa `scripts/build.py`. O script lê a versão em `package.json`, confere `docs/RELEASES.json`, reúne os módulos e escreve os arquivos completos em `dist/1.0.1` para esta versão.
 
 `scripts/build_index.py` prepara o índice da raiz e o índice da distribuição com os mesmos arquivos e metadados. Os textos ficam incorporados ao HTML, com tamanho e SHA-256. Os trechos iniciais são personalizados no navegador depois de informar a conta, sem alterar os arquivos genéricos do repositório.
 

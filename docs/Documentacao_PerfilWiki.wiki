@@ -1,6 +1,6 @@
 O '''PerfilWiki''' reúne as caixas de estatísticas e o painel de atividade para páginas de usuário da Wikipédia em português. O programa consulta os dados públicos da sua conta e mostra os resultados na sua sessão, mantendo as caixas, o calendário, as metas de dias seguidos e as listas de artigos com suas visualizações.
 
-Esta documentação acompanha a versão '''1.0.0'''. Os endereços compartilhados abaixo são os destinos previstos para a instalação. O pacote não confirma que esses arquivos já tenham sido publicados na Wikipédia. A instalação compartilhada precisa ser concluída antes de usar a importação.
+Esta documentação acompanha a versão '''1.0.1'''. O programa compartilhado precisa estar instalado antes de usar a importação. Os estilos usam a folha existente [[Usuário:Daniel G Rego/RitmoPU-estilos]], que já tem o modelo de conteúdo exigido por TemplateStyles. A instalação compartilhada não exige criar uma folha de estilos nem mudar o modelo de conteúdo de uma página.
 
 == Instalar na sua conta ==
 
@@ -33,10 +33,10 @@ As caixas começam com "Aguardando dados". Não copie os números da página de 
 A aparência pública usa a folha compartilhada:
 
 <syntaxhighlight lang="wikitext">
-<templatestyles src="Usuário:Daniel G Rego/PerfilWiki-estilos" />
+<templatestyles src="Usuário:Daniel G Rego/RitmoPU-estilos" />
 </syntaxhighlight>
 
-A página de estilos precisa ter o modelo de conteúdo <code>sanitized-css</code> antes de ser usada por <code>templatestyles</code>. TemplateStyles aceita um conjunto menor de regras que um navegador comum.<ref>[https://www.mediawiki.org/wiki/Extension:TemplateStyles Estilos de conteúdo com TemplateStyles].</ref>
+O nome "RitmoPU-estilos" é mantido porque essa folha já usa o modelo "CSS higienizado", cujo nome técnico é <code>sanitized-css</code>, e contém as regras de aparência do PerfilWiki. Não troque esse destino por uma página nova em wikitexto. TemplateStyles aceita um conjunto menor de regras que um navegador comum.<ref>[https://www.mediawiki.org/wiki/Extension:TemplateStyles Estilos de conteúdo com TemplateStyles].</ref>
 
 Salve, feche as abas antigas da Wikipédia e reabra a versão de leitura da sua página. O programa inicia nas páginas do grupo "Usuário" da própria conta, na Wikipédia em português. O editor e a previsão não iniciam essa rotina.
 
@@ -123,9 +123,25 @@ O histórico da Wikipédia em português é compartilhado pelos cálculos de ati
 
 Se o navegador impedir o armazenamento, os resultados da sessão podem permanecer em memória, mas uma visita futura talvez precise repetir as consultas. Sair da página cancela os pedidos daquele ciclo. Uma resposta antiga não deve substituir os dados de uma coleta nova.
 
+== Corrigir a chamada dos estilos da versão 1.0.0 ==
+
+Se a página disser que <code>Usuário:Daniel G Rego/PerfilWiki-estilos</code> precisa ter o modelo "CSS higienizado", abra o código-fonte da sua página e troque todas as chamadas desse destino por:
+
+<syntaxhighlight lang="wikitext">
+<templatestyles src="Usuário:Daniel G Rego/RitmoPU-estilos" />
+</syntaxhighlight>
+
+A troca conserva os textos, os números e a disposição dos blocos. Use "Mostrar previsão" para conferir a aparência antes de salvar. Não é necessário mudar o modelo de conteúdo da página criada por engano para usar a folha compartilhada válida.
+
+Atualize o programa compartilhado para a versão 1.0.1 pelo índice. Se sua configuração tiver <code>stylesPage</code>, ajuste esse campo para <code>Usuário:Daniel G Rego/RitmoPU-estilos</code> ou retire-o para usar o destino padrão. Assim, os próximos downloads também usam a folha correta. Feche as abas antigas e reabra a página depois da atualização.
+
 == Manter uma cópia própria ==
 
-Quem mantém uma cópia própria publica o JavaScript completo em uma subpágina <code>.js</code> e os estilos em uma página com modelo de conteúdo <code>sanitized-css</code>. A única chamada de importação dentro do carregador completo deve apontar para essa cópia. Preserve as verificações de conta e página. Os campos opcionais <code>stylesPage</code> e <code>documentationPage</code> em <code>PerfilWikiConfig</code> permitem indicar os novos destinos usados nos trechos exportados.
+Quem quiser hospedar apenas o JavaScript pode publicar o arquivo completo em uma subpágina <code>.js</code> da própria conta e continuar usando a folha compartilhada. A única chamada de importação dentro do carregador completo deve apontar para essa cópia. Preserve as verificações de conta e página.
+
+Uma folha própria precisa ter o modelo "CSS higienizado", cujo nome técnico é <code>sanitized-css</code>. Criar uma subpágina no domínio "Usuário" com o final <code>.css</code> produz CSS comum e não atende a essa exigência. Mudar o modelo exige a permissão <code>editcontentmodel</code>. Se a conta não tiver essa permissão, peça a um administrador para preparar a folha ou continue usando a folha compartilhada.<ref>[https://www.mediawiki.org/wiki/Extension:TemplateStyles#Usage Modelo de conteúdo das folhas de TemplateStyles].</ref>
+
+Depois que a folha própria estiver pronta, ajuste a chamada de <code>templatestyles</code> e o campo opcional <code>stylesPage</code> em <code>PerfilWikiConfig</code>. O campo opcional <code>documentationPage</code> escolhe o destino da documentação nos trechos exportados. Esses campos recebem títulos completos de páginas da Wikipédia, e não URLs.
 
 Atualize os arquivos completos da mesma distribuição. Depois, encerre as abas antigas e reabra a página. O índice traz conteúdo inteiro, resumo de edição, download e ligação direta ao editor para cada arquivo. Essas ligações não fazem a publicação.
 

@@ -2,19 +2,21 @@
 
 O PerfilWiki reúne as caixas de estatísticas e o painel de atividade do RitmoPU e do EstatisticasPU para páginas de usuário da Wikipédia em português. A página mantém as caixas, o calendário, as metas de dias seguidos e as listas de artigos com suas visualizações.
 
-A versão inicial é **1.0.0**. As mudanças de cada versão ficam no [histórico](CHANGELOG.md), com uma lista própria para cada lançamento.
+A versão desta distribuição é **1.0.1**. As mudanças de cada versão ficam no [histórico](CHANGELOG.md), com uma lista própria para cada lançamento.
 
 ## Instalação
 
 Abra o [índice de copiar e colar](INICIO.html) da distribuição baixada. Ele apresenta o destino de cada arquivo, o conteúdo completo, o resumo de edição, o download e a ligação para o editor da Wikipédia. O [guia de instalação](docs/INSTALACAO.md) explica as etapas e a migração.
 
-Os arquivos compartilhados precisam ser publicados manualmente nos destinos indicados pelo índice antes de usar a importação. O pacote não confirma que esses endereços já estejam instalados.
+O programa compartilhado precisa estar instalado no destino indicado pelo índice antes de usar a importação. A aparência pública usa a folha existente `Usuário:Daniel G Rego/RitmoPU-estilos`, que já tem o modelo de conteúdo exigido por TemplateStyles. Quem usa a instalação compartilhada não precisa criar uma folha de estilos nem mudar modelos de conteúdo.
 
 A instalação tem três partes: o programa compartilhado, o trecho no seu `common.js` e os blocos colocados na sua página de usuário. As caixas e a atividade podem ficar em posições independentes. O programa usa a conta conectada e o fuso do navegador, com UTC como alternativa se o fuso não puder ser obtido. A configuração permite escolher outro fuso.
 
 Copie o arquivo inteiro `Carregador_PerfilWiki.js` pelo índice e acrescente-o ao `common.js`. Ele confere a conta e a página antes de buscar o programa. Não use uma importação isolada no lugar desse carregador.
 
 O destino `Usuário:Daniel G Rego/PerfilWiki.js` dentro do carregador aponta para o programa compartilhado. Seus números vêm da conta configurada. Preserve os outros scripts do arquivo.
+
+Se você instalou a versão 1.0.0 e viu um erro de "CSS higienizado", siga a [correção da chamada dos estilos](docs/INSTALACAO.md#corrigir-uma-instalação-da-versão-100). A versão 1.0.1 usa a folha compartilhada válida nos trechos iniciais e nos downloads.
 
 Quem já usa RitmoPU e EstatisticasPU deve seguir a migração do índice e manter uma só chamada do PerfilWiki. Depois de salvar, feche as abas antigas da Wikipédia e abra sua página novamente. Isso encerra as instâncias anteriores dos scripts.
 

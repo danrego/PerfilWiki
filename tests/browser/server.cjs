@@ -5,14 +5,18 @@ const http = require('node:http');
 const crypto = require('node:crypto');
 const { seed } = require('./seed.cjs');
 const base = __dirname;
-const bundle = path.resolve(base, '../../dist/1.0.0/PerfilWiki.js');
-const personal = path.resolve(base, '../../../../../outputs/perfilwiki_1_0_0');
+const version = require('../../package.json').version;
+const distribution = path.resolve(base, '../../dist', version);
+const bundle = path.join(distribution, 'PerfilWiki.js');
+const personal = path.resolve(process.env.PERFILWIKI_PERSONAL_PACKAGE || path.resolve(base, '../../../../../outputs/perfilwiki_' + version.replace(/\./g, '_')));
 const CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'";
 async function start() {
-    if (!fs.existsSync(bundle)) throw new Error('Build dist/1.0.0/PerfilWiki.js before running browser tests.');
+    if (!fs.existsSync(bundle)) throw new Error('Build dist/' + version + '/PerfilWiki.js before running browser tests.');
     const data = await seed(), requests = [];
+    data.releaseVersion = version;
+    data.stylesPage = 'Usuário:Daniel G Rego/RitmoPU-estilos';
     const html = '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="stylesheet" href="/style.css"><title>PerfilWiki, teste local</title><body style="margin:24px;font-family:sans-serif;background:#fff"><div id="fixture-tools"></div><main style="max-width:1180px;margin:auto">' + data.cards + data.activity + '</main><pre id="fixture-results"></pre><script src="/seed.js"></script><script src="/bootstrap.js"></script><script src="/PerfilWiki.js"></script><script>window.PWTEST.firstApi=window.PerfilWiki;</script><script src="/PerfilWiki.js"></script><script src="/suite.js"></script></body></html>';
-    const files = { '/bootstrap.js': path.join(base, 'bootstrap.js'), '/suite.js': path.join(base, 'suite.js'), '/PerfilWiki.js': bundle, '/style.css': path.join(base, '../../dist/1.0.0/PerfilWiki-estilos.css') };
+    const files = { '/bootstrap.js': path.join(base, 'bootstrap.js'), '/suite.js': path.join(base, 'suite.js'), '/PerfilWiki.js': bundle, '/style.css': path.join(distribution, 'PerfilWiki-estilos.css') };
     for (const [prefix, directory] of [['/public/', path.dirname(bundle)], ['/personal/', personal]]) {
         if (fs.existsSync(directory)) for (const name of fs.readdirSync(directory)) if (fs.statSync(path.join(directory, name)).isFile()) files[prefix + name] = path.join(directory, name);
     }

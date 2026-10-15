@@ -11,6 +11,7 @@ import re
 MODULES = ["Configuration", "PageviewsCore", "History", "Statistics", "Coordinator",
            "Presenter", "ActivityView", "Cache", "CardsView"]
 HOST = "Usuário:Daniel G Rego/PerfilWiki"
+STYLES_PAGE = "Usuário:Daniel G Rego/RitmoPU-estilos"
 USER_TOKEN = "SEU_NOME_DE_USUARIO"
 CARDS = [
     ("perfilwiki-anos", "Na Wikipédia", "🌱", " dan-pu-stat-tenure"),
@@ -101,7 +102,7 @@ def check_public_tree(root):
 
 
 def cards_markup():
-    pieces = ['<templatestyles src="' + HOST + '-estilos" />',
+    pieces = ['<templatestyles src="' + STYLES_PAGE + '" />',
               '<div id="dan-pu-estatisticas" class="dan-pu-stats" data-perfilwiki-user="' + USER_TOKEN + '">']
     for element_id, label, icon, classes in CARDS:
         pieces.append('<div class="dan-pu-stat-card' + classes + '"><div class="dan-pu-stat-icon" aria-hidden="true">' +
@@ -113,7 +114,7 @@ def cards_markup():
 
 
 def activity_markup():
-    return ('<templatestyles src="' + HOST + '-estilos" />'
+    return ('<templatestyles src="' + STYLES_PAGE + '" />'
             '<div id="dan-pu-ritmo" data-perfilwiki-user="' + USER_TOKEN + '">'
             'A atividade ainda não foi consultada. Abra esta página na sua conta para iniciar a consulta pública.'
             '</div>')

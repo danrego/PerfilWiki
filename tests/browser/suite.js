@@ -21,7 +21,7 @@
             check('service error preserves a bounded request count', t.requests.length <= 3, t.requests.length);
         } else {
             var api = win.PerfilWiki, state = api && api.getState();
-            check('actual bundled runtime installs its public API', api && api.version === '1.0.0' && state && state.history.complete, state && state.history.entries.length);
+            check('actual bundled runtime installs its public API', api && api.version === win.PW_SEED.releaseVersion && state && state.history.complete, state && state.history.entries.length);
             check('a second complete bundle load reuses the same runtime', api === t.firstApi && win.document.querySelectorAll('#t-perfilwiki-refresh').length === 1, {});
             check('rich history, activity and card metrics share one account', state.history.user === win.PW_SEED.user && state.activity.identity.user === state.history.user && state.statistics.user === state.history.user, {});
             check('official global and local counters remain distinct', state.statistics.metrics.edits === 20000 && state.statistics.metrics.edited === 501 && state.statistics.metrics.reverts === 1, state.statistics.metrics);
@@ -51,6 +51,10 @@
             var cards = t.downloads.find(function (item) { return item.name === 'PerfilWiki_contadores.wiki'; });
             check('activity export contains every visible ranking row in all four periods', panel && (panel.text.match(/class="dan-pu-view-row"/g) || []).length === 2000 && panel.text.indexOf('data-perfilwiki-user="' + win.PW_SEED.user + '"') >= 0, panel && { characters: panel.text.length, rows: (panel.text.match(/class="dan-pu-view-row"/g) || []).length });
             check('card export contains all eight cards and exact global count', cards && (cards.text.match(/class="dan-pu-stat-card/g) || []).length === 8 && cards.text.indexOf('20.000') >= 0, cards && cards.text.length);
+            [panel, cards].forEach(function (item) {
+                var expected = '<templatestyles src="' + win.PW_SEED.stylesPage + '" />';
+                check(item.name + ' uses the existing sanitized-css stylesheet target', item.text.indexOf(expected) === 0 && item.text.indexOf('<templatestyles src="Usuário:Daniel G Rego/PerfilWiki-estilos"') < 0, { stylesPage: win.PW_SEED.stylesPage });
+            });
             click('dan-pu-ritmo-collapse-90d'); click('dan-pu-ritmo-tab-30d');
         }
         check('all logical data requests are anonymous GET', t.requests.every(function (request) { return request.method === 'GET' && request.credentials === 'omit'; }), t.requests.length);

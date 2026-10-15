@@ -44,6 +44,12 @@ test('custom hosting and account labels are escaped in HTML and saved wikitext',
     assert.doesNotMatch(wiki,/<script|onerror=|javascript:/i);
     assert.match(Cards.html({user:'A"<B',metrics:{}},null,{user:'A"<B'}),/data-perfilwiki-user="A&quot;&lt;B"/);
 });
+test('default activity exports reference the usable shared TemplateStyles page', () => {
+    const state={config:{user,timeZone:'UTC'},capturedAt:NOW,activity:activity(),pageviews:null};
+    const wiki=View.wikitext(state);
+    assert.match(wiki,/^<templatestyles src="Usuário:Daniel G Rego\/RitmoPU-estilos" \/>/);
+    assert.doesNotMatch(wiki,/<templatestyles src="Usuário:Daniel G Rego\/PerfilWiki-estilos"/);
+});
 test('milestones progress past completed goals and preserve earned badges after a broken streak', () => {
     assert.equal(View.streakGoal(30,30).next,45);
     assert.equal(View.streakGoal(45,45).next,60);

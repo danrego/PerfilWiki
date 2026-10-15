@@ -25,6 +25,17 @@ test('configuration uses the actual supplied account and fixes the project to pt
     assert.equal(settings.metrics.fullRescanMs, 30 * 86400000);
 });
 
+test('the shared default uses the existing sanitized-css page rather than a newly created wikitext page', () => {
+    const pageModels = new Map([
+        ['Usuário:Daniel G Rego/RitmoPU-estilos', 'sanitized-css'],
+        ['Usuário:Daniel G Rego/PerfilWiki-estilos', 'wikitext']
+    ]);
+    const settings = resolve('Editora Exemplo', { timeZone: 'UTC' });
+    assert.equal(settings.stylesPage, 'Usuário:Daniel G Rego/RitmoPU-estilos');
+    assert.equal(pageModels.get(settings.stylesPage), 'sanitized-css');
+    assert.notEqual(pageModels.get('Usuário:Daniel G Rego/PerfilWiki-estilos'), 'sanitized-css');
+});
+
 test('no real person is a fallback metrics user', () => {
     assert.equal(Pageviews.DEFAULT_CONFIG.user, '');
     for (const user of [null, undefined, '', '   ']) {

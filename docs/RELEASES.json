@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.0.1",
+    "date": "2026-10-15",
+    "changes": [
+      "Corrige a instalação para usar a folha compartilhada RitmoPU-estilos, que já tem o modelo CSS higienizado.",
+      "Retira a necessidade de mudar o modelo de conteúdo de uma página nova para instalar a cópia compartilhada.",
+      "Mantém o destino correto nos dois downloads, nos blocos iniciais e nos atalhos do índice.",
+      "Explica a diferença entre o CSS local e a página que o TemplateStyles pode carregar."
+    ]
+  },
+  {
     "version": "1.0.0",
     "date": "2026-10-15",
     "changes": [

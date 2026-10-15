@@ -2,6 +2,13 @@
 
 Cada lançamento reúne suas próprias mudanças, da versão mais recente para a mais antiga.
 
+## 1.0.1 - 2026-10-15
+
+- Corrige a instalação para usar a folha compartilhada RitmoPU-estilos, que já tem o modelo CSS higienizado.
+- Retira a necessidade de mudar o modelo de conteúdo de uma página nova para instalar a cópia compartilhada.
+- Mantém o destino correto nos dois downloads, nos blocos iniciais e nos atalhos do índice.
+- Explica a diferença entre o CSS local e a página que o TemplateStyles pode carregar.
+
 ## 1.0.0 - 2026-10-15
 
 - Reúne os contadores e o painel de atividade em um programa e um carregador.

@@ -1,9 +1,9 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "date": "2026-10-15",
-  "bundleSha256": "e308c96134301e363573c66bc0c52d4c207dc0f24278ab38e8fdd376cb6838dc",
+  "bundleSha256": "a60f03897326d27bb281f71f77573c5e8e0f66330baddaf8b1dd325f3aaf70b9",
   "node": {
-    "registeredTests": 104,
+    "registeredTests": 107,
     "failures": 0,
     "inheritedMetricCasesWithinSuite": 20
   },
@@ -11,7 +11,7 @@
     {
       "browser": "chrome",
       "version": "155.0.8059.40",
-      "checks": 110,
+      "checks": 112,
       "failures": 0,
       "requestedViewportWidth": 320,
       "actualViewportWidth": 320,
@@ -20,7 +20,7 @@
     {
       "browser": "firefox",
       "version": "158.0",
-      "checks": 110,
+      "checks": 112,
       "failures": 0,
       "requestedViewportWidth": 320,
       "actualViewportWidth": 320,
@@ -29,7 +29,7 @@
     {
       "browser": "safari",
       "version": "27.0.1",
-      "checks": 110,
+      "checks": 112,
       "failures": 0,
       "requestedViewportWidth": 320,
       "actualViewportWidth": 336,
@@ -47,5 +47,17 @@
   "limitations": [
     "Browser checks use synthetic responses and cannot certify future external service availability.",
     "No installed authenticated Wikimedia userpage was operated."
-  ]
+  ],
+  "anonymousPlatformValidation": {
+    "contentModel": "sanitized-css",
+    "stylesheetPage": "Usuário:Daniel G Rego/RitmoPU-estilos",
+    "stylesheetMatchesAfterFinalWhitespace": true,
+    "parseActionOnly": true,
+    "previewWarnings": 0,
+    "templateStylesModelErrors": 0,
+    "allEightCardsPreserved": true,
+    "customOwnerAttributePreserved": true,
+    "credentials": "omitted",
+    "publication": false
+  }
 }

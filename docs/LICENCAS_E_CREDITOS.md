@@ -1,6 +1,6 @@
 # Origens, licenças e créditos
 
-O PerfilWiki 1.0.0 foi preparado a partir do RitmoPU 8.1.0, do EstatisticasPU 1.5.1 e dos estilos usados por essas ferramentas. A página de usuário mantém a apresentação das caixas e do painel de atividade.
+O PerfilWiki foi preparado a partir do RitmoPU 8.1.0, do EstatisticasPU 1.5.1 e dos estilos usados por essas ferramentas. A página de usuário mantém a apresentação das caixas e do painel de atividade.
 
 | Material de origem | Referência pública |
 | --- | --- |
@@ -8,6 +8,8 @@ O PerfilWiki 1.0.0 foi preparado a partir do RitmoPU 8.1.0, do EstatisticasPU 1.
 | EstatisticasPU | [Usuário:Daniel G Rego/EstatisticasPU.js](https://pt.wikipedia.org/wiki/Usu%C3%A1rio:Daniel_G_Rego/EstatisticasPU.js) |
 | Estilos | [Usuário:Daniel G Rego/RitmoPU-estilos](https://pt.wikipedia.org/wiki/Usu%C3%A1rio:Daniel_G_Rego/RitmoPU-estilos) |
 | Guia e regras das métricas | [Guia do RitmoPU](https://pt.wikipedia.org/wiki/Usu%C3%A1rio:Daniel_G_Rego/RitmoPU) e [documentação técnica](https://pt.wikipedia.org/wiki/Usu%C3%A1rio:Daniel_G_Rego/RitmoPU/Documenta%C3%A7%C3%A3o_t%C3%A9cnica) |
+
+A distribuição 1.0.1 mantém a folha compartilhada `Usuário:Daniel G Rego/RitmoPU-estilos` como destino público, com as mesmas regras do arquivo `PerfilWiki-estilos.css`. Essa folha já tem o modelo de conteúdo exigido por TemplateStyles.
 
 O [manifesto de origem](PROVENIENCIA.json) guarda os arquivos de origem e seus hashes, com autoria e licença. Os endereços públicos permitem consultar as páginas, que podem mudar depois da preparação do pacote.
 

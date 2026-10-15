@@ -6,7 +6,7 @@ Abra o [índice de copiar e colar](../INICIO.html) da distribuição baixada. Ca
 
 ## Antes de começar
 
-O programa, os estilos e a documentação compartilhados precisam ser publicados manualmente nos destinos do índice. A distribuição não confirma que esses arquivos já estejam na Wikipédia. Se você vai usar a instalação compartilhada, comece depois que ela estiver disponível.
+O programa compartilhado precisa estar instalado no destino do índice antes de usar a importação. Os estilos públicos usam a folha existente `Usuário:Daniel G Rego/RitmoPU-estilos`, que já tem o modelo de conteúdo "CSS higienizado". A instalação compartilhada não exige criar uma folha de estilos nem mudar o modelo de conteúdo de uma página.
 
 Informe o nome da sua conta no índice. Ele prepara os destinos do `common.js` e da subpágina `/PU` e substitui `SEU_NOME_DE_USUARIO` nas marcas dos dois trechos iniciais. Os botões de copiar e baixar passam a usar os trechos preparados para sua conta. Se abrir os arquivos `.wiki` diretamente, substitua essa marca manualmente pelo nome exato da conta.
 
@@ -37,8 +37,10 @@ Abra [sua página de usuário](https://pt.wikipedia.org/wiki/Especial:Minha_p%C3
 A folha de estilos compartilhada é carregada com:
 
 ```wikitext
-<templatestyles src="Usuário:Daniel G Rego/PerfilWiki-estilos" />
+<templatestyles src="Usuário:Daniel G Rego/RitmoPU-estilos" />
 ```
+
+O nome "RitmoPU-estilos" é mantido porque essa folha já atende ao TemplateStyles e tem as mesmas regras de aparência usadas pelo PerfilWiki. Não troque esse destino por uma página nova em wikitexto.
 
 Use uma só ocorrência de cada identificador fornecido pelo índice. O painel de atividade mantém o identificador `dan-pu-ritmo`, e as caixas mantêm os identificadores compatíveis com a apresentação anterior.
 
@@ -66,9 +68,27 @@ Atualize a chamada dos estilos e os blocos da página pelos trechos do índice. 
 
 Depois de salvar, feche as abas antigas para encerrar os programas anteriores. Reabra sua página e confira a conta, o fuso e o andamento da consulta. Baixe os trechos atualizados e publique manualmente cada bloco que desejar substituir.
 
+## Corrigir uma instalação da versão 1.0.0
+
+Se a página exibir o erro de que `Usuário:Daniel G Rego/PerfilWiki-estilos` precisa ter o modelo "CSS higienizado", abra o código-fonte da sua página e troque todas as chamadas desse destino por:
+
+```wikitext
+<templatestyles src="Usuário:Daniel G Rego/RitmoPU-estilos" />
+```
+
+Essa troca conserva os textos, os números e a disposição dos blocos. Use "Mostrar previsão" para conferir a aparência antes de salvar. O pacote de correção traz a página pessoal preparada quando essa opção está indicada no índice.
+
+Atualize também o programa compartilhado para a versão 1.0.1 pelo índice. Se a sua configuração contiver `stylesPage`, confira se ela aponta para `Usuário:Daniel G Rego/RitmoPU-estilos`, ou retire esse campo para usar o destino padrão. Isso impede que um download futuro recoloque a chamada incorreta. Feche as abas antigas e reabra a página depois da atualização.
+
+Não é necessário mudar o modelo de conteúdo da página criada por engano para recuperar a apresentação. A folha compartilhada válida já está disponível.
+
 ## Manter uma cópia própria do programa
 
-A importação compartilhada é suficiente para uma instalação comum. Quem preferir hospedar a própria cópia deve publicar o JavaScript completo em uma subpágina `.js` da própria conta e os estilos em uma subpágina com modelo de conteúdo `sanitized-css`. Depois, precisa ajustar a única chamada de importação dentro do carregador completo e a chamada de `templatestyles` para esses destinos. Preserve as verificações de conta e página do carregador. Os campos opcionais `stylesPage` e `documentationPage` em `PerfilWikiConfig` escolhem os endereços usados nos trechos exportados. Esses campos recebem títulos completos de páginas da Wikipédia, e não URLs.
+A importação compartilhada atende à instalação comum. Quem quiser hospedar apenas o JavaScript pode publicar o arquivo completo em uma subpágina `.js` da própria conta e continuar usando a folha compartilhada. Ajuste a única chamada de importação dentro do carregador completo, preservando as verificações de conta e página.
+
+Para hospedar também os estilos, a página de destino precisa ter o modelo de conteúdo "CSS higienizado", cujo nome técnico é `sanitized-css`. Criar uma subpágina no domínio "Usuário" com o final `.css` produz CSS comum e não resolve essa exigência do TemplateStyles. Mudar o modelo exige a permissão `editcontentmodel`. Se a conta não tiver essa permissão, peça a um administrador para preparar a folha ou continue usando a folha compartilhada.
+
+Depois que a folha própria estiver pronta, ajuste a chamada de `templatestyles` e o campo opcional `stylesPage` em `PerfilWikiConfig`. O campo opcional `documentationPage` escolhe o destino da documentação nos trechos exportados. Esses campos recebem títulos completos de páginas da Wikipédia, e não URLs.
 
 Use os arquivos completos da mesma versão. O CSS foi preparado para TemplateStyles. Uma folha aceita pelo navegador pode ter propriedades ou seletores recusados pela extensão.
 
@@ -77,7 +97,8 @@ Use os arquivos completos da mesma versão. O CSS foi preparado para TemplateSty
 | O que aparece | O que conferir |
 | --- | --- |
 | O bloco ainda aguarda consulta | Conta conectada, configuração antes da importação e versão de leitura da própria página |
-| O painel aparece sem os estilos | Chamada de `templatestyles` e destino da folha compartilhada |
+| O painel aparece sem os estilos | Chamada de `templatestyles` para `Usuário:Daniel G Rego/RitmoPU-estilos` |
+| A página pede "CSS higienizado" | [Correção da chamada da versão 1.0.0](#corrigir-uma-instalação-da-versão-100) e eventual campo `stylesPage` na configuração |
 | A coleta ainda está em andamento | Página aberta e visível, andamento dos lotes e eventual pausa pedida pelo serviço |
 | Os visitantes veem números antigos | Download e substituição manual dos blocos da página |
 | O dia muda no horário inesperado | `timeZone`, pois a atividade usa o fuso escolhido e as visualizações usam UTC |

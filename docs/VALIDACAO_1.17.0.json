@@ -1,0 +1,91 @@
+{
+  "version": "1.17.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 627,
+    "pass": 627,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "new native cover static dynamic title, one existence guard, no date substitution, missing-day placeholder",
+    "UTC year/day change selects another dated title without changing saved source",
+    "all layouts and block combinations retain native transclusion in initial and owner downloads",
+    "runtime preserves native rendered header, image, link and caption nodes through cache/progress/refresh/theme updates",
+    "anonymous and other-user simulated guards start no runtime, transport, timers, storage or listeners",
+    "native mode ignores Commons proofs and makes no cover-feed API request",
+    "installation checker accepts exact native source and refuses frozen, duplicate, tampered or proof-bearing covers",
+    "safe independent profile hex colors across HTML/wiki/DOM, links, status/date labels and theme updates",
+    "actual installer color handlers, incomplete input/reset, backward import defaults and local session recovery",
+    "existing metrics, owner transport, Commons daily mode and manual cover regressions"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "name #772244, labels #244477, information #335522 measured in actual preview including wiki links",
+      "dedicated colors accordion removed; panel color in layout and box highlights adjacent to box controls",
+      "visitor wiki-daily selection disables manual filename and preserves settings through panel/edit/reload",
+      "native initial export contains one guarded dynamic title and no frozen filename or embedded illustration",
+      "local editor insertion and save preserve earlier page text",
+      "landscape and portrait synthetic native markup both crop 910x180 with object-fit cover and position 50%50%",
+      "portrait sibling description cell hidden; landscape description hidden within cover only",
+      "same portrait orientation changes image between two explicitly simulated UTC render dates",
+      "outer mobile page 345px equals scrollWidth345; iframe307px equals scrollWidth307; actual color controls fit",
+      "native portrait fixture mobile width360 equals scrollWidth360 and imageheight120",
+      "installer and file index HTTP200; four shared editor hrefs inspected without opening"
+    ],
+    "consoleErrors": [],
+    "boundedNetworkChecks": [
+      {
+        "page": "installer reload",
+        "requests": 23,
+        "externalRequests": [],
+        "truncated": false,
+        "hasMore": false
+      },
+      {
+        "page": "native fixture reload",
+        "requests": 15,
+        "externalRequests": [],
+        "truncated": false,
+        "hasMore": false
+      }
+    ],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "uploadActions": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "e17639ab571e66813eb6f6f234562f32efc8ffa59f9960776a6aa6f32edb6944",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 922,
+  "limitations": [
+    "Synthetic browser data and local illustrations only.",
+    "Native Firefox and Safari were not rerun.",
+    "The local fixture simulates two server-rendered dates; it does not execute MediaWiki parser code.",
+    "Public anonymous read-only source and existing-page HTML checks were used separately to verify ptwiki template structure. No custom profile text was sent to a remote parser.",
+    "The native calendar uses ptwiki daily selection, which can differ from Commons Wikifeeds. UTC parser date and cache determine its refresh; already-open visitor tabs do not rotate automatically.",
+    "Initial manual update of shared code/styles and regenerated profile markup is required when eventually installed. No new shared template or Lua module is required.",
+    "No Wikimedia installation, authenticated session, edit, purge, upload, clipboard write or GitHub push occurred."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1170/browser-verification.json",
+    "fixtureNetwork": "../../qa_1170/fixture-network.json",
+    "installerNetwork": "../../qa_1170/installer-network.json",
+    "css": "../../qa_1170/validation_summary.json"
+  }
+}

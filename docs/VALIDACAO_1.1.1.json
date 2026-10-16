@@ -1,0 +1,65 @@
+{
+  "version": "1.1.1",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 186,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed",
+    "previous110ArchiveMatches": true
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": true,
+    "validatedSha256": "f4081bec024863475b837f158fd47c85cfc59958495f921c74fabbcd27c1a7ad",
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "narrowWidth": 360,
+    "horizontalOverflow": false,
+    "timezoneOptionsObserved": 419,
+    "regionGroupsObserved": 11,
+    "checks": [
+      "Account and optional display name are separate",
+      "Blank display name follows the actual account",
+      "Invalid display name focuses the relevant field",
+      "Account attributes and editor destinations retain the real username",
+      "Display name reaches the real preview and generated configuration",
+      "Full timezone catalog is grouped by region",
+      "City, accent-insensitive and UTC offset searches work",
+      "No results retain the selected timezone",
+      "Changing timezone clears search without altering the selected identifier",
+      "Lisbon seasonal and Kathmandu partial-hour offsets are labelled correctly",
+      "Brasilia shortcut retains Sao Paulo selection",
+      "Removed sidebar headings are absent",
+      "Prominent native color picker and hexadecimal field share the chosen color",
+      "Custom color reaches the real dashboard renderer",
+      "Mobile fields fit without horizontal scrolling"
+    ],
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "errorsObserved": 0,
+    "screenshots": "../../qa_111/"
+  },
+  "accountDetection": {
+    "verifiedWithSyntheticHostContext": true,
+    "loggedInWikiSessionUsed": false,
+    "networkRequestsForDetection": 0
+  },
+  "publication": {
+    "wikipediaEdits": false,
+    "authenticatedWikiActions": false,
+    "githubPush": false
+  }
+}

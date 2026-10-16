@@ -1,0 +1,88 @@
+{
+  "version": "1.7.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 369,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed"
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": false,
+    "validatedSha256": "6f9163c7d528c85163a5ebb5dcfe7868675af85cd7f208833a98dbe76c7a8a42",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "account": "Marina Exemplo",
+    "mobileWidth": 360,
+    "mobileParentWidth": 345,
+    "mobileFrameBodyWidth": 307,
+    "mobileFrameBodyScrollWidth": 307,
+    "customFormWidth": 227,
+    "horizontalOverflow": false,
+    "checks": [
+      "Two-step customization and installation flow",
+      "Shared parser renders profile wiki links",
+      "Profile details in either block and both, single-visible fallback",
+      "Ten ranked sample articles with date-based counts",
+      "Custom leap-month applied through preview and sidebar",
+      "Invalid dates retain applied range",
+      "Generated activation and profile code preserve account, links, placement and custom range",
+      "Offline installation checker accepts linked profile metadata in both blocks",
+      "No real clipboard writes or destination-editor navigation"
+    ],
+    "customExample": {
+      "start": "2024-02-01",
+      "end": "2024-02-29",
+      "syntheticTotal": 568711,
+      "rows": 10
+    },
+    "checker": {
+      "transport": "simulated",
+      "method": "GET",
+      "credentials": "omit",
+      "realWikiRequests": 0,
+      "sourceExecution": false
+    },
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "notTested": [
+      "Native touch drag",
+      "Live custom pageview responses",
+      "Live installation-check response"
+    ],
+    "screenshots": [
+      "../../qa_170/01-two-step-profile.jpg",
+      "../../qa_170/02-mobile-custom.jpg",
+      "../../qa_170/03-installation-check.jpg"
+    ]
+  },
+  "independentReview": {
+    "fixed": [
+      "Scheduled recovery from unavailable article and control requests",
+      "Eligible source period before metadata-completion checkpoint",
+      "Unapplied date drafts, errors and focus retained during progress"
+    ],
+    "remainingActionableFindings": 0
+  },
+  "publication": {
+    "wikipediaEdits": 0,
+    "authenticatedWikiActions": 0,
+    "githubPushes": 0
+  }
+}

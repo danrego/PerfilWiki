@@ -1,0 +1,63 @@
+{
+  "version": "1.1.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 161,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/model.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed",
+    "olderReleaseFilesChanged": false
+  },
+  "templateStyles": {
+    "stylesheetSha256": "f4081bec024863475b837f158fd47c85cfc59958495f921c74fabbcd27c1a7ad",
+    "parserErrors": 0,
+    "sanitizerErrors": 0,
+    "networkAttempts": 0,
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "desktop": true,
+    "narrowWidth": 360,
+    "parentHorizontalOverflow": false,
+    "previewHorizontalOverflow": false,
+    "checks": [
+      "Three-screen navigation and account validation",
+      "Eight default counters and right alignment",
+      "Three optional counters in actual renderer",
+      "Color themes, custom color and readable text",
+      "Left and center alignment, compact spacing, independent blocks",
+      "Counter selection and ordering",
+      "Initial period and fragment tab changes",
+      "Preview height shrinks after hiding activity",
+      "Account name accents and encoded subpage destinations",
+      "Existing scripts, text and categories preserved in local editors",
+      "Same insertion does not duplicate a block",
+      "Exact generated activation download and captured copy",
+      "Entire shared program copy and manual fallback selection",
+      "Edit summary manual fallback",
+      "Complete shared program, styles, documentation and release-note payloads"
+    ],
+    "clipboard": "Isolated immutable mock for copy and rejection tests. No system clipboard access from fixture.",
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "errorsObserved": 0,
+    "screenshots": "../../qa_110/"
+  },
+  "publication": {
+    "wikipediaEdits": false,
+    "authenticatedWikiActions": false,
+    "githubPush": false
+  }
+}

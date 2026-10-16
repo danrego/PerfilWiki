@@ -1,0 +1,68 @@
+{
+  "version": "1.9.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 418,
+    "pass": 418,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "shared integrated composition in HTML and wikitext",
+    "real nested DOM repaint through cold, cached, progress, final and storage updates",
+    "last-good counter values and verified creation metadata",
+    "date-input drafts, validation state and focus",
+    "visibility, field placement, legacy arrangements and one footer",
+    "combined and counter-fragment downloads",
+    "installer options, local editors and installation checker with simulated responses",
+    "build, release manifests, hashes, destinations and copy/download controls"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "custom accent and highlight colors",
+      "keyboard counter reorder",
+      "highlight change",
+      "remove and re-add counter",
+      "inline Add box selector",
+      "optional article and byte counters",
+      "independent field placement and internal wikilinks",
+      "local photo illustration",
+      "creation date",
+      "spacing, columns, counter and name alignment",
+      "only cards and only activity with one invitation",
+      "90-day and custom date periods",
+      "separate/grouped/integrated layout round trip with retained block order",
+      "complete profile export and duplicate guard in local editor",
+      "no Wikipedia editors, checker network, clipboard writes or publishing"
+    ],
+    "externalRequests": [],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "335eef89205b74529b3ade05a86d1cf7c8274e2be1bfd846b016abeb7a0b5f82",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 434,
+  "limitations": [
+    "Synthetic local data only. No public APIs or real Commons photos were used in browser checks.",
+    "Native Firefox and Safari were not rerun for this candidate."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_190/browser-verification.json",
+    "css": "../../qa_190/validation_summary.json"
+  }
+}

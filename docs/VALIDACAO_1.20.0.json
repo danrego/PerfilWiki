@@ -1,0 +1,113 @@
+{
+  "version": "1.20.0",
+  "status": "validated-local-candidate",
+  "date": "2026-10-15",
+  "scope": "local-prepublication-validation",
+  "automatedTests": {
+    "tests": 762,
+    "pass": 762,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "build": {
+    "reproducibleCleanBuilds": 2,
+    "identical": true,
+    "files": 76
+  },
+  "runtimeBrowsers": {
+    "chrome": {
+      "interactiveChecks": 23,
+      "negativeChecks": 21,
+      "passed": true
+    },
+    "codexInAppChromium": {
+      "interactiveChecks": 23,
+      "negativeChecks": 21,
+      "passed": true
+    },
+    "firefox": {
+      "tested": false,
+      "reason": "Unavailable through the browser tools in this session"
+    },
+    "safari": {
+      "tested": false,
+      "reason": "Unavailable through the browser tools in this session"
+    }
+  },
+  "largeCacheBrowsers": {
+    "chrome": {
+      "checks": 8,
+      "passed": true
+    },
+    "codexInAppChromium": {
+      "checks": 8,
+      "passed": true
+    },
+    "packedCharacters": 2800014,
+    "estimatedUtf16Bytes": 5600028,
+    "syntheticEntryRemoved": true
+  },
+  "coldStartFixture": {
+    "synthetic": true,
+    "historyRevisions": 10620,
+    "candidateArticles": 3690,
+    "linkedProjects": 137,
+    "previousFirstSeriesDispatch": 192,
+    "currentFirstSeriesDispatch": 30,
+    "firstPublishedRowsDispatch": 31,
+    "previousFirstResultCycle": 5,
+    "currentFirstResultCycle": 1,
+    "firstCycleRowsPerFixedPeriod": 10,
+    "incompleteTotalsRemainNull": true,
+    "rankingsRemainProvisional": true
+  },
+  "editingBridge": {
+    "syntheticTwoOriginBrowserTest": true,
+    "actualRuntimeAndInstallerHandlers": true,
+    "detachedOpener": true,
+    "spoofedOriginSourceNonceRejected": true,
+    "timeoutAndBlockedPopupChecked": true,
+    "currentSettingsRestored": true,
+    "outsideTextAndCategoriesPreserved": true,
+    "localNoteSurvivesAppearanceChange": true,
+    "noClipboardAccessInBrowserTests": true,
+    "productionOwnerWikiSessionTested": false,
+    "qaOnlyAdapters": [
+      "fixed loopback origins",
+      "synthetic public responses",
+      "shortened timeout for the negative browser case"
+    ]
+  },
+  "dependencyAdvisories": {
+    "totalDependencies": 115,
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0
+  },
+  "privacyAndPublication": {
+    "wikimediaEditsPerformed": false,
+    "wikimediaAccountUsed": false,
+    "publicReadAuditWasAnonymous": true,
+    "personalUserpageRecoveryExcludedFromPublicSource": true,
+    "githubAndHostingVerification": "Tracked separately from this local prepublication report"
+  },
+  "stylesheet": {
+    "sha256": "e17639ab571e66813eb6f6f234562f32efc8ffa59f9960776a6aa6f32edb6944",
+    "validationReusedByExactHash": true
+  },
+  "bundleSHA256": "3672e45b10a6b806ca5d86fdc8e8980e105597383d1ae6f8295c715ea0470cce",
+  "frozenPreviousArtifacts": {
+    "files": 1160,
+    "unchanged": true
+  },
+  "limits": {
+    "packedCacheCharacters": 4000000,
+    "expandedCacheCharacters": 12000000,
+    "dataRequestsPerCycle": 40,
+    "minimumRequestSpacingMs": 500,
+    "firstCompleteAllArticleTotalsMayStillBeSlow": true
+  }
+}

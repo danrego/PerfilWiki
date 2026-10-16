@@ -5,6 +5,7 @@ Usage: python3 scripts/build_index.py [--root REPOSITORY]
 Only INICIO.html and dist/VERSION/INICIO.html are written. No network is used.
 """
 import argparse
+import base64
 import datetime
 import hashlib
 import html
@@ -19,9 +20,9 @@ FILES = [
     ("Carregador_PerfilWiki.js", "Seu common.js", "personal", "common",
      "Acrescente o carregador uma só vez. Preserve o restante do common.js. Ao migrar, retire apenas os carregadores antigos de RitmoPU e EstatisticasPU."),
     ("Contadores_iniciais.wiki", "Suas caixas de números", "personal", "pu",
-     "Coloque este trecho onde deseja mostrar as caixas. Ele começa sem números pessoais. Quem já tem as caixas pode conservar sua disposição e seus identificadores."),
+     "Trecho individual para caixas em posição própria ou para substituir somente as caixas internas de um painel integrado. Não acrescente outra cópia se o trecho completo já contém as caixas."),
     ("Atividade_inicial.wiki", "Seu painel de atividade", "personal", "pu",
-     "Coloque este trecho onde deseja mostrar o calendário e as listas. Mantenha um só painel de atividade e preserve os outros textos da página."),
+     "Trecho individual para quem conserva a atividade em posição própria. Para começar com as caixas dentro da atividade, use o trecho completo do instalador. Preserve os outros textos da página."),
     ("PerfilWiki-estilos.css", "Manutenção dos estilos compartilhados", "maintenance", STYLES_PAGE,
      "A instalação compartilhada usa a página RitmoPU-estilos, que já tem o modelo CSS higienizado. O nome do arquivo local continua PerfilWiki-estilos.css. Não crie outra página de estilos em texto wiki."),
     ("PerfilWiki.js", "Manutenção do programa compartilhado", "maintenance", HOST + ".js",
@@ -237,9 +238,11 @@ def render_index(version, releases, payload, *, distribution=False):
         bullets = "".join("<li>" + html.escape(change) + "</li>" for change in release["changes"])
         history.append(f"<section><h3>{label}</h3><ul>{bullets}</ul></section>")
     embedded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+    script_hash = base64.b64encode(hashlib.sha256(SCRIPT.encode("utf-8")).digest()).decode("ascii")
+    policy = "default-src 'none'; script-src 'sha256-" + script_hash + "'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"
     return f'''<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PerfilWiki {html.escape(version)}: instalar e atualizar</title><style>{STYLE}</style></head>
-<body><main><header><p class="help">PerfilWiki {html.escape(version)}</p><h1>Arquivos para instalar e atualizar</h1><p class="intro">Escolha a conta, copie o carregador e coloque as caixas e o painel de atividade onde desejar na sua página. Os textos completos estão neste índice e nos arquivos da distribuição.</p><nav class="nav" aria-label="Nesta página"><a href="#personal">Sua instalação</a><a href="#maintenance">Arquivos compartilhados</a><a href="#history">Versões</a><a href="{root_prefix}docs/INSTALACAO.md">Guia de instalação</a></nav></header>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="{html.escape(policy, quote=True)}"><meta name="referrer" content="no-referrer"><title>PerfilWiki {html.escape(version)}: instalar e atualizar</title><style>{STYLE}</style></head>
+<body><main><header><p class="help">PerfilWiki {html.escape(version)}</p><h1>Arquivos para instalar e atualizar</h1><p class="intro">Use o instalador com prévia para preparar o painel integrado e suas escolhas. Este índice conserva os arquivos compartilhados completos e os trechos individuais para manutenção.</p><nav class="nav" aria-label="Nesta página"><a href="INICIO.html">Instalador com prévia</a><a href="#personal">Sua instalação</a><a href="#maintenance">Arquivos compartilhados</a><a href="#history">Versões</a><a href="{root_prefix}docs/INSTALACAO.md">Guia de instalação</a></nav></header>
 <section class="notice"><p>Os destinos compartilhados abaixo são os endereços previstos para a instalação. Este pacote não confirma que os arquivos já tenham sido publicados na Wikipédia. Use a importação depois que o responsável tiver instalado o programa e os estilos nesses destinos.</p><p>Copiar e baixar não salva páginas. "Abrir editor" abre a Wikipédia somente quando você clica. A conferência e a decisão de salvar ficam com você.</p></section>
 <section class="account" aria-label="Preparar destinos pessoais"><label for="username">Seu nome de usuário na Wikipédia em português</label><input id="username" type="text" autocomplete="off" spellcheck="false" placeholder="Nome da conta"><p class="help">Digite sem "Usuário:". O nome prepara os destinos do common.js e da subpágina /PU e substitui SEU_NOME_DE_USUARIO nas marcas das caixas e da atividade. Os botões desses dois trechos copiam e baixam a versão preparada para sua conta. Se preferir a página principal de usuário, cole nela somente os trechos correspondentes.</p><p id="account-status" class="help" role="status" aria-live="polite"></p></section>
 <section id="personal"><h2>Sua instalação</h2><p class="section-help">Mantenha uma só chamada do PerfilWiki. O carregador usa a conta conectada e o fuso do navegador, com UTC como alternativa. A configuração opcional fica antes da importação. Preserve RevisaWiki e os outros scripts.</p><p class="section-help">Ao migrar uma página pronta, conserve os textos e a disposição das caixas e do painel. Substitua somente os trechos correspondentes. Não copie uma página pessoal inteira nem os números de outra conta.</p><div class="grid">{personal}</div></section>

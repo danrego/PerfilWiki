@@ -431,3 +431,71 @@ test('newly completed rich history bypasses unrelated service cooldown and fills
     assert.equal(rich.fresh, true);
     assert.equal(Coordinator.validateState(rich).valid, true);
 });
+
+
+test('sent-thanks opt-in reaches the collector without another history scan', async () => {
+    for (const selected of [false, true]) {
+        const io = fixture({intercept:async (_url, p) => p.list === 'logevents' && p.leuser ? done({logevents:[]}) : undefined});
+        const state = await Coordinator.update(options(io, {includeThanksSent:selected}));
+        assert.equal(Coordinator.validateState(state).valid,true);
+        assert.equal(io.calls.filter(call=>call.p.list==='usercontribs').length,1);
+        assert.equal(io.calls.filter(call=>call.p.list==='logevents' && call.p.leuser===USER).length,selected?1:0);
+        if (selected) assert.equal(state.statistics.metrics.thanksSent,0);
+    }
+});
+
+
+test('earliest registration metadata is optional and reuses the shared global lookup', async () => {
+    const io = fixture({intercept:async (_url,p)=>p.meta==='globaluserinfo'?done({globaluserinfo:{name:USER,registration:'2015-01-01T00:00:00Z',editcount:123,merged:[{wiki:'ptwiki',editcount:12,url:'https://pt.wikipedia.org',registration:'2008-05-15T12:00:00Z'}]}}):undefined});
+    const state = await Coordinator.update(options(io,{includeEarliestRegistration:true}));
+    assert.equal(Coordinator.validateState(state).valid,true);
+    assert.equal(state.statistics.metrics.earliestRegistration,'2008-05-15T12:00:00Z');
+    assert.equal(state.statistics.metrics.registration,'2010-08-20T00:00:00Z');
+    assert.equal(state.statistics.registrationCoverage.complete,true);
+    assert.equal(io.calls.filter(call=>call.p.meta==='globaluserinfo').length,1);
+    assert.equal(io.calls.filter(call=>call.p.list==='usercontribs').length,1);
+});
+
+test('one actual request budget covers history, statistics and pageviews while tiny cycles resume without service errors or false unavailable results',async()=>{
+    const io=fixture(),snapshots=[];let state=null,rounds=0;
+    for(;rounds<30;rounds++) {
+        const before=io.calls.length;
+        state=await Coordinator.update(options(io,{maxRequests:4,previous:state,now:shift(NOW,rounds*1000),onProgress:value=>{assert.equal(Coordinator.validateState(value).valid,true);snapshots.push(copy(value));}}));
+        assert.ok(io.calls.length-before<=4,'Every complete cycle dispatches at most its four shared requests');
+        assert.equal(Coordinator.validateState(state).valid,true);
+        assert.equal(state.statistics.errors.some(label=>label!=='Histórico local completo indisponível'),false,'Exhausting the shared budget is pending work, not a service failure');
+        assert.equal(state.pageviews.error,null,'Budget exhaustion cannot mark article data unavailable');
+        assert.ok(Object.values(state.pageviews.series).every(series=>!series.error),'No synthetic failed series is stored on budget exhaustion');
+        if(state.complete)break;
+    }
+    assert.ok(rounds>1&&rounds<30,'Repeated bounded cycles eventually finish the real collectors');
+    assert.equal(state.complete,true);assert.equal(state.statistics.metrics.edits,123);assert.equal(state.statistics.metrics.articles,7);assert.equal(state.pageviews.periods['30d'].allArticleTotal,6);
+    assert.ok(snapshots.length>2);
+});
+
+test('a small shared budget keeps an existing complete snapshot and its exact metrics until resumed work verifies a replacement',async()=>{
+    const previous=await Coordinator.update(options(fixture()));
+    const nextNow=shift(NOW,DAY+1000),io=fixture({editcount:124});
+    const state=await Coordinator.update(options(io,{previous,maxRequests:1,now:nextNow}));
+    assert.equal(io.calls.length,1);
+    assert.equal(state.statistics.metrics.edits,previous.statistics.metrics.edits);
+    assert.equal(state.statistics.metrics.articles,previous.statistics.metrics.articles);
+    assert.equal(state.statistics.pending,true);
+    assert.deepEqual(state.statistics.errors,[]);
+    assert.equal(state.pageviews.error,null);
+    const snapshot=state.pageviews.lastCompleteSnapshot;
+    assert.ok(snapshot);assert.equal(snapshot.periods['30d'].allArticleTotal,previous.pageviews.periods['30d'].allArticleTotal);
+    assert.equal(Coordinator.validateState(state).valid,true);
+});
+
+test('the forty-request cycle limit is enforced across independent collectors, including concurrent statistics and pageviews',async()=>{
+    const counters={history:0,statistics:0,pageviews:0};
+    async function consume(stage,options) {for(let index=0;index<options.maxRequests;index++){try{await options.requestJson(stage);counters[stage]++;}catch(error){assert.equal(error.code,'request-budget');break;}}}
+    const history={collect:async opts=>{await consume('history',opts);return {complete:false,error:null,pending:{}};},validate:()=>({valid:true})};
+    const statistics={collect:async opts=>{await consume('statistics',opts);return {metrics:{},metricUpdatedAt:{},errors:[],pending:true};},validate:()=>({valid:true})};
+    const pageviews={DEFAULT_CONFIG:{},validateState:()=>({valid:true}),collectPageviews:async opts=>{await consume('pageviews',opts);return {periods:{},complete:false,stale:true};}};
+    const sandbox={module:{exports:{}},require:name=>({'./History.js':history,'./Statistics.js':statistics,'./PageviewsCore.js':pageviews}[name])};
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/Coordinator.js'),'utf8'),sandbox);
+    let dispatches=0;await sandbox.module.exports.update({config:{user:USER,timeZone:'UTC'},now:NOW,maxRequests:40,historyBudget:20,statisticsBudget:20,requestJson:async()=>{dispatches++;return {};}});
+    assert.equal(dispatches,40);assert.equal(Object.values(counters).reduce((sum,value)=>sum+value,0),40);assert.equal(counters.history,20);assert.ok(counters.statistics>0&&counters.pageviews>0);
+});

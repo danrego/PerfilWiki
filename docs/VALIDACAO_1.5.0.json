@@ -1,0 +1,78 @@
+{
+  "version": "1.5.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 263,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed"
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": true,
+    "unchangedSince": "1.3.0",
+    "validatedSha256": "59cd87ef015da715c1defb89a535ad3094bad654a9a1c9bc9d3a96bf785f7e67",
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "usualTimezones": 55,
+    "timezoneGroups": 8,
+    "narrowWidth": 360,
+    "mobileParentWidth": 345,
+    "mobileFrameBodyWidth": 307,
+    "mobileFrameBodyScrollWidth": 307,
+    "allTwentyFourRoomyMobileFrameHeight": 7233,
+    "maximumPreviewHeight": 12000,
+    "mobileChooserWidth": 332,
+    "mobileChooserHeight": 560,
+    "horizontalOverflow": false,
+    "checks": [
+      "Hawaii selection and eight grouped timezone sections render without a search field",
+      "Hawaii and all four new counters are preserved in generated activation and profile code",
+      "Chooser contains 24 counters with the original eight selected by default",
+      "Direct star click updates aria-pressed and selected background in native Chrome",
+      "Highlight and arrow-key reordering update the actual iframe preview in the in-app browser",
+      "Native Chrome mouse dragging swaps tenure and bestStreak with scrollY remaining zero",
+      "Per-card Opcoes menus and position select elements are absent",
+      "All four new counters display synthetic values through the real renderer",
+      "All 24 roomy cards and the chooser fit at 360 pixels without horizontal overflow",
+      "Generated profile markup has all four new IDs and no local editing controls",
+      "Editor destination links were read as text without visiting Wikipedia"
+    ],
+    "newCounterSamples": {
+      "thanksSent": "128",
+      "averageBytesPerEdit": "6,4 KiB",
+      "largestAddition": "24 KiB",
+      "largestRemoval": "12 KiB"
+    },
+    "errorsObserved": 0,
+    "warningsObserved": 0,
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "notTested": [
+      "Native touch drag gesture",
+      "Live sent-thanks API response"
+    ],
+    "screenshots": [
+      "../../qa_150/01-mobile-chooser.jpg",
+      "../../qa_150/02-mobile-timezone.jpg",
+      "../../qa_150/03-final-preview.jpg"
+    ]
+  },
+  "publication": {
+    "wikipediaEdits": false,
+    "authenticatedWikiActions": false,
+    "githubPush": false
+  }
+}

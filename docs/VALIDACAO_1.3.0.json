@@ -1,0 +1,61 @@
+{
+  "version": "1.3.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 218,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed"
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": false,
+    "validatedSha256": "59cd87ef015da715c1defb89a535ad3094bad654a9a1c9bc9d3a96bf785f7e67",
+    "parserErrors": 0,
+    "sanitizerErrors": 0,
+    "networkAttempts": 0,
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "narrowWidth": 360,
+    "horizontalOverflow": false,
+    "mobilePickerWidth": 328,
+    "allSixteenMobileFrameHeight": 4887,
+    "checks": [
+      "Both color pickers support outside click, Escape and explicit close",
+      "Native Chrome click inside the preview closes the parent picker",
+      "Changing a color by keyboard updates the actual preview",
+      "Opening another picker closes the first",
+      "Color remains applied after closing",
+      "All sixteen counters render from the actual dashboard code",
+      "Roomy card padding is 24px22px and columns2/3/4 render in the real preview",
+      "Mobile columns adapt to one visible column when necessary",
+      "Mobile color picker fits without horizontal scrolling",
+      "Separated sample text has the exact Meu impacto na Wikipedia heading",
+      "Activation export retains roomy, cardColumns and four new metric IDs",
+      "Profile starter keeps one invitation and all sixteen counters unknown",
+      "Destination editor links inspected as text without navigation"
+    ],
+    "notRerun": [
+      "Firefox",
+      "Safari",
+      "Native counter drag gesture"
+    ],
+    "errorsObserved": 0,
+    "screenshots": "../../qa_130/"
+  },
+  "publication": {
+    "wikipediaEdits": false,
+    "authenticatedWikiActions": false,
+    "githubPush": false
+  }
+}

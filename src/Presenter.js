@@ -1,12 +1,12 @@
 /* Dados opcionais de apresentação. Não altera métricas nem publica edições. */
 (function (root, factory) {
-    var api = factory();
+    var api = factory(typeof module==='object'&&module.exports?require('./I18n.js'):root.PerfilWikiI18n);
     if (typeof module === 'object' && module.exports) { module.exports = api; }
     else { root.PerfilWikiPresenter = api; }
-}(typeof window !== 'undefined' ? window : this, function () {
+}(typeof window !== 'undefined' ? window : this, function (i18n) {
     'use strict';
     var DAY = 86400000;
-    var periods = ['30d', '90d', '12m', 'since'];
+    var periods = ['30d', '90d', '12m', 'since', 'custom'];
     var relative = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'always' });
     var absolute = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short' });
     function timestamp(value) {
@@ -33,16 +33,19 @@
         });
         return latest || timestamp(activity && activity.summary && activity.summary.lastEditAt);
     }
-    function relativeTime(value, now) {
+    function relativeTime(value, now, language) {
+        language=i18n.normalizeLanguage(language);
+        var relative=new Intl.RelativeTimeFormat(language,{numeric:'always'});
         var stamp = timestamp(value), reference = nowValue(now);
         if (!stamp || reference === null || Date.parse(stamp) > reference + 60000) { return null; }
         var seconds = Math.max(0, Math.floor((reference - Date.parse(stamp)) / 1000));
-        if (seconds < 60) { return 'há menos de 1 minuto'; }
+        if (seconds < 60) { return i18n.t(language,'há menos de 1 minuto'); }
         if (seconds < 3600) { return relative.format(-Math.floor(seconds / 60), 'minute'); }
         if (seconds < 86400) { return relative.format(-Math.floor(seconds / 3600), 'hour'); }
         return relative.format(-Math.floor(seconds / 86400), 'day');
     }
-    function absoluteTime(value) {
+    function absoluteTime(value,language) {
+        var absolute=new Intl.DateTimeFormat(i18n.normalizeLanguage(language),{timeZone:'UTC',dateStyle:'short',timeStyle:'short'});
         var stamp = timestamp(value);
         return stamp ? absolute.format(new Date(stamp)) + ' UTC' : null;
     }
@@ -65,7 +68,7 @@
         return articles;
     }
     function imageRequest(articles) {
-        if (!Array.isArray(articles) || !articles.length || articles.length > 40 || articles.some(function (row) { return !row || !Number.isSafeInteger(row.pageid) || row.pageid <= 0; })) { return null; }
+        if (!Array.isArray(articles) || !articles.length || articles.length > 50 || articles.some(function (row) { return !row || !Number.isSafeInteger(row.pageid) || row.pageid <= 0; })) { return null; }
         var url = new URL('https://pt.wikipedia.org/w/api.php');
         var parameters = { action: 'query', format: 'json', formatversion: '2', origin: '*', prop: 'pageimages', piprop: 'thumbnail|name', pilicense: 'free', pithumbsize: '96', pilimit: '50', pageids: articles.map(function (row) { return row.pageid; }).join('|') };
         Object.keys(parameters).forEach(function (key) { url.searchParams.set(key, parameters[key]); });

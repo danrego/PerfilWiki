@@ -15,7 +15,7 @@ const stylesPage = 'Usuário:Daniel G Rego/RitmoPU-estilos';
 const python = process.env.PYTHON || 'python3';
 const names = ['PerfilWiki.js', 'PerfilWiki-estilos.css', 'Carregador_PerfilWiki.js',
     'Contadores_iniciais.wiki', 'Atividade_inicial.wiki', 'Documentacao_PerfilWiki.wiki', 'Notas_da_versao.txt'];
-const modules = ['Configuration', 'PageviewsCore', 'History', 'Statistics', 'Coordinator', 'Presenter', 'ActivityView', 'Cache', 'CardsView'];
+const modules = ['I18n', 'Appearance', 'LayoutView', 'DailyCover', 'NativeDailyCover', 'ProfileText', 'ProfileSections', 'ProfileFields', 'ProfileClock', 'UserGroups', 'LiveEdit', 'Configuration', 'PageviewsCore', 'History', 'Statistics', 'Coordinator', 'Presenter', 'ActivityView', 'ProfileHeaderView', 'Cache', 'LargeCache', 'CardsView'];
 let temporary, output, metadata;
 const read = name => fs.readFileSync(path.join(output, name), 'utf8');
 const hash = name => crypto.createHash('sha256').update(fs.readFileSync(path.join(output, name))).digest('hex');

@@ -9,7 +9,7 @@ import re
 
 
 MODULES = ["I18n", "Appearance", "LayoutView", "DailyCover", "NativeDailyCover", "ProfileText", "ProfileSections", "ProfileFields", "ProfileClock", "UserGroups", "LiveEdit", "Configuration", "PageviewsCore", "History", "Statistics", "Coordinator",
-           "Presenter", "ActivityView", "ProfileHeaderView", "Cache", "LargeCache", "CardsView"]
+           "Presenter", "ActivityView", "ProfileHeaderView", "Cache", "LargeCache", "CardsView", "LegacyStatsPreview"]
 HOST = "Usuário:Daniel G Rego/PerfilWiki"
 STYLES_PAGE = "Usuário:Daniel G Rego/RitmoPU-estilos"
 USER_TOKEN = "SEU_NOME_DE_USUARIO"

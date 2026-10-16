@@ -1,9 +1,8 @@
-PerfilWiki 1.20.0 · 2026-10-15
+PerfilWiki 1.20.1 · 2026-10-15
 
-* Mostra primeiro os dados de identidade já conferidos, como o total global de contribuições e a criação mais antiga da conta, enquanto o histórico da ptwiki continua em lotes.
-* Começa a apresentar até dez artigos com visualizações conferidas durante uma coleta grande, com ordem provisória e sem inventar um total antes de concluir a cobertura de todos os artigos elegíveis.
-* Corrige a caixa Na Wikipédia e a exportação Tempo decorrido para usar a menor data pública conferida entre a conta global e as contas vinculadas, preservando a data local da ptwiki em sua métrica própria.
-* Prepara Editar painel na sessão da própria conta para abrir o instalador hospedado com as escolhas atuais, por uma troca conferida entre janelas depois do clique, sem campos pessoais no endereço e sem publicação automática.
-* Pode trazer o código-fonte público e a revisão da página para preparar um rascunho, substituindo somente um bloco com marcadores únicos e exigindo substituição manual quando a página antiga não tem essa região.
-* Explica o custo da primeira coleta, a diferença entre totais globais e locais, os resultados provisórios e o caminho de cópia, previsão e salvamento manual, mantendo a hospedagem sujeita à conferência de disponibilidade.
-* Conserva cópias grandes do cache no IndexedDB, mantém os limites do codec, espaça as gravações intermediárias e avisa quando o navegador não consegue guardar o progresso.
+* Recupera na tela os últimos contadores compatíveis do EstatisticasPU, com sua data e indicação de dados salvos, sem usar essa apresentação como prova de uma consulta nova.
+* Lê os caches antigos da mesma conta e pode consultar uma vez sua subpágina pública de estatísticas quando faltam números, com leitura anônima limitada e dentro do orçamento do ciclo.
+* Limita a série pedida de cada artigo ao período posterior à primeira edição, evitando baixar dias que nunca entrariam na soma, e calcula sem consulta os intervalos sem dias elegíveis.
+* Conserva por até sete dias as datas de uma consulta incompleta ao atravessar a meia-noite UTC, mostra o corte mantido e retoma a classificação pelos identificadores das páginas quando novas edições mudam a ordem.
+* Reúne os campos iniciais de identidade numa única consulta pública, mantendo a conferência separada de cada resposta e as pausas e os limites do transporte.
+* Mantém os cálculos e as cópias no navegador, sem servidor de apuração, publicação automática ou mudança nos critérios dos totais de todos os artigos.

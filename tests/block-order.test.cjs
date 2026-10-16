@@ -107,7 +107,7 @@ function runtime({blockOrder='cards-first',layout='together',group=true,groupUse
 test('runtime orders only its generated group and restores that order after outerHTML repaints', () => {
     for (const blockOrder of ['cards-first','activity-first']) {
         const value=runtime({blockOrder});
-        assert.equal(value.win.PerfilWiki.version,'1.20.0');
+        assert.equal(value.win.PerfilWiki.version,require('../package.json').version);
         const expected=blockOrder==='cards-first' ? ['dan-pu-estatisticas','dan-pu-ritmo'] : ['dan-pu-ritmo','dan-pu-estatisticas'];
         assert.deepEqual(value.container.children.map(node=>node.id),expected);
         assert.deepEqual(value.outside.children.map(node=>node.id),['before','container','after']);

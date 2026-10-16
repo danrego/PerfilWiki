@@ -1,0 +1,71 @@
+{
+  "version": "1.15.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 551,
+    "pass": 551,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "photo size and shape strict validation, old defaults, shared HTML/wiki/DOM and responsive crop",
+    "no image reassignment when appearance changes and caption outside mask",
+    "exact raw wikitext preservation including CRLF and templates",
+    "personal sections outside profile markers, configuration and refreshed DOM",
+    "inert local preview with basic wiki formatting, safe links, escaped HTML and template source",
+    "bounded malformed content preview performance",
+    "local section editing and empty-draft index mapping",
+    "JSON import validation, old 1.x defaults, hostile keys and size limits",
+    "owner choices download roundtrip without requests or personal page content",
+    "installation checker rejects altered photo size or shape"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "five actual photo widths and both shapes",
+      "largest 200px round photo fits mobile",
+      "personal containers below activity and outside it",
+      "reorder and direct Edit focus corresponding textarea",
+      "inert HTML payload did not create img or script elements",
+      "actual downloaded JSON reimported through UI, JavaScript refused",
+      "exact raw wiki links and bold in prepared profile",
+      "native section heading syntax and separate personal markers",
+      "HTTP 200 installer and file index",
+      "manual editor destination hrefs inspected without opening"
+    ],
+    "consoleErrors": [],
+    "externalRequests": [],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "uploadActions": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "6e411dee93b37cf8882c86bab0c8d11b18b8acfb3370d38d478023a0f1f177ad",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 790,
+  "limitations": [
+    "Synthetic local data and illustrative photo only.",
+    "Native Firefox and Safari were not rerun.",
+    "Advanced wikitext uses an approximate local preview and was not sent to Wikimedia for parsing.",
+    "No Wikimedia installation, authenticated session or policy approval was performed.",
+    "Live personal texts use native manual editing and are excluded from runtime settings downloads."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1150/browser-verification.json",
+    "css": "../../qa_1150/validation_summary.json"
+  }
+}

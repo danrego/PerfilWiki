@@ -1,4 +1,4 @@
-/* PerfilWiki 1.20.0. Carregador pessoal. Daniel G Rego, CC BY-SA 4.0. */
+/* PerfilWiki 1.20.1. Carregador pessoal. Daniel G Rego, CC BY-SA 4.0. */
 
 (function () {
     'use strict';

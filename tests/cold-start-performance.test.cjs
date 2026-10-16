@@ -19,8 +19,12 @@ function synthetic({edits=12001,articles=3690,projects=137}={}) {
         registration:index===1?'2008-05-25T00:00:00Z':'2014-07-30T00:00:00Z'}));
     async function requestJson(address) {
         const url=new URL(address),p=Object.fromEntries(url.searchParams);calls.push({url,p});
-        if(p.meta==='globaluserinfo')return done({globaluserinfo:{name:USER,editcount:edits,registration:'2013-04-12T00:00:00Z',merged}});
-        if(p.list==='users')return done({users:[{name:USER,registration:'2014-07-30T00:00:00Z'}]});
+        if(p.meta==='globaluserinfo'||p.list==='users') {
+            const query={};
+            if(p.meta==='globaluserinfo')query.globaluserinfo={name:USER,editcount:edits,registration:'2013-04-12T00:00:00Z',merged};
+            if(p.list==='users')query.users=[{name:USER,userid:41,registration:'2014-07-30T00:00:00Z'}];
+            return done(query);
+        }
         if(p.list==='usercontribs') {
             const offset=Number(p.uccontinue||0),batch=rows.slice(offset,offset+500);
             return offset+500<rows.length?{continue:{continue:'-||',uccontinue:String(offset+500)},query:{usercontribs:batch}}:done({usercontribs:batch});
@@ -46,7 +50,7 @@ test('cold identity counters arrive before 12,001 contributions and 137 linked-p
     const io=synthetic();
     const state=await Coordinator.update(io.options({historyBudget:20}));
     const early=io.snapshots.find(snapshot=>snapshot.state.statistics.metrics.edits!==null);
-    assert.ok(early);assert.equal(early.calls,2);
+    assert.ok(early);assert.equal(early.calls,1);
     assert.equal(early.requests.some(p=>p.list==='usercontribs'||p.list==='logevents'||p.prop==='info'),false);
     assert.equal(early.state.statistics.metrics.edits,12001);
     assert.equal(early.state.statistics.metrics.earliestRegistration,'2008-05-25T00:00:00Z');
@@ -92,7 +96,7 @@ test('identity-only collection defers linked-wiki logs, metadata and XTools whil
     const io=synthetic({edits:3,articles:2,projects:2});
     const first=await Statistics.collect({user:USER,now:NOW,requestJson:io.requestJson,maxRequests:3,deferDetails:true,includeEarliestRegistration:true});
     assert.equal(first.metrics.edits,3);assert.equal(first.metrics.thanks,null);assert.equal(first.pending,true);
-    assert.equal(io.calls.length,2);
+    assert.equal(io.calls.length,1);
     assert.equal(first.metrics.earliestRegistration,'2008-05-25T00:00:00Z');
     assert.equal(Statistics.validate(first,{user:USER,now:NOW}).valid,true);
     const before=io.calls.length;
@@ -106,7 +110,7 @@ test('default cold scheduling produces useful provisional views in the first for
     const state=await Coordinator.update(io.options());
     const first=io.snapshots.find(snapshot=>snapshot.state.pageviews.periods['30d'].rows.length>0);
     assert.ok(first,'Initial article rows cannot wait for thousands of metadata and pageview requests');
-    assert.ok(first.calls<=32,'Identity, the bounded full history, one metadata batch and availability controls precede the first rows');
+    assert.ok(first.calls<=31,'One identity request, the bounded full history, one metadata batch and availability controls precede the first rows');
     assert.ok(io.calls.length<=40);
     assert.equal(state.history.complete,true);assert.equal(state.history.entries.length,10620);
     assert.equal(state.pageviews.metadata.complete,false);

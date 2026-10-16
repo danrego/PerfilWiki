@@ -28,7 +28,7 @@ test('all public transport sources reject redirects, omit credentials and referr
  const r=runtime({fetcher:async url=>url===BLACKLIST?response(url,null,{text:async()=>''}):response(url)});
  for(const url of [API,AQS,BLACKLIST,FEED]) {await r.tick(500);await r.request(url);}
  assert.equal(r.calls.length,4);
- for(const {url,options} of r.calls) {assert.equal(options.method,'GET');assert.equal(options.credentials,'omit');assert.equal(options.referrerPolicy,'no-referrer');assert.equal(options.redirect,'error');assert.equal(options.body,undefined);assert.equal(options.cache,'no-store');assert.ok(options.signal);if(url===API){const agent=options.headers['Api-User-Agent'];assert.match(agent,/^PerfilWiki\/1\.20\.0 \(https:\/\/github\.com\/danrego\/PerfilWiki\)$/);assert.doesNotMatch(agent,/[^\x20-\x7e]|Audit/);}else assert.equal(options.headers,undefined);}
+ for(const {url,options} of r.calls) {assert.equal(options.method,'GET');assert.equal(options.credentials,'omit');assert.equal(options.referrerPolicy,'no-referrer');assert.equal(options.redirect,'error');assert.equal(options.body,undefined);assert.equal(options.cache,'no-store');assert.ok(options.signal);if(url===API){const agent=options.headers['Api-User-Agent'];assert.equal(agent,'PerfilWiki/'+require('../package.json').version+' (https://github.com/danrego/PerfilWiki)');assert.doesNotMatch(agent,/[^\x20-\x7e]|Audit/);}else assert.equal(options.headers,undefined);}
 });
 test('redirected, opaque and changed-destination responses fail before their bodies are read',async()=>{
  for(const extra of [{redirected:true},{type:'opaqueredirect'},{type:'opaque'},{url:'https://outside.invalid/final'},{url:API.replace('pt.wikipedia.org','en.wikipedia.org')}]) {

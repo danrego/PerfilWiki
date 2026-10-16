@@ -1,0 +1,21 @@
+{
+  "scope": "real presentation code with synthetic local data",
+  "sha256": {
+    "I18n.js": "4bbc01d12f771ff8bd7814676e79dc7595053c8ef97f6239f5eb4cb50d94606e",
+    "Appearance.js": "94d5302a0947693d6850cdafd45cd12f591dddffb8dcc059a40473865af12ac2",
+    "LayoutView.js": "3906b101fe8f0cc623ac55362ffdbee0cda5d9d078ac4c7da0503fc359de8af7",
+    "DailyCover.js": "687940a601136a5e9ba0f192bccd47c46c557828d0862824cb6fb93d9c7f1d00",
+    "NativeDailyCover.js": "62aa73c824c792b63fef46c1c982be1189d015d763a303de33d890a36051f117",
+    "ProfileText.js": "7bd27b760dec65071146fef3241d1b6069de977fc324bb0cebf7c919f45c619e",
+    "ProfileSections.js": "432e3778b7d800b419e110198994a580afb3936c12bee0e1989063c6989ca474",
+    "ProfileFields.js": "c9513276010a922968c75e3af7a0fd4a98ce24d279ccf6a1e76a1c4d4c038977",
+    "ProfileClock.js": "59811a5a57f99e381b122267e2fa64c93a7b306d3b7f1587602ef0ce93dab6f7",
+    "UserGroups.js": "f484f886da1240e9ba116f1b3276cb8f63fd54048d9faccad565df7e3d7be77b",
+    "Presenter.js": "950553c58d176cff355f87d42b6365e43efe9ae1f640f34ff8210eb03d42a29f",
+    "PageviewsCore.js": "2923f848eef753f09151812e273592b2d9652b8210382fd2570f1750a9e02daf",
+    "ActivityView.js": "29f775c150962b4052c4ffc17b65e463e6b013fd318fa75f6bf0b6268188a6a5",
+    "ProfileHeaderView.js": "e15cf96af2b804b1e41386cc0187cc0c824c2c879afa4a02ac46b4a288640033",
+    "CardsView.js": "760dcac86d40c307c37195f4c9231afb7a70628512c1e026613271ed9b50cfc8",
+    "PerfilWiki-estilos.css": "e17639ab571e66813eb6f6f234562f32efc8ffa59f9960776a6aa6f32edb6944"
+  }
+}

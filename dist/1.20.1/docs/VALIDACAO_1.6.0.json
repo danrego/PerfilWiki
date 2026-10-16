@@ -1,0 +1,78 @@
+{
+  "version": "1.6.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 325,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed"
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": true,
+    "unchangedSince": "1.3.0",
+    "validatedSha256": "59cd87ef015da715c1defb89a535ad3094bad654a9a1c9bc9d3a96bf785f7e67",
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "mobileWidth": 360,
+    "mobileParentWidth": 345,
+    "mobileFrameBodyWidth": 307,
+    "mobileFrameBodyScrollWidth": 307,
+    "colorPopoverWidth": 328,
+    "colorPopoverHeight": 528,
+    "horizontalOverflow": false,
+    "checks": [
+      "Named swatches, spectrum arrows, lightness slider and exact hex input update colors without Matiz controls",
+      "Native Chrome spectrum dragging changes the color; a secondary-button click leaves it unchanged",
+      "Escape, outside click and explicit close dismiss the picker; Escape restores trigger focus",
+      "Accent and highlight color choices stay independent",
+      "Eight default cards minus one produce seven cards and one add tile",
+      "Native Chrome add-tile click opens the chooser and focuses the removed counter",
+      "Keyboard add-tile activation and re-adding a removed counter work in the in-app browser",
+      "Centered display name, location, custom information and full creation date render while counters stay right aligned",
+      "Profile fields, alignment and date preference reach activation and initial profile code without local editor controls",
+      "Etapa 3 contains the two personal copy steps and public-source checker without shared-file cards",
+      "The isolated checker fixture passes simulated complete, missing-profile, wrong-CSS-model and unavailable-service cases",
+      "No page console errors or warnings were observed"
+    ],
+    "creationDateSample": "15 de maio de 2008",
+    "checker": {
+      "transport": "simulated",
+      "credentials": "omit",
+      "realWikiRequests": 0,
+      "sourceExecution": false,
+      "certifiesBrowserExecution": false
+    },
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "notTested": [
+      "Native touch drag",
+      "Live installation-check API response",
+      "Live earliest-registration response"
+    ],
+    "errorsObserved": 0,
+    "warningsObserved": 0,
+    "screenshots": [
+      "../../qa_160/01-mobile-colors.jpg",
+      "../../qa_160/02-profile-preview.jpg",
+      "../../qa_160/03-installation-check.jpg"
+    ]
+  },
+  "publication": {
+    "wikipediaEdits": false,
+    "authenticatedWikiActions": false,
+    "githubPush": false
+  }
+}

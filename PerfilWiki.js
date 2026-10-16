@@ -1,4 +1,4 @@
-/* PerfilWiki 1.20.0. Daniel G Rego, CC BY-SA 4.0. Built from src, without seeded metrics. */
+/* PerfilWiki 1.20.1. Daniel G Rego, CC BY-SA 4.0. Built from src, without seeded metrics. */
 
 ;
 
@@ -13,6 +13,7 @@ rows=rows.concat([["Há trechos de código ou comentários incompletos. Confira 
 rows=rows.concat([["O navegador não guardou esta consulta. Os resultados continuam disponíveis nesta aba.","The browser did not save this query. Its results remain available in this tab.","El navegador no guardó esta consulta. Los resultados siguen disponibles en esta pestaña.","Le navigateur n'a pas conservé cette consultation. Les résultats restent disponibles dans cet onglet.","Il browser non ha salvato questa ricerca. I risultati restano disponibili in questa scheda."]]);
 rows=rows.concat([["A cópia e o download mantêm os textos e as categorias da página recebida, alterando somente o bloco do painel. Confira o código antes de salvar na Wikipédia.","Copying and downloading retain the received page's text and categories, changing only the panel block. Check the code before saving on Wikipedia.","La copia y la descarga conservan el texto y las categorías de la página recibida y cambian solo el bloque del panel. Revisa el código antes de guardar en Wikipedia.","La copie et le téléchargement conservent les textes et catégories de la page reçue et modifient uniquement le bloc du panneau. Vérifiez le code avant d'enregistrer sur Wikipédia.","La copia e il download conservano i testi e le categorie della pagina ricevuta, modificando solo il blocco del pannello. Controlla il codice prima di salvare su Wikipedia."],["Este trecho é apenas o novo painel. Não substitua sua página inteira por ele.","This snippet is only the new panel. Do not replace your entire page with it.","Este fragmento contiene solo el nuevo panel. No sustituyas toda tu página por él.","Cet extrait contient uniquement le nouveau panneau. Ne remplacez pas toute votre page par cet extrait.","Questo frammento contiene solo il nuovo pannello. Non sostituire l'intera pagina con questo frammento."],["Abra o editor de conferência para manter seus textos e substituir o painel manualmente. A página original não é alterada.","Open the review editor to retain your text and replace the panel manually. The original page is not changed.","Abre el editor de revisión para conservar tu texto y sustituir el panel manualmente. La página original no se modifica.","Ouvrez l'éditeur de vérification pour conserver vos textes et remplacer le panneau manuellement. La page d'origine n'est pas modifiée.","Apri l'editor di verifica per conservare i tuoi testi e sostituire il pannello manualmente. La pagina originale non viene modificata."],["Revisar página completa antes de copiar","Review the full page before copying","Revisar la página completa antes de copiar","Vérifier la page entière avant de copier","Controlla l'intera pagina prima di copiare"],["Copiar página preservada","Copy preserved page","Copiar la página conservada","Copier la page conservée","Copia la pagina conservata"],["Copiar somente o novo bloco","Copy only the new block","Copiar solo el nuevo bloque","Copier uniquement le nouveau bloc","Copia solo il nuovo blocco"],["Baixar página preservada","Download preserved page","Descargar la página conservada","Télécharger la page conservée","Scarica la pagina conservata"],["Baixar somente o novo bloco","Download only the new block","Descargar solo el nuevo bloque","Télécharger uniquement le nouveau bloc","Scarica solo il nuovo blocco"]]);
 rows=rows.concat([["O rascunho salvo precisa de revisão antes de copiar uma página completa. Abra o editor de conferência.","The saved draft needs review before copying a complete page. Open the review editor.","El borrador guardado necesita revisión antes de copiar una página completa. Abre el editor de revisión.","Le brouillon enregistré doit être vérifié avant de copier une page entière. Ouvrez l'éditeur de vérification.","La bozza salvata deve essere controllata prima di copiare una pagina completa. Apri l'editor di verifica."]]);
+rows=rows.concat([["Concluindo a consulta até {date}. Os dados mais recentes serão consultados em seguida.","Finishing the calculation through {date}. More recent data will be checked next.","Terminando el cálculo hasta {date}. Después se consultarán los datos más recientes.","Calcul en cours jusqu’au {date}. Les données plus récentes seront consultées ensuite.","Completamento del calcolo fino al {date}. I dati più recenti saranno consultati in seguito."]]);
 var catalogs=Object.create(null);languages.forEach(function(language){catalogs[language]=Object.create(null);});
 function portugal(source){return source.replace(/usuários/g,'utilizadores').replace(/usuário/g,'utilizador').replace(/Usuários/g,'Utilizadores').replace(/Usuário registrado/g,'Utilizador registado').replace(/Usuário/g,'Utilizador').replace(/arquivos/g,'ficheiros').replace(/arquivo/g,'ficheiro').replace(/Arquivo/g,'Ficheiro').replace(/prévia/g,'pré-visualização').replace(/Prévia/g,'Pré-visualização').replace(/\baba(s)?\b/g,'separador$1').replace(/tela(s)?\b/g,'ecrã$1').replace(/salvar/g,'guardar').replace(/Salvar/g,'Guardar').replace(/salvo/g,'guardado').replace(/salva/g,'guardada').replace(/Baixar/g,'Descarregar').replace(/baixar/g,'descarregar').replace(/selecion/g,'selecion').replace(/registrad/g,'registad').replace(/Você pode/g,'Pode').replace(/você/g,'si').replace(/Ao invés/g,'Em vez');}
 rows.forEach(function(row){catalogs['pt-BR'][row[0]]=row[0];catalogs['pt-PT'][row[0]]=portugal(row[0]);['en','es','fr','it'].forEach(function(language,index){catalogs[language][row[0]]=row[index+1];});});
@@ -1573,18 +1574,20 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             problem.method === 'get' && normalizedProblemPath(problem.uri) !== null && normalizedProblemPath(problem.uri) === normalizedProblemPath(url);
     }
 
+    function sourceIndex(date, source) { return Math.round((Date.parse(date) - Date.parse(source.start)) / DAY); }
     function refreshSeriesStats(series, periods, article) {
         var source = sourceOf(periods);
         series.firstEditAt = article.firstEditAt;
         series.countStartDate = countStart(article);
         series.creationDate = article.creationDate || null;
         series.creationEvidence = article.creationEvidence || (article.creationDate ? { type: 'user-new-flag' } : null);
-        if (article.creationDate && series.firstNonZeroDate && series.firstNonZeroDate < article.creationDate) { series.titleHistoryBeforePageCreation = true; }
+        if (article.creationDate && series.firstNonZeroDate && series.firstNonZeroDate < series.creationDate) { series.titleHistoryBeforePageCreation = true; }
         else { delete series.titleHistoryBeforePageCreation; }
-        series.missing = series.missing.filter(function (index) { return addDate(source.start, index) >= series.countStartDate; });
+        var firstIndex = Math.max(0,sourceIndex(series.countStartDate,source));
+        series.missing = series.missing.filter(function (index) { return index >= firstIndex; });
         PERIOD_IDS.forEach(function (id) {
-            var period = effectivePeriod(article, periods[id]);
-            var missing = series.missing.filter(function (index) { var date = addDate(source.start, index); return date >= period.start && date <= period.end; }).length;
+            var period = effectivePeriod(article, periods[id]), startIndex = sourceIndex(period.start,source), endIndex = sourceIndex(period.end,source);
+            var missing = series.missing.filter(function (index) { return index >= startIndex && index <= endIndex; }).length;
             series.covered[id] = period.days - missing;
             series.totals[id] = missing ? null : series.partialSums[id];
         });
@@ -1592,20 +1595,22 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
         return series;
     }
 
-    function emptySeries(article, periods, capturedAt, error) {
-        var source = sourceOf(periods);
-        return refreshSeriesStats({ pageid: article.pageid, title: article.title,
+    function emptySeries(article, periods, capturedAt, error, requestPeriod) {
+        var source = sourceOf(periods), firstIndex = Math.max(0,sourceIndex(countStart(article),source));
+        var series = { pageid: article.pageid, title: article.title,
             lastEditAt: article.lastEditAt, sourcePeriod: source, capturedAt: capturedAt,
             totals: {}, partialSums: { '30d': 0, '90d': 0, '12m': 0, 'since': 0 }, covered: {},
-            missing: Array.from({ length: source.days }, function (_, index) { return index; }),
+            missing: Array.from({ length: Math.max(0,source.days-firstIndex) }, function (_, index) { return index + firstIndex; }),
             firstNonZeroDate: null, validated: false, creationChecked: !!article.creationDate,
-            error: error || null }, periods, article);
+            error: error || null };
+        if (requestPeriod) { series.requestPeriod = clone(requestPeriod); }
+        return refreshSeriesStats(series, periods, article);
     }
 
-    function validatedSeries(article, periods, response, config, capturedAt, availabilityProof) {
+    function validatedSeries(article, periods, response, config, capturedAt, availabilityProof, requestPeriod) {
         checkedResponse(response);
         if (!Array.isArray(response.items)) { fail('The annual daily series is missing.'); }
-        var source = sourceOf(periods);
+        var source = sourceOf(periods), queried = requestPeriod || source;
         var daily = new Map();
         var firstNonZeroDate = null;
         response.items.forEach(function (item) {
@@ -1616,17 +1621,23 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                 fail('An annual view item has invalid metadata or views.');
             }
             var date = item.timestamp.slice(0, 4) + '-' + item.timestamp.slice(4, 6) + '-' + item.timestamp.slice(6, 8);
-            if (!validDate(date) || date < source.start || date > source.end || daily.has(date)) { fail('The annual series contains duplicate or out-of-range dates.'); }
+            if (!validDate(date) || date < queried.start || date > queried.end || daily.has(date)) { fail('The annual series contains duplicate or out-of-range dates.'); }
             if (item.views && (!firstNonZeroDate || date < firstNonZeroDate)) { firstNonZeroDate = date; }
             daily.set(date, item.views);
         });
-        var series = emptySeries(article, periods, capturedAt);
+        var series = emptySeries(article, periods, capturedAt, null, requestPeriod);
         series.validated = true;
         series.reportedDays = daily.size;
         var documentedZeros = validAvailabilityProof(availabilityProof, source, config, capturedAt);
         series.missing = [];
         series.firstNonZeroDate = firstNonZeroDate;
-        for (var index = 0; index < source.days; index += 1) {
+        var firstIndex = Math.max(0,sourceIndex(countStart(article),source));
+        var bounds = {};
+        PERIOD_IDS.forEach(function (id) {
+            var period = effectivePeriod(article,periods[id]);
+            bounds[id] = {start:sourceIndex(period.start,source),end:sourceIndex(period.end,source)};
+        });
+        for (var index = firstIndex; index < source.days; index += 1) {
             var date = addDate(source.start, index);
             if (!daily.has(date)) {
                 if (documentedZeros) { series.zeroBasis = 'aqs-documented-omitted-zero'; series.availabilityProofAt = availabilityProof.capturedAt; }
@@ -1635,7 +1646,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             }
             var views = daily.get(date);
             PERIOD_IDS.forEach(function (id) {
-                if (date >= effectivePeriod(article, periods[id]).start && date <= periods[id].end) {
+                if (index >= bounds[id].start && index <= bounds[id].end) {
                     series.partialSums[id] += views;
                     if (!Number.isSafeInteger(series.partialSums[id])) { fail('A view total exceeds the safe integer range.'); }
                 }
@@ -1819,7 +1830,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             pending: state.allPeriodsComplete ? 0 : metadataRemaining + missingSeries + unavailable + creationNeeded + neededDates.size + aggregateNeeded,
             workPeriod: state.workPeriod, resumable: !state.allPeriodsComplete && !state.error
         });
-        state.stale = !state.allPeriodsComplete;
+        state.stale = !state.allPeriodsComplete || state.periods['12m'].period.end !== periodsFor(state.capturedAt)['12m'].end;
         state.phase = state.allPeriodsComplete ? 'complete' : (metadataRemaining ? 'metadata' : (missingSeries || creationNeeded ? 'annual-series' : 'bounds'));
         if (state.allPeriodsComplete) { state.error = null; }
         return Array.from(neededDates).sort();
@@ -1864,10 +1875,20 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
         var candidates = articleCandidates(activity.entries);
         var definitions = periodsFor(now);
         var fingerprint = universeFingerprint(candidates);
+        var unchangedCandidates = previous && JSON.stringify(previous.candidates) === JSON.stringify(candidates);
+        // Finish a recent in-progress calculation before moving its UTC end
+        // date. Otherwise short visits spanning midnight repeatedly discard the
+        // same work. The displayed period dates remain the original dates.
+        var pinnedWindow = previous && !previous.allPeriodsComplete && !options.restartPageviews &&
+            now.getTime() >= Date.parse(previous.startedAt) && now.getTime() - Date.parse(previous.startedAt) <= 7 * DAY &&
+            previous.periods['12m'].period.end !== definitions['12m'].end &&
+            JSON.stringify(unchangedCandidates ? sourceForState(periodsFor(previous.startedAt),previous) :
+                sourceForArticles(periodsFor(previous.startedAt), candidates)) === JSON.stringify(previous.sourcePeriod);
+        var projectionNow = pinnedWindow ? nowDate(previous.startedAt) : now;
+        if (pinnedWindow) { definitions = periodsFor(projectionNow); }
         // An unfinished snapshot also belongs to its original history and UTC
         // windows. Rebuild metadata when either changes, retaining reusable
         // series through newStateV3 instead of producing an invalid checkpoint.
-        var unchangedCandidates = previous && JSON.stringify(previous.candidates) === JSON.stringify(candidates);
         var previousCandidates = new Map(previous ? previous.candidates.map(function (article) { return [article.pageid, article]; }) : []);
         var sameArticleIdentity = previous && candidates.every(function (article) {
             var old = previousCandidates.get(article.pageid);
@@ -1876,7 +1897,21 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
         var resume = previous && previous.periods['12m'].period.start === definitions['12m'].start &&
             previous.periods['12m'].period.end === definitions['12m'].end && previous.universeFingerprint === fingerprint &&
             (unchangedCandidates || previous.metadata.complete && sameArticleIdentity);
-        var state = resume && !options.restartPageviews ? clone(previous) : newStateV3(config, now, activity, candidates, previous);
+        var state = resume && !options.restartPageviews ? clone(previous) : newStateV3(config, projectionNow, activity, candidates, previous);
+        // Editing an already known article can reorder the history candidates.
+        // Rebase classifications by page ID instead of trusting their old array
+        // positions. This map comes only from the validated previous snapshot.
+        var priorClassifications = new Map();
+        if (previous && !resume && !options.restartPageviews && now.getTime() - Date.parse(previous.startedAt) <= 7 * DAY &&
+            previous.periods['12m'].period.start === definitions['12m'].start && previous.periods['12m'].period.end === definitions['12m'].end &&
+            JSON.stringify(previous.sourcePeriod) === JSON.stringify(state.sourcePeriod)) {
+            previous.metadata.cohort.forEach(function (article) {
+                priorClassifications.set(article.pageid, {article:article});
+            });
+            previous.metadata.excluded.forEach(function (article) {
+                priorClassifications.set(article.pageid, {excluded:article});
+            });
+        }
         if (resume && !options.restartPageviews && !unchangedCandidates) {
             // A later edit does not change the first-edit cutoff or pageviews.
             // Metadata is complete, so changing candidate order cannot skip a
@@ -1969,16 +2004,19 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                 var work = queue.slice(0, Math.min(2, maxRequests - requests));
                 work.forEach(function (article) { attempted.add(article.pageid); });
                 await Promise.all(work.map(async function (article) {
-                    var series = state.series[article.pageid];
+                    var series = state.series[article.pageid], requestPeriod = effectivePeriod(article,sourceOf(periodDefinitions));
                     try {
-                        if (!series || (options.retryUnavailableSeries && !series.validated) || (zerosVerified && series.validated && series.missing.length)) {
-                            series = validatedSeries(article, periodDefinitions, await request(viewUrl(config, article.title, sourceOf(periodDefinitions))), config, now.toISOString(), state.availabilityProof);
+                        if (requestPeriod.days === 0) {
+                            series = emptySeries(article,periodDefinitions,now.toISOString(),null,requestPeriod);
+                            series.validated = true; series.reportedDays = 0; series.coverageBasis = 'before-first-edit';
+                        } else if (!series || (options.retryUnavailableSeries && !series.validated) || (zerosVerified && series.validated && series.missing.length)) {
+                            series = validatedSeries(article, periodDefinitions, await request(viewUrl(config, article.title, requestPeriod)), config, now.toISOString(), state.availabilityProof,requestPeriod);
                         }
                         state.series[article.pageid] = series;
                     } catch (error) {
                         if (error.code !== 'request-budget' && error.code !== 'aborted') {
-                            series = emptySeries(article, periodDefinitions, now.toISOString(), errorInfo(error));
-                            var articleUrl = viewUrl(config, article.title, sourceOf(periodDefinitions));
+                            series = emptySeries(article, periodDefinitions, now.toISOString(), errorInfo(error),requestPeriod);
+                            var articleUrl = viewUrl(config, article.title, requestPeriod);
                             if (zerosVerified && documentedEmptyError(error, articleUrl)) {
                                 series.validated = true; series.missing = []; series.reportedDays = 0;
                                 series.zeroBasis = 'aqs-documented-empty-series'; series.availabilityProofAt = state.availabilityProof.capturedAt;
@@ -1998,9 +2036,17 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             if (state.allPeriodsComplete) { state.capturedAt = oldCaptureAt; await checkpoint(true); return state; }
             while (!state.metadata.complete && requests < maxRequests) {
                 var batch = state.candidates.slice(state.metadata.cursor, state.metadata.cursor + 50);
-                var response = checkedResponse(await request(apiUrl(config, { prop: 'info', pageids: batch.map(function (article) { return article.pageid; }).join('|') })));
+                var carried = new Map();
+                batch.forEach(function (article) {
+                    var prior = priorClassifications.get(article.pageid), oldCandidate = previousCandidates.get(article.pageid);
+                    if (prior && oldCandidate && oldCandidate.firstEditAt === article.firstEditAt && oldCandidate.title === article.title &&
+                        (!prior.article || prior.article.title === article.title)) { carried.set(article.pageid,prior); }
+                });
+                var unknown = batch.filter(function (article) { return !carried.has(article.pageid); });
+                var response = unknown.length ? checkedResponse(await request(apiUrl(config, { prop: 'info', pageids: unknown.map(function (article) { return article.pageid; }).join('|') }))) :
+                    {batchcomplete:true,query:{pages:[]}};
                 if (response.continue || !assertedFlag(response, 'batchcomplete') || !response.query || !Array.isArray(response.query.pages)) { fail('Current article metadata is incomplete.'); }
-                var pages = new Map(); var requested = new Set(batch.map(function (article) { return article.pageid; }));
+                var pages = new Map(); var requested = new Set(unknown.map(function (article) { return article.pageid; }));
                 response.query.pages.forEach(function (page) {
                     if (!page || !Number.isSafeInteger(page.pageid) || !requested.has(page.pageid) || pages.has(page.pageid)) { fail('Current metadata has invalid or duplicate page IDs.'); }
                     pages.set(page.pageid, page);
@@ -2008,6 +2054,13 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                 var additions = []; var exclusions = [];
                 var knownTitles = new Set(state.metadata.cohort.map(function (article) { return normalizedTitle(article.title); }));
                 batch.forEach(function (article) {
+                    var prior = carried.get(article.pageid);
+                    if (prior) {
+                        if (prior.excluded) { exclusions.push(clone(prior.excluded)); return; }
+                        if (knownTitles.has(normalizedTitle(prior.article.title))) { fail('Current metadata resolves to duplicate titles.'); }
+                        knownTitles.add(normalizedTitle(prior.article.title));
+                        additions.push(Object.assign({},article,{title:prior.article.title})); return;
+                    }
                     var page = pages.get(article.pageid);
                     if (!page) { fail('Current metadata omitted a requested page.'); }
                     if (assertedFlag(page, 'missing') || assertedFlag(page, 'invalid') || assertedFlag(page, 'redirect') || page.ns !== 0) {
@@ -2421,6 +2474,10 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             check(Number.isSafeInteger(series.pageid) && series.pageid > 0 && typeof series.title === 'string' && !!series.title && validTimestamp(series.lastEditAt) && validTimestamp(series.capturedAt) && Date.parse(series.capturedAt) <= Date.parse(captureAt), label + 'invalid cached article.');
             check(validTimestamp(series.firstEditAt) && series.countStartDate === countStart(series), label + 'invalid first-edit cutoff.');
             check(JSON.stringify(series.sourcePeriod) === JSON.stringify(source) && Array.isArray(series.missing) && !!series.partialSums && !!series.totals && !!series.covered, label + 'invalid series projection.');
+            var requested = series.requestPeriod || source;
+            if (own(series,'requestPeriod')) {
+                check(JSON.stringify(series.requestPeriod) === JSON.stringify(effectivePeriod(series,source)), label + 'invalid clipped request period.');
+            }
             var seenMissing = new Set();
             (series.missing || []).forEach(function (index) {
                 check(Number.isInteger(index) && index >= 0 && index < source.days && !seenMissing.has(index), label + 'invalid or duplicate missing-date index.'); seenMissing.add(index);
@@ -2430,10 +2487,10 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                 var period = effectivePeriod(series, definitions[id]);
                 var missing = (series.missing || []).filter(function (index) { var date = addDate(source.start, index); return date >= period.start && date <= period.end; }).length;
                 check(Number.isSafeInteger(series.partialSums[id]) && series.partialSums[id] >= 0 && series.covered[id] === period.days - missing &&
-                    series.totals[id] === (missing ? null : series.partialSums[id]), label + 'period coverage or totals do not match the missing dates.');
+                    series.totals[id] === (missing ? null : series.partialSums[id]) && (period.days !== 0 || series.partialSums[id] === 0), label + 'period coverage or totals do not match the missing dates.');
             });
             check(series.partialSums['30d'] <= series.partialSums['90d'] && series.partialSums['90d'] <= series.partialSums['12m'] && series.partialSums['12m'] <= series.partialSums['since'], label + 'nested period sums are inconsistent.');
-            check(!series.firstNonZeroDate || (validDate(series.firstNonZeroDate) && series.firstNonZeroDate >= source.start && series.firstNonZeroDate <= source.end), label + 'invalid first positive date.');
+            check(!series.firstNonZeroDate || (validDate(series.firstNonZeroDate) && series.firstNonZeroDate >= requested.start && series.firstNonZeroDate <= requested.end), label + 'invalid first positive date.');
             check(!!series.titleHistoryBeforePageCreation === !!(series.creationDate && series.firstNonZeroDate && series.firstNonZeroDate < series.creationDate), label + 'invalid prior-title-history flag.');
             check(!series.creationDate || validDate(series.creationDate), label + 'invalid creation date.');
             if (series.creationEvidence && series.creationEvidence.type === 'first-revision') {
@@ -2441,19 +2498,25 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             }
             check(['available', 'partial', 'unavailable'].indexOf(series.status) >= 0 && (series.status !== 'available' || series.missing.length === 0), label + 'invalid series status.');
             if (own(series, 'reportedDays')) {
-                check(Number.isInteger(series.reportedDays) && series.reportedDays >= 0 && series.reportedDays <= source.days, label + 'invalid explicit reported-day count.');
+                check(Number.isInteger(series.reportedDays) && series.reportedDays >= 0 && series.reportedDays <= requested.days, label + 'invalid explicit reported-day count.');
+            }
+            if (own(series,'coverageBasis')) {
+                check(series.coverageBasis === 'before-first-edit' && !!series.requestPeriod && requested.days === 0 &&
+                    series.validated === true && series.reportedDays === 0 && !series.error && !series.firstNonZeroDate &&
+                    !series.zeroBasis && series.missing.length === 0 && PERIOD_IDS.every(function (id) { return series.partialSums[id] === 0; }),
+                    label + 'invalid before-first-edit coverage.');
             }
             if (series.zeroBasis) {
                 check(['aqs-documented-omitted-zero', 'aqs-documented-empty-series'].indexOf(series.zeroBasis) >= 0 &&
                     availabilityValid && Date.parse(section.availabilityProof.capturedAt) <= Date.parse(series.capturedAt) &&
                     series.availabilityProofAt === section.availabilityProof.capturedAt && series.validated === true &&
-                    series.status === 'available' && series.missing.length === 0 && Number.isInteger(series.reportedDays) && series.reportedDays < source.days,
+                    series.status === 'available' && series.missing.length === 0 && Number.isInteger(series.reportedDays) && series.reportedDays < requested.days,
                     label + 'zero-filled article lacks matching availability evidence.');
                 if (series.zeroBasis === 'aqs-documented-empty-series') {
                     var evidence = series.zeroEvidence;
                     check(!!evidence && evidence.status === 404 && series.reportedDays === 0 && !series.firstNonZeroDate &&
                         PERIOD_IDS.every(function (id) { return series.partialSums[id] === 0; }) &&
-                        documentedEmptyError({ status: 404, requestUrl: evidence.requestUrl, problem: evidence.problem }, viewUrl(DEFAULT_CONFIG, series.title, source)),
+                        documentedEmptyError({ status: 404, requestUrl: evidence.requestUrl, problem: evidence.problem }, viewUrl(DEFAULT_CONFIG, series.title, requested)),
                         label + 'empty series lacks a matching AQS not-found response.');
                 } else { check(!series.zeroEvidence, label + 'omitted-day series has incompatible not-found evidence.'); }
             } else { check(!series.availabilityProofAt && !series.zeroEvidence, label + 'article zero evidence has no declared basis.'); }
@@ -3390,17 +3453,44 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                 state.metricUpdatedAt[key] = bytes[key] === null ? null : options.history.capturedAt;
             });
         }
+        var needsGroups = options.includeUserGroups === true && (!state.userGroups || options.force ||
+            nowMs - Date.parse(state.userGroupsAttemptAt || state.userGroups.checkedAt) >= DAY);
+        var needsGlobal = !state.global || state.global.thanksCompleteAt && (options.force || nowMs - Date.parse(state.global.infoAt) >= GLOBAL_TTL);
+        var needsEarliestRegistration = options.includeEarliestRegistration === true && (!state.registrationCoverage || options.force ||
+            nowMs - Date.parse(state.registrationCoverage.checkedAt) >= DAY);
+        var needsLocalRegistration = !state.metricUpdatedAt.registration || options.force || nowMs - Date.parse(state.metricUpdatedAt.registration) >= DAY;
+        // The initial identity paint reads independent Action API modules in
+        // one GET. Each consumer still checks its own fields and identity, so
+        // an absent module cannot erase another module's verified result.
+        var identityParams = {}, identityAttempted = false, identityData, identityFailure;
+        if (needsGlobal || needsEarliestRegistration) {
+            identityParams.meta = 'globaluserinfo'; identityParams.guiuser = user; identityParams.guiprop = 'editcount|merged';
+        }
+        if (needsGroups || needsLocalRegistration) {
+            identityParams.list = 'users'; identityParams.ususers = user;
+            identityParams.usprop = needsGroups ? 'registration|groups|implicitgroups' : 'registration';
+        }
+        function identityAvailable() { return remaining > 0 || options.deferDetails === true && identityAttempted; }
+        async function identityRequest(params) {
+            if (options.deferDetails !== true) { return request(queryUrl('https://' + PROJECT,params)); }
+            if (!identityAttempted) {
+                identityAttempted = true;
+                try { identityData = await request(queryUrl('https://' + PROJECT,identityParams)); }
+                catch (failure) { identityFailure = failure; }
+            }
+            if (identityFailure) { throw identityFailure; }
+            return identityData;
+        }
         // Optional public ptwiki groups are independent of edit metrics and
         // profile/cache identity. The selected account's public list needs
         // only one anonymous GET, no tokens or access to private preferences.
-        if (options.includeUserGroups === true && (!state.userGroups || options.force ||
-            nowMs - Date.parse(state.userGroupsAttemptAt || state.userGroups.checkedAt) >= DAY)) {
+        if (needsGroups) {
             if (!own(state,'userGroups')) { state.userGroups = null; }
-            if (!remaining) { state.pending = true; }
+            if (!identityAvailable()) { state.pending = true; }
             else {
                 try {
                     state.userGroupsAttemptAt = now;
-                    var groupResponse = await request(queryUrl('https://' + PROJECT,{list:'users',ususers:user,usprop:'groups|implicitgroups'}));
+                    var groupResponse = await identityRequest({list:'users',ususers:user,usprop:'groups|implicitgroups'});
                     var groupUsers = groupResponse.query && groupResponse.query.users;
                     if (!userGroups || !completed(groupResponse) || own(groupResponse,'continue') || !Array.isArray(groupUsers) || groupUsers.length !== 1 ||
                         !object(groupUsers[0]) || groupUsers[0].name !== user || !positive(groupUsers[0].userid) ||
@@ -3460,20 +3550,20 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             }
             if (state.thanksSentScan) { state.pending = true; }
         }
-        var needsGlobal = !state.global || state.global.thanksCompleteAt && (options.force || nowMs - Date.parse(state.global.infoAt) >= GLOBAL_TTL);
-        var needsEarliestRegistration = options.includeEarliestRegistration === true && (!state.registrationCoverage || options.force ||
-            nowMs - Date.parse(state.registrationCoverage.checkedAt) >= DAY);
         if (needsGlobal || needsEarliestRegistration) {
-            if (!remaining) { state.pending = true; }
+            if (!identityAvailable()) { state.pending = true; }
             else {
                 try {
-                    var data = await request(queryUrl('https://' + PROJECT, { meta: 'globaluserinfo', guiuser: user, guiprop: 'editcount|merged' }));
+                    var data = await identityRequest({ meta: 'globaluserinfo', guiuser: user, guiprop: 'editcount|merged' });
                     var info = data.query && data.query.globaluserinfo;
-                    if (!info || info.name !== user || !integer(info.editcount) || !Array.isArray(info.merged) || info.merged.length > MAX_PROJECTS || info.editcount > 0 && !info.merged.length || !completed(data)) { throw new Error('Identidade global incompleta.'); }
+                    if (!object(info) || info.name !== user || !integer(info.editcount) || !Array.isArray(info.merged) || info.merged.length > MAX_PROJECTS || info.editcount > 0 && !info.merged.length || !completed(data) ||
+                        options.deferDetails === true && (own(data,'continue') || ['missing','invalid','hidden','suppressed'].some(function (key) { return own(info,key); }))) { throw new Error('Identidade global incompleta.'); }
                     if (needsGlobal) {
                         var projects = {}, keys = [];
                         Array.from(info.merged).forEach(function (account) {
-                            if (!account || !projectKey(account.wiki) || own(projects, account.wiki) || !integer(account.editcount)) { throw new Error('Projeto global inválido.'); }
+                            if (!account || !projectKey(account.wiki) || own(projects, account.wiki) || !integer(account.editcount) ||
+                                options.deferDetails === true && (own(account,'name') && account.name !== user || own(account,'user') && account.user !== user ||
+                                ['missing','invalid','hidden','suppressed'].some(function (key) { return own(account,key); }))) { throw new Error('Projeto global inválido.'); }
                             var origin = allowedOrigin(account.url), old = state.projects[account.wiki];
                             var p = old && old.url === origin ? clone(old) : { url: origin, editcount: 0, thanks: null, thanksAt: null, articles: null, articlesAt: null, thanksScan: null };
                             p.editcount = account.editcount;
@@ -3498,12 +3588,15 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                 } catch (_) { error(needsGlobal ? 'Contribuições globais' : 'Data de criação da conta'); }
             }
         }
-        if (!state.metricUpdatedAt.registration || options.force || nowMs - Date.parse(state.metricUpdatedAt.registration) >= DAY) {
-            if (remaining) {
+        if (needsLocalRegistration) {
+            if (identityAvailable()) {
                 try {
-                    var local = await request(queryUrl('https://' + PROJECT, { list: 'users', ususers: user, usprop: 'registration' }));
+                    var local = await identityRequest({ list: 'users', ususers: user, usprop: 'registration' });
                     var users = local.query && local.query.users;
-                    if (!completed(local) || !Array.isArray(users) || users.length !== 1 || users[0].name !== user || flag(users[0], 'missing') || flag(users[0], 'invalid') || (users[0].registration !== null && !validTime(users[0].registration, nowMs))) { throw new Error('Inscrição local inválida.'); }
+                    if (!completed(local) || !Array.isArray(users) || users.length !== 1 || !object(users[0]) || users[0].name !== user || flag(users[0], 'missing') || flag(users[0], 'invalid') ||
+                        (users[0].registration !== null && !validTime(users[0].registration, nowMs)) ||
+                        options.deferDetails === true && (own(local,'continue') || !positive(users[0].userid) ||
+                        ['missing','invalid','hidden','suppressed'].some(function (key) { return own(users[0],key); }))) { throw new Error('Inscrição local inválida.'); }
                     setMetric('registration', users[0].registration);
                 } catch (_) { error('Data de ingresso na ptwiki'); }
             } else { state.pending = true; }
@@ -4428,6 +4521,11 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                 }
             }
             if (profile && !profile.complete && p && p.progress) {
+                var latestUtcDay = new Date(new Date(presentation.now === undefined ? Date.now() : presentation.now).getTime() - 86400000).toISOString().slice(0,10);
+                if (key !== 'custom' && profile.period && profile.period.end < latestUtcDay) {
+                    h.push('<div role="status" style="margin-top:12px;color:#54595d;font-size:12px;">' +
+                        tr('Concluindo a consulta até {date}. Os dados mais recentes serão consultados em seguida.',{date:shortDate(profile.period.end)}) + '</div>');
+                }
                 var preparing = p.metadata && !p.metadata.complete;
                 var progressLabel = preparing ? tr('Preparando artigos · {done} de {total} títulos verificados', {
                     done: number(p.metadata.cursor), total: number(p.candidates.length)
@@ -5170,11 +5268,164 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
 
 ;
 
+/* PerfilWiki. Display-only recovery of saved legacy counters. No requests or collector state. CC BY-SA 4.0. */
+(function (root, factory) {
+    'use strict';
+    var api = factory(typeof module === 'object' && module.exports ? require('./Statistics.js') : root.PerfilWikiStatistics);
+    if (typeof module === 'object' && module.exports) { module.exports = api; }
+    else { root.PerfilWikiLegacyStatsPreview = api; }
+}(typeof globalThis === 'object' ? globalThis : this, function (statistics) {
+    'use strict';
+    var LIMIT = 260000, MAX_ITEMS = 200000;
+    var own = function (value,key) { return Object.prototype.hasOwnProperty.call(value,key); };
+    var object = function (value) { return !!value && typeof value === 'object' && !Array.isArray(value); };
+    var integer = function (value) { return Number.isSafeInteger(value) && value >= 0; };
+    var positive = function (value) { return integer(value) && value > 0; };
+    var ids = {edits:'dan-pu-edicoes',thanks:'dan-pu-agradecimentos',articles:'dan-pu-artigos',bestStreak:'dan-pu-ritmo-melhor-sequencia',edited:'dan-pu-editados',technicalCreated:'dan-pu-criados-tecnicos',reverts:'dan-pu-reversoes'};
+    function clock(options) { var result = new Date(options && options.now !== undefined ? options.now : Date.now()).getTime(); return Number.isFinite(result) ? result : null; }
+    function iso(value,now) {
+        if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value)) { return false; }
+        var parsed = new Date(value);
+        return Number.isFinite(parsed.getTime()) && parsed.getTime() <= now && parsed.toISOString().replace('.000Z','Z') === value.replace('.000Z','Z');
+    }
+    function day(value,now) { return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && iso(value+'T00:00:00Z',now); }
+    function list(values) { return Array.isArray(values) && values.length <= MAX_ITEMS && values.every(positive) && new Set(values).size === values.length; }
+    function sum(values) { var total = values.reduce(function (a,b) { return a+b; },0); return integer(total) ? total : null; }
+    function parsed(input) {
+        try {
+            var raw = typeof input === 'string' ? input : JSON.stringify(input);
+            if (!raw || raw.length > LIMIT) { return null; }
+            return JSON.parse(raw,function (key,value) { if (key === '__proto__' || key === 'constructor' || key === 'prototype') { throw new Error('Unexpected object key.'); } return value; });
+        } catch (_) { return null; }
+    }
+    function origin(value) {
+        try {
+            var url = new URL(value);
+            return typeof value === 'string' && url.protocol === 'https:' && !url.username && !url.password && !url.port && !url.search && !url.hash && url.pathname === '/' &&
+                /(^|\.)(wikipedia|wikimedia|wikidata|wiktionary|wikibooks|wikinews|wikiquote|wikisource|wikiversity|wikivoyage|mediawiki|wikifunctions)\.org$/.test(url.hostname) &&
+                (value === url.origin || value === url.origin+'/') ? url.origin : null;
+        } catch (_) { return null; }
+    }
+    function normalize(input,options) {
+        options = options || {};
+        var now = clock(options), state = parsed(input), user = options.user;
+        if (now === null || typeof user !== 'string' || !user || user.length > 255 || /[\x00-\x1f\x7f]/.test(user) || !object(state) || state.schema !== 1 || state.user !== user ||
+            !object(state.metrics) || !object(state.projects) || !object(state.history) || !Array.isArray(state.errors) || state.errors.length > 2000 ||
+            state.errors.some(function (error) { return typeof error !== 'string' || error.length > 2048; })) { return null; }
+        var metricKeys = ['edits','thanks','articles','streak','edited','technicalCreated','reverts'];
+        if (['edits','thanks','articles','streak'].some(function (key) { return !integer(state.metrics[key]); }) || metricKeys.some(function (key) { return own(state.metrics,key) && !integer(state.metrics[key]); })) { return null; }
+        if (['lastAttemptAt','lastSuccessAt'].some(function (key) { return state[key] !== undefined && state[key] !== null && !iso(state[key],now); }) ||
+            state.lastAttemptAt && state.lastSuccessAt && Date.parse(state.lastSuccessAt) > Date.parse(state.lastAttemptAt)) { return null; }
+        var savedAt = state.lastAttemptAt || state.lastSuccessAt || null;
+        var keys = Object.keys(state.projects);
+        if (keys.length > 2000 || keys.some(function (key) {
+            var project = state.projects[key];
+            return !/^[a-z0-9_]{1,100}$/.test(key) || !object(project) || !origin(project.url) || !integer(project.editcount) ||
+                ['thanks','articles'].some(function (field) { return own(project,field) && !integer(project[field]); });
+        })) { return null; }
+        var projects = keys.map(function (key) { return state.projects[key]; }), metrics = {};
+        function put(key,value,at) { if (integer(value) && iso(at,now)) { metrics[key] = {value:value,savedAt:at}; } }
+        if (keys.length && savedAt) {
+            if (sum(projects.map(function (project) { return project.editcount; })) === state.metrics.edits) { put('edits',state.metrics.edits,savedAt); }
+            if (projects.every(function (project) { return integer(project.thanks); }) && sum(projects.map(function (project) { return project.thanks; })) === state.metrics.thanks) { put('thanks',state.metrics.thanks,savedAt); }
+            var wikipedias = keys.filter(function (key) { return key !== 'testwiki' && key !== 'test2wiki' && new URL(state.projects[key].url).hostname.endsWith('.wikipedia.org'); }).map(function (key) { return state.projects[key]; });
+            if (wikipedias.length && wikipedias.some(function (project) { return integer(project.articles); }) &&
+                wikipedias.every(function (project) { return integer(project.articles) || project.editcount === 0; }) &&
+                sum(wikipedias.map(function (project) { return project.articles || 0; })) === state.metrics.articles) { put('articles',state.metrics.articles,savedAt); }
+        }
+        var history = state.history;
+        if (history.complete === true && iso(history.scannedAt,now) && Array.isArray(history.dates) && history.dates.length <= 20000 && history.dates.every(function (value) { return day(value,Date.parse(history.scannedAt)); })) {
+            var dates = Array.from(new Set(history.dates)).sort(), best = 0, current = 0, previous = null;
+            dates.forEach(function (date) { var value = Date.parse(date+'T00:00:00Z'); current = previous !== null && value-previous === 86400000 ? current+1 : 1; best = Math.max(best,current); previous = value; });
+            if (best === state.metrics.streak) { put('bestStreak',best,history.scannedAt); }
+        }
+        function pageHistory(record,field) {
+            return object(record) && record.complete === true && iso(record.scannedAt,now) &&
+                (!record.fullScannedAt || iso(record.fullScannedAt,Date.parse(record.scannedAt))) && list(record[field]);
+        }
+        if (pageHistory(state.edited,'pageids') && integer(state.metrics.edited)) {
+            var edited = state.edited, accepted = state.metrics.edited <= edited.pageids.length;
+            if (own(edited,'countedPageids') || own(edited,'validatedAt')) {
+                var known = new Set(edited.pageids);
+                accepted = list(edited.countedPageids) && iso(edited.validatedAt,Date.parse(edited.scannedAt)) && edited.countedPageids.length === state.metrics.edited && edited.countedPageids.every(function (id) { return known.has(id); });
+            }
+            if (accepted) { put('edited',state.metrics.edited,edited.validatedAt || edited.scannedAt); }
+        }
+        if (pageHistory(state.reverts,'revids') && state.reverts.revids.length === state.metrics.reverts) { put('reverts',state.metrics.reverts,state.reverts.scannedAt); }
+        var technical = state.technicalCreated;
+        if (object(technical) && technical.model === 'created-code-pages-v1' && technical.complete === true &&
+            iso(technical.scannedAt,now) && iso(technical.fullScannedAt,Date.parse(technical.scannedAt)) && iso(technical.validatedAt,Date.parse(technical.scannedAt)) &&
+            Array.isArray(technical.creations) && technical.creations.length <= MAX_ITEMS && Array.isArray(technical.pages) && technical.pages.length <= MAX_ITEMS && technical.pages.length === state.metrics.technicalCreated && statistics && typeof statistics.technicalKind === 'function') {
+            var created = new Set(), revisions = new Set(), counted = new Set();
+            var valid = technical.creations.every(function (entry) {
+                if (!Array.isArray(entry) || entry.length !== 3 || !positive(entry[0]) || !positive(entry[1]) || created.has(entry[0]) || revisions.has(entry[1]) || !iso(entry[2],Date.parse(technical.scannedAt))) { return false; }
+                created.add(entry[0]); revisions.add(entry[1]); return true;
+            });
+            valid = valid && technical.pages.every(function (page) {
+                if (!object(page) || !positive(page.pageid) || !created.has(page.pageid) || counted.has(page.pageid) || typeof page.title !== 'string' || page.title.length > 1024 || !statistics.technicalKind(page) || statistics.technicalKind(page) !== page.kind) { return false; }
+                counted.add(page.pageid); return true;
+            });
+            if (valid) { put('technicalCreated',state.metrics.technicalCreated,technical.validatedAt); }
+        }
+        return Object.keys(metrics).length ? {previewSchema:1,user:user,metrics:metrics} : null;
+    }
+    function fromWikitext(text,options) {
+        if (typeof text !== 'string' || text.length > LIMIT) { return null; }
+        var marker = '<noinclude><syntaxhighlight lang="json">\n', end = '\n</syntaxhighlight></noinclude>';
+        var start = text.indexOf(marker), finish = text.indexOf(end,start);
+        if (start < 0 || finish < 0 || start !== text.lastIndexOf(marker) || finish !== text.lastIndexOf(end)) { return null; }
+        var state = parsed(text.slice(start+marker.length,finish));
+        if (!object(state) || !object(state.metrics) || ['edits','thanks','articles','streak'].some(function (key) { return !integer(state.metrics[key]); }) || ['edited','technical','technicalCreated','reverts'].some(function (key) { return own(state.metrics,key) && !integer(state.metrics[key]); })) { return null; }
+        var expected = '<includeonly>{{#switch:{{{1|}}}\n';
+        [['edits','edicoes'],['thanks','agradecimentos'],['articles','artigos'],['streak','sequencia'],['edited','editados'],['technical','predefinicoes'],['technicalCreated','tecnicoscriados'],['reverts','reversoes']].forEach(function (pair) {
+            if (own(state.metrics,pair[0])) { expected += '|'+pair[1]+'={{formatnum:'+state.metrics[pair[0]]+'}}\n'; }
+        });
+        expected += '|#default=\n}}</includeonly>'+marker+JSON.stringify(state,null,2)+end;
+        if (expected !== text.trim()) { return null; }
+        return normalize(state,options);
+    }
+    var translations = {
+        'pt-BR':['Dados salvos da versão anterior',' dia',' dias'], 'pt-PT':['Dados guardados da versão anterior',' dia',' dias'],
+        en:['Saved data from the previous version',' day',' days'], es:['Datos guardados de la versión anterior',' día',' días'],
+        fr:['Données enregistrées de la version précédente',' jour',' jours'], it:['Dati salvati dalla versione precedente',' giorno',' giorni']
+    };
+    function paint(document,preview,currentStats,options) {
+        options = options || {}; var now = clock(options), user = options.user;
+        if (!document || typeof document.getElementById !== 'function' || now === null || !preview || preview.previewSchema !== 1 || preview.user !== user || !object(preview.metrics) || currentStats && currentStats.user !== user) { return 0; }
+        var root = document.getElementById('dan-pu-estatisticas');
+        if (!root || typeof root.getAttribute !== 'function' || root.getAttribute('data-perfilwiki-user') !== user || typeof root.contains !== 'function') { return 0; }
+        var language = own(translations,options.language) ? options.language : 'pt-BR', words = translations[language], format = new Intl.NumberFormat(language), count = 0;
+        Object.keys(ids).forEach(function (key) {
+            var node = document.getElementById(ids[key]); if (!node || !root.contains(node) || typeof node.setAttribute !== 'function') { return; }
+            var fresh = currentStats && currentStats.metrics && integer(currentStats.metrics[key]) && currentStats.metricUpdatedAt && iso(currentStats.metricUpdatedAt[key],now);
+            var activity = options.activity;
+            if (key === 'bestStreak' && activity && activity.complete === true && activity.identity && activity.identity.user === user && activity.summary && integer(activity.summary.bestStreak) && iso(activity.capturedAt,now)) { fresh = true; }
+            if (fresh) {
+                if (node.getAttribute('data-perfilwiki-legacy-preview') === 'true') { node.removeAttribute('data-perfilwiki-legacy-preview'); node.removeAttribute('data-perfilwiki-legacy-saved-at'); node.removeAttribute('title'); }
+                return;
+            }
+            var saved = preview.metrics[key];
+            if (!object(saved) || !integer(saved.value) || !iso(saved.savedAt,now)) { return; }
+            var previous = node.getAttribute('data-perfilwiki-legacy-saved-at');
+            if (previous && iso(previous,now) && Date.parse(previous) > Date.parse(saved.savedAt)) { return; }
+            if (node.getAttribute('data-perfilwiki-legacy-preview') !== 'true' && String(node.textContent || '').trim() && !/^(?:Aguardando dados|Waiting for data|Esperando datos|En attente de données|In attesa dei dati|[.\u2026\u2014-]+)$/i.test(String(node.textContent).trim())) { return; }
+            node.textContent = format.format(saved.value)+(key === 'bestStreak' ? words[saved.value === 1 ? 1 : 2] : '');
+            node.setAttribute('data-perfilwiki-legacy-preview','true'); node.setAttribute('data-perfilwiki-legacy-saved-at',saved.savedAt);
+            node.setAttribute('title',words[0]+' · '+saved.savedAt.replace('T',' ').replace(/(?:\.000)?Z$/,' UTC'));
+            count += 1;
+        });
+        return count;
+    }
+    return Object.freeze({normalize:normalize,fromWikitext:fromWikitext,paint:paint,rawLimit:LIMIT});
+}));
+
+;
+
 (function (root) { root.PerfilWikiStyleText = ".dan-pu-stats {\n display: grid;\n grid-template-columns: repeat(auto-fit,minmax(min(100%,max(136px,calc((100% - 36px) / 4))),1fr));\n grid-auto-rows: 1fr;\n min-width: 0;\n gap: 12px;\n text-align: right;\n margin: 0.6em 0 2.1em;\n color: #202122;\n font-size: 14px;\n line-height: 1.5;\n}\n.dan-pu-integrated-cards-slot { min-width: 0; }\n.dan-pu-integrated-cards-slot > .dan-pu-stats {\n margin: 0 0 20px !important;\n padding: 0 !important;\n border: 0 !important;\n border-radius: 0 !important;\n background: transparent !important;\n}\n.dan-pu-stat-card {\n min-width: 0;\n box-sizing: border-box;\n border: 1px solid #d8dce3;\n border-radius: 10px;\n background: #fff;\n padding: 18px 16px;\n}\n.dan-pu-stat-icon { display: none; }\n.dan-pu-stat-value {\n color: #202122;\n font-size: 28px;\n font-weight: 700;\n line-height: 1.2;\n margin-bottom: 8px;\n font-variant-numeric: tabular-nums;\n overflow-wrap: anywhere;\n}\n.dan-pu-stat-label { color: #54595d; font-size: 13px; line-height: 1.4; }\n.dan-pu-stat-tenure { background: #faf7ef; border-color: #e5e1d7; }\n.dan-pu-stat-primary .dan-pu-stat-value { color: #36c; }\n@media (max-width: 600px) {\n .dan-pu-stat-card { padding: 16px 14px; }\n .dan-pu-stat-value { font-size: 26px; }\n}\n\n.dan-pu-readership .dan-pu-view-target { display: block; position: relative; top: -12px; height: 0; width: 0; overflow: hidden; }\n.dan-pu-period-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 20px; }\n.dan-pu-period-tabs a { display: inline-block; padding: 7px 14px; border: 1px solid #c8ccd1; border-radius: 6px; background: #fff; color: #54595d; font-size: 13px; text-decoration: none; }\n.dan-pu-period-tabs a:hover { border-color: #36c; color: #36c; text-decoration: none; }\n.dan-pu-period-tabs a:focus { outline: 2px solid #36c; outline-offset: 2px; }\n/* A saved snapshot keeps its selected period without JavaScript. */\n.dan-pu-period-tabs a.dan-pu-tab-30d,\n.dan-pu-period-tabs .dan-pu-tab-30d a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n.dan-pu-readership .dan-pu-period { display: none; }\n.dan-pu-readership .dan-pu-period-30d { display: block; }\n.dan-pu-initial-90d .dan-pu-period-30d { display: none; }\n.dan-pu-initial-90d .dan-pu-period-90d { display: block; }\n.dan-pu-initial-90d .dan-pu-period-tabs a.dan-pu-tab-30d,\n.dan-pu-initial-90d .dan-pu-period-tabs .dan-pu-tab-30d a { background: #fff; border-color: #c8ccd1; color: #54595d; font-weight: 400; }\n.dan-pu-initial-90d .dan-pu-period-tabs a.dan-pu-tab-90d,\n.dan-pu-initial-90d .dan-pu-period-tabs .dan-pu-tab-90d a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n.dan-pu-initial-12m .dan-pu-period-30d { display: none; }\n.dan-pu-initial-12m .dan-pu-period-12m { display: block; }\n.dan-pu-initial-12m .dan-pu-period-tabs a.dan-pu-tab-30d,\n.dan-pu-initial-12m .dan-pu-period-tabs .dan-pu-tab-30d a { background: #fff; border-color: #c8ccd1; color: #54595d; font-weight: 400; }\n.dan-pu-initial-12m .dan-pu-period-tabs a.dan-pu-tab-12m,\n.dan-pu-initial-12m .dan-pu-period-tabs .dan-pu-tab-12m a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n.dan-pu-initial-since .dan-pu-period-30d { display: none; }\n.dan-pu-initial-since .dan-pu-period-since { display: block; }\n.dan-pu-initial-since .dan-pu-period-tabs a.dan-pu-tab-30d,\n.dan-pu-initial-since .dan-pu-period-tabs .dan-pu-tab-30d a { background: #fff; border-color: #c8ccd1; color: #54595d; font-weight: 400; }\n.dan-pu-initial-since .dan-pu-period-tabs a.dan-pu-tab-since,\n.dan-pu-initial-since .dan-pu-period-tabs .dan-pu-tab-since a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n.dan-pu-initial-custom .dan-pu-period-30d { display: none; }\n.dan-pu-initial-custom .dan-pu-period-custom { display: block; }\n.dan-pu-initial-custom .dan-pu-period-tabs a.dan-pu-tab-30d,\n.dan-pu-initial-custom .dan-pu-period-tabs .dan-pu-tab-30d a { background: #fff; border-color: #c8ccd1; color: #54595d; font-weight: 400; }\n.dan-pu-initial-custom .dan-pu-period-tabs a.dan-pu-tab-custom,\n.dan-pu-initial-custom .dan-pu-period-tabs .dan-pu-tab-custom a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n.dan-pu-readership .dan-pu-view-target:target ~ .dan-pu-period { display: none; }\n.dan-pu-view-target:target ~ .dan-pu-period-tabs a { background: #fff; border-color: #c8ccd1; color: #54595d; font-weight: 400; }\n#dan-pu-view-30d:target ~ .dan-pu-period-30d { display: block; }\n#dan-pu-view-30d:target ~ .dan-pu-period-tabs a.dan-pu-tab-30d,\n#dan-pu-view-30d:target ~ .dan-pu-period-tabs .dan-pu-tab-30d a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n#dan-pu-view-90d:target ~ .dan-pu-period-90d { display: block; }\n#dan-pu-view-90d:target ~ .dan-pu-period-tabs a.dan-pu-tab-90d,\n#dan-pu-view-90d:target ~ .dan-pu-period-tabs .dan-pu-tab-90d a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n#dan-pu-view-12m:target ~ .dan-pu-period-12m { display: block; }\n#dan-pu-view-12m:target ~ .dan-pu-period-tabs a.dan-pu-tab-12m,\n#dan-pu-view-12m:target ~ .dan-pu-period-tabs .dan-pu-tab-12m a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n#dan-pu-view-since:target ~ .dan-pu-period-since { display: block; }\n#dan-pu-view-since:target ~ .dan-pu-period-tabs a.dan-pu-tab-since,\n#dan-pu-view-since:target ~ .dan-pu-period-tabs .dan-pu-tab-since a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n#dan-pu-view-custom:target ~ .dan-pu-period-custom { display: block; }\n#dan-pu-view-custom:target ~ .dan-pu-period-tabs a.dan-pu-tab-custom,\n#dan-pu-view-custom:target ~ .dan-pu-period-tabs .dan-pu-tab-custom a { background: #eaecf0; border-color: #72777d; color: #202122; font-weight: 600; }\n.dan-pu-native-more { margin-top: 13px; }\n.dan-pu-native-more .mw-collapsible-toggle { float: none; display: inline-block; margin: 0 0 10px; }\n@media print {\n .dan-pu-period-tabs { display: none; }\n .dan-pu-readership .dan-pu-period { display: block !important; margin-top: 25px; }\n}\n\n.dan-pu-view-row { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #eaecf0; padding: 12px 0; }\n.dan-pu-view-rank { width: 32px; color: #72777d; flex: none; font-size: 12px; }\n.dan-pu-view-title { min-width: 0; flex: 1; overflow-wrap: anywhere; }\n.dan-pu-view-views { text-align: right; white-space: nowrap; font-size: 13px; }\n.dan-pu-view-first { display: block; color: #72777d; font-size: 11px; margin-top: 3px; }\n\n\n.dan-pu-focus-layout {\n display: grid;\n grid-template-columns: minmax(210px,1fr) minmax(0,1.5fr);\n align-items: start;\n gap: 20px;\n margin: 1.2em 0 2.1em;\n font-size: 14px;\n line-height: 1.6;\n}\n.dan-pu-focus-aside {\n display: grid;\n gap: 14px;\n min-width: 0;\n}\n.dan-pu-focus-projects { min-width: 0; }\n.dan-pu-focus-projects ul { margin: 0; padding-left: 1.35em; }\n.dan-pu-focus-projects li { margin-bottom: 14px; }\n.dan-pu-focus-projects li:last-child { margin-bottom: 0; }\n@media (max-width: 600px) {\n .dan-pu-focus-layout { grid-template-columns: minmax(0,1fr); gap: 20px; }\n}\n\n/* Compact rows preserve real rank text and both destinations. Old rows remain supported. */\n.dan-pu-view-row[data-layout=\"compact\"] {\n display: grid;\n grid-template-columns: 32px minmax(0,1fr) max-content;\n column-gap: 12px;\n color: #72777d;\n font-size: 12px;\n}\n.dan-pu-view-row[data-layout=\"compact\"] > a:first-of-type,\n.dan-pu-view-row[data-layout=\"compact\"] > .dan-pu-view-title {\n grid-column: 2;\n min-width: 0;\n font-size: 14px;\n overflow-wrap: anywhere;\n}\n.dan-pu-view-row[data-layout=\"compact\"] > a:nth-of-type(2),\n.dan-pu-view-row[data-layout=\"compact\"] > .dan-pu-view-title + a,\n.dan-pu-view-row[data-layout=\"compact\"] > .dan-pu-view-views {\n grid-column: 3;\n text-align: right;\n white-space: nowrap;\n font-size: 13px;\n}\n\n/* Featured rows have explicit cells, so optional pictures never shift links. */\n.dan-pu-view-row[data-layout=\"featured\"] {\n box-sizing: border-box;\n min-height: 68px;\n padding: 10px 9px;\n border-bottom: 0;\n border-radius: 5px;\n}\n.dan-pu-view-row[data-layout=\"featured\"][data-shade=\"alternate\"] { background: #f8f9fa; }\n.dan-pu-view-row[data-layout=\"featured\"] .dan-pu-view-rank { width: auto; font-variant-numeric: tabular-nums; }\n.dan-pu-view-image {\n display: flex;\n align-items: center;\n justify-content: center;\n width: 48px;\n height: 48px;\n overflow: hidden;\n border-radius: 5px;\n background: #eaecf0;\n}\n.dan-pu-view-image img { display: block; width: 48px; height: 48px; object-fit: cover; }\n.dan-pu-thumb-placeholder { display: block; color: #72777d; font-size: 25px; line-height: 1; }\n.dan-pu-featured-title { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }\n.dan-pu-featured-title > a { font-weight: 600; }\n.dan-pu-featured-views { text-align: right; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }\n.dan-pu-featured-views > a { white-space: nowrap; }\n.dan-pu-view-pending { display: inline-block; color: #54595d; font-size: 12px; font-weight: 400; }\n.dan-pu-data-help { margin-top: 8px; color: #54595d; font-size: 12px; }\n.dan-pu-data-help summary { width: fit-content; color: #36c; cursor: pointer; }\n.dan-pu-data-help > div { max-width: 65em; padding: 9px 12px; border-left: 2px solid #c8ccd1; margin-top: 8px; }\n.dan-pu-data-help summary:focus,\n#dan-pu-ritmo a:focus,\n#dan-pu-ritmo button:focus { outline: 2px solid #36c; outline-offset: 3px; }\n@media (max-width: 600px) {\n .dan-pu-stats { clear: both; }\n #dan-pu-ritmo { padding: 14px !important; }\n #dan-pu-ritmo .dan-pu-readership { padding: 12px !important; }\n}\n@media (max-width: 520px) {\n #dan-pu-ritmo .dan-pu-view-row[data-layout=\"featured\"] {\n  grid-template-columns: 18px 40px minmax(0,1fr) !important;\n  gap: 3px 8px;\n  padding: 10px 6px;\n }\n .dan-pu-view-row[data-layout=\"featured\"] .dan-pu-view-rank { grid-column: 1; grid-row: 1 / span 2; }\n .dan-pu-view-row[data-layout=\"featured\"] .dan-pu-view-image { grid-column: 2; grid-row: 1 / span 2; width: 40px; height: 40px; }\n .dan-pu-view-row[data-layout=\"featured\"] .dan-pu-view-image img { width: 40px; height: 40px; }\n .dan-pu-featured-title { grid-column: 3; grid-row: 1; }\n .dan-pu-featured-views { grid-column: 3; grid-row: 2; text-align: left; font-size: 13px; }\n}\n@media print {\n .dan-pu-view-image { background: transparent; }\n .dan-pu-data-help > div { display: block; }\n}\n\n/* Finite appearance classes are accepted by TemplateStyles. Custom colors are\n   validated six-digit hex values in the generated inline styles. */\n.dan-pu-stats.dan-pu-align-left { text-align: left; }\n.dan-pu-stats.dan-pu-align-center { text-align: center; }\n.dan-pu-stats.dan-pu-align-right { text-align: right; }\n.dan-pu-stats.dan-pu-columns-2 { grid-template-columns: repeat(2,minmax(0,1fr)); }\n.dan-pu-stats.dan-pu-columns-3 { grid-template-columns: repeat(3,minmax(0,1fr)); }\n.dan-pu-stats.dan-pu-columns-4 { grid-template-columns: repeat(4,minmax(0,1fr)); }\n.dan-pu-stats.dan-pu-columns-5 { grid-template-columns: repeat(5,minmax(0,1fr)); }\n.dan-pu-stats.dan-pu-columns-auto.dan-pu-density-compact { grid-template-columns: repeat(auto-fit,minmax(min(100%,max(128px,calc((100% - 32px) / 5))),1fr)); }\n.dan-pu-stats.dan-pu-columns-auto.dan-pu-density-roomy { grid-template-columns: repeat(auto-fit,minmax(min(100%,max(180px,calc((100% - 36px) / 3))),1fr)); }\n.dan-pu-stats.dan-pu-density-compact { gap: 8px; }\n.dan-pu-density-compact .dan-pu-stat-card { padding: 12px 14px; }\n.dan-pu-density-compact .dan-pu-stat-value { font-size: 24px; margin-bottom: 5px; }\n#dan-pu-ritmo.dan-pu-density-compact { padding: 18px !important; }\n#dan-pu-ritmo.dan-pu-density-compact .dan-pu-readership { padding: 14px !important; }\n#dan-pu-ritmo.dan-pu-density-compact .dan-pu-view-row[data-layout=\"featured\"] { min-height: 60px; padding-top: 6px; padding-bottom: 6px; }\n.dan-pu-stats.dan-pu-density-roomy { gap: 18px; }\n.dan-pu-density-roomy .dan-pu-stat-card { padding: 24px 22px; }\n.dan-pu-density-roomy .dan-pu-stat-value { font-size: 32px; margin-bottom: 10px; }\n#dan-pu-ritmo.dan-pu-density-roomy { padding: 32px !important; }\n#dan-pu-ritmo.dan-pu-density-roomy .dan-pu-readership { padding: 24px !important; }\n#dan-pu-ritmo.dan-pu-density-roomy .dan-pu-view-row[data-layout=\"featured\"] { min-height: 76px; padding-top: 14px; padding-bottom: 14px; }\n#dan-pu-ritmo.dan-pu-density-roomy .dan-pu-view-row[data-layout=\"compact\"] { padding-top: 16px; padding-bottom: 16px; }\n@media (max-width: 600px) {\n .dan-pu-stats.dan-pu-columns-2,\n .dan-pu-stats.dan-pu-columns-3,\n .dan-pu-stats.dan-pu-columns-4,\n .dan-pu-stats.dan-pu-columns-5 { grid-template-columns: repeat(2,minmax(0,1fr)); }\n #dan-pu-ritmo.dan-pu-density-compact { padding: 12px !important; }\n #dan-pu-ritmo.dan-pu-density-compact .dan-pu-readership { padding: 10px !important; }\n #dan-pu-ritmo.dan-pu-density-roomy { padding: 18px !important; }\n #dan-pu-ritmo.dan-pu-density-roomy .dan-pu-readership { padding: 16px !important; }\n}\n@media (max-width: 400px) {\n .dan-pu-stats.dan-pu-columns-2,\n .dan-pu-stats.dan-pu-columns-3,\n .dan-pu-stats.dan-pu-columns-4,\n .dan-pu-stats.dan-pu-columns-5 { grid-template-columns: minmax(0,1fr); }\n}\n\n/* Profile information wraps without changing the alignment of the counters. */\n.dan-pu-profile-header { box-sizing: border-box; clear: both; margin: 0 0 16px; padding: 18px; border: 1px solid #c8ccd1; border-top: 3px solid #36c; border-radius: 12px; background: #fff; color: #202122; font-size: 14px; line-height: 1.5; }\n.dan-pu-profile-header.dan-pu-density-compact { padding: 14px; }\n.dan-pu-profile-header.dan-pu-density-roomy { padding: 24px; }\n.dan-pu-profile-header .dan-pu-profile-details { font-size: 14px !important; }\n.dan-pu-profile-header.dan-pu-has-cover { padding-top: 0; overflow: hidden; }\n.dan-pu-profile-cover { margin: 0 -18px 18px; }\n.dan-pu-profile-header.dan-pu-density-compact .dan-pu-profile-cover { margin: 0 -14px 14px; }\n.dan-pu-profile-header.dan-pu-density-roomy .dan-pu-profile-cover { margin: 0 -24px 24px; }\n.dan-pu-profile-cover-image-link { display: block; }\n.dan-pu-profile-cover a:focus { outline: 3px solid #36c; outline-offset: -3px; }\n.dan-pu-profile-cover img { display: block; box-sizing: border-box; width: 100%; height: 180px; object-fit: cover; object-position: 50% 50%; }\n/* The native daily template keeps its file link, with only its picture in the cover. */\n.dan-pu-profile-cover-native-body > div { width: 100%; margin: 0; }\n.dan-pu-profile-cover-native-body > div > table { width: 100% !important; margin: 0 !important; border: 0; border-collapse: collapse; background: transparent; }\n.dan-pu-profile-cover-native-body td { padding: 0; border: 0; }\n.dan-pu-profile-cover-native-body td + td,\n.dan-pu-profile-cover-native-body > div > p { display: none; }\n.dan-pu-profile-cover-native-body .imagem-destaque,\n.dan-pu-profile-cover-native-body .imagem-destaque a { display: block; width: 100%; }\n.dan-pu-profile-cover-caption { padding: 7px 16px; background: #f8f9fa; color: #202122; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }\n.dan-pu-profile-cover-caption a { color: #36c; text-decoration: underline; }\n.dan-pu-profile-cover-placeholder { display: block; box-sizing: border-box; min-height: 110px; padding: 44px 16px; background: #eaecf0; color: #54595d; text-align: center; }\n.dan-pu-profile-cover-placeholder[hidden] { display: none; }\n.dan-pu-profile-cover.is-unavailable .dan-pu-profile-cover-image-link { display: none; }\n.dan-pu-profile-header.dan-pu-cover-only { padding-bottom: 0; }\n.dan-pu-profile-header.dan-pu-cover-only .dan-pu-profile-cover { margin-bottom: 0; }\n.dan-pu-profile-header.dan-pu-top-dark .dan-pu-profile-details a,\n.dan-pu-profile-header.dan-pu-top-dark .dan-pu-profile-photo-caption a { color: #fff; }\n.dan-pu-profile-header.dan-pu-top-light .dan-pu-profile-details a,\n.dan-pu-profile-header.dan-pu-top-light .dan-pu-profile-photo-caption a { color: #000; }\n.dan-pu-profile-header.dan-pu-top-dark .dan-pu-profile-details a:focus,\n.dan-pu-profile-header.dan-pu-top-dark .dan-pu-profile-photo a:focus { outline-color: #fff; }\n.dan-pu-profile-header.dan-pu-top-light .dan-pu-profile-details a:focus,\n.dan-pu-profile-header.dan-pu-top-light .dan-pu-profile-photo a:focus { outline-color: #000; }\n.dan-pu-profile-header.dan-pu-top-dark .dan-pu-profile-label + .dan-pu-profile-details[data-layout=\"inline\"] { border-top-color: #72777d; }\n.dan-pu-profile-header.dan-pu-top-dark .dan-pu-profile-details[data-layout=\"inline\"] > div + div { border-left-color: #72777d; }\n.dan-pu-top-profile-slot { min-width: 0; }\n.dan-pu-local-time { font-variant-numeric: tabular-nums; }\n.dan-pu-profile-location-time { min-width: 0; }\n.dan-pu-profile-location-time > .dan-pu-profile-location,\n.dan-pu-profile-location-time > .dan-pu-local-time { display: inline; }\n.dan-pu-field-values[data-layout=\"lines\"] > div { display: block; }\n.dan-pu-field-values[data-layout=\"lines\"] > div + div { margin-top: 3px; }\n.dan-pu-field-values[data-layout=\"bullets\"] { margin: 4px 0; padding-left: 1.4em; list-style: disc; }\n.dan-pu-field-separator { white-space: pre-wrap; }\n.dan-pu-profile-slot,\n.dan-pu-cards-profile { min-width: 0; }\n.dan-pu-profile-content { display: flex; align-items: flex-start; gap: 16px; min-width: 0; }\n.dan-pu-profile-content[data-photo-align=\"right\"] { flex-direction: row-reverse; }\n.dan-pu-profile-content[data-photo-align=\"center\"] { flex-direction: column; align-items: center; }\n.dan-pu-profile-content[data-photo-align=\"center\"] > .dan-pu-profile-copy { align-self: stretch; }\n\n.dan-pu-content-sections { clear: both; min-width: 0; margin: 20px 0; color: #202122; font-size: 14px; line-height: 1.6; }\n.dan-pu-content-section { min-width: 0; box-sizing: border-box; margin: 18px 0; padding: 24px; border: 1px solid #c8ccd1; border-radius: 12px; background: #fff; overflow-wrap: anywhere; }\n.dan-pu-content-section h2 { margin: 0 0 16px; padding: 0; border: 0; color: #202122; font-family: Georgia, serif; font-size: 24px; line-height: 1.3; }\n.dan-pu-content-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }\n.dan-pu-content-section-body { min-width: 0; }\n.dan-pu-content-section-body p { margin: 0 0 12px; }\n.dan-pu-content-section-body p:last-child { margin-bottom: 0; }\n.dan-pu-content-section-body h3 { margin: 16px 0 8px; font-size: 18px; }\n.dan-pu-content-section-body ul, .dan-pu-content-section-body ol { margin: 8px 0; padding-left: 24px; }\n.dan-pu-content-section-body pre, .dan-pu-section-source pre { max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; }\n.dan-pu-section-code { color: #54595d; white-space: pre-wrap; overflow-wrap: anywhere; }\n.dan-pu-section-edit { flex-shrink: 0; padding: 4px 8px; border: 1px solid #a2a9b1; border-radius: 4px; background: #fff; color: #36c; font: inherit; font-size: 12px; cursor: pointer; }\n.dan-pu-section-edit:focus { outline: 2px solid #36c; outline-offset: 2px; }\n.dan-pu-content-preview-note { color: #54595d; font-size: 12px; }\n@media (max-width: 600px) { .dan-pu-content-section { padding: 18px; } }\n.dan-pu-profile-copy { flex: 1; min-width: 0; }\n.dan-pu-profile-label { font-size: 24px; overflow-wrap: anywhere; }\n.dan-pu-profile-details { overflow-wrap: anywhere; }\n.dan-pu-profile-details a { color: #36c; text-decoration: underline; }\n.dan-pu-profile-details a:focus,\n.dan-pu-profile-photo a:focus { outline: 2px solid #36c; outline-offset: 2px; }\n.dan-pu-profile-details[data-layout=\"inline\"] { display: flex; flex-wrap: wrap; row-gap: 5px; }\n.dan-pu-profile-label + .dan-pu-profile-details[data-layout=\"inline\"] { padding-top: 7px; border-top: 1px solid #eaecf0; }\n.dan-pu-profile-details[data-layout=\"inline\"][data-align=\"center\"] { justify-content: center; }\n.dan-pu-profile-details[data-layout=\"inline\"][data-align=\"right\"] { justify-content: flex-end; }\n.dan-pu-profile-details[data-layout=\"inline\"] > div { min-width: 0; }\n.dan-pu-profile-details[data-layout=\"inline\"] > div + div { border-left: 1px solid #a2a9b1; padding-left: 9px; margin-left: 9px; }\n.dan-pu-profile-photo { flex: none; width: 96px; max-width: 100%; min-width: 0; text-align: center; }\n.dan-pu-profile-photo[data-photo-size=\"64\"] { width: 64px; }\n.dan-pu-profile-photo[data-photo-size=\"128\"] { width: 128px; }\n.dan-pu-profile-photo[data-photo-size=\"160\"] { width: 160px; }\n.dan-pu-profile-photo[data-photo-size=\"200\"] { width: 200px; }\n.dan-pu-profile-photo-visual { position: relative; width: 100%; padding-top: 100%; }\n.dan-pu-profile-photo-visual a { display: block; position: absolute; top: 0; right: 0; bottom: 0; left: 0; }\n.dan-pu-profile-photo img { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; }\n.dan-pu-profile-photo-placeholder { display: block; box-sizing: border-box; position: absolute; top: 0; right: 0; bottom: 0; left: 0; padding: 20px 6px; border: 1px solid #c8ccd1; border-radius: 0; background: #f8f9fa; color: #54595d; font-size: 12px; }\n.dan-pu-profile-photo[data-photo-shape=\"round\"] img,\n.dan-pu-profile-photo[data-photo-shape=\"round\"] .dan-pu-profile-photo-placeholder { border-radius: 50%; }\n.dan-pu-profile-photo-placeholder[hidden] { display: none; }\n.dan-pu-profile-photo-caption { margin-top: 5px; font-size: 10px; line-height: 1.35; overflow-wrap: anywhere; }\n.dan-pu-profile-photo-caption a { color: #36c; text-decoration: underline; }\n@media (max-width: 600px) {\n .dan-pu-profile-cover img { height: 120px; }\n}\n@media (max-width: 400px) {\n .dan-pu-profile-content { flex-wrap: wrap; gap: 10px; }\n .dan-pu-profile-content[data-photo-align=\"right\"] > .dan-pu-profile-photo { margin-left: auto; }\n .dan-pu-profile-copy { flex-basis: 100%; }\n}\n"; }(window));
 
 ;
 
-/* PerfilWiki 1.20.0. Shared scheduler and anonymous transport. Daniel G Rego, CC BY-SA 4.0. */
+/* PerfilWiki 1.20.1. Shared scheduler and anonymous transport. Daniel G Rego, CC BY-SA 4.0. */
 (function (win) {
     'use strict';
     var mw = win.mw, core = win.PerfilWikiCoordinator, view = win.PerfilWikiActivityView, codec = win.PerfilWikiCache, presenter = win.PerfilWikiPresenter;
@@ -5201,7 +5452,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
     var REFRESH = 300000;
     var BLACKLIST_URL = 'https://raw.githubusercontent.com/wikimedia/analytics-refinery/master/static_data/cassandra/disallowed_cassandra_articles/disallowed_cassandra_articles.tsv';
     var queryAnchor = null, nextRequestAt = 0, nextActionRequestAt = 0;
-    var API_USER_AGENT = 'PerfilWiki/1.20.0 (https://github.com/danrego/PerfilWiki)';
+    var API_USER_AGENT = 'PerfilWiki/1.20.1 (https://github.com/danrego/PerfilWiki)';
     var TRANSPORT_PREFIX = 'perfilwiki-transport-v1-', TRANSPORT_LOCK = 'perfilwiki-public-transport-v1';
     var JSON_RESPONSE_LIMIT = 8 * 1024 * 1024, BLACKLIST_RESPONSE_LIMIT = 256000;
     var periodKeys = ['30d', '90d', '12m', 'since', 'custom'];
@@ -5216,6 +5467,9 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
     var current = null, started = false, running = false, suspended = false, timer;
     var lifecycle = 0, releaseActiveLease = null, nextCheck = 0;
     var cachedRaw = null, cachedState = null;
+    var legacyPreviewApi = win.PerfilWikiLegacyStatsPreview, legacyPreview = null, legacyBootstrapAttempted = false;
+    var legacyCardIds = {edits:'dan-pu-edicoes',thanks:'dan-pu-agradecimentos',articles:'dan-pu-artigos',
+        bestStreak:'dan-pu-ritmo-melhor-sequencia',edited:'dan-pu-editados',technicalCreated:'dan-pu-criados-tecnicos',reverts:'dan-pu-reversoes'};
     var controllers = new Set(), pauses = Object.create(null);
     var active = 0, waiters = [];
     var images = Object.create(null), imageAttempts = Object.create(null), brokenImages = new Set();
@@ -5347,6 +5601,54 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             } catch (_) { /* Try the other strictly validated legacy cache. */ }
         }
         return null;
+    }
+    function readLegacyCounters() {
+        if (!legacyPreviewApi || !appearance.showCards) { return; }
+        [PREFIX+'legacy-counter-source-v1','dan-pu-estatisticas-v15-cache','dan-pu-estatisticas-v14-cache'].forEach(function (key) {
+            try {
+                var candidate = legacyPreviewApi.normalize(win.localStorage.getItem(key),{user:configured.user,now:Date.now()});
+                if (!candidate) { return; }
+                if (!legacyPreview) { legacyPreview = candidate; return; }
+                Object.keys(candidate.metrics).forEach(function (metric) {
+                    var old = legacyPreview.metrics[metric], fresh = candidate.metrics[metric];
+                    if (!old || Date.parse(fresh.savedAt) > Date.parse(old.savedAt)) { legacyPreview.metrics[metric] = fresh; }
+                });
+            } catch (_) { /* Unknown legacy data never enters the collector. */ }
+        });
+    }
+    function paintLegacyCounters() {
+        if (legacyPreviewApi && legacyPreview) {
+            legacyPreviewApi.paint(win.document,legacyPreview,current&&current.statistics,
+                {user:configured.user,language:appearance.language,now:Date.now(),activity:current&&current.activity});
+        }
+    }
+    function legacyBootstrapDue() {
+        if (!legacyPreviewApi || !appearance.showCards || legacyBootstrapAttempted) { return false; }
+        return appearance.metrics.some(function (key) {
+            var element = legacyCardIds[key] && win.document.getElementById(legacyCardIds[key]);
+            return element && !/\d/.test(element.textContent || '');
+        });
+    }
+    async function bootstrapLegacyCounters(epoch) {
+        legacyBootstrapAttempted = true;
+        try {
+            var title = 'Usuário:'+configured.user+'/PU/Estatísticas', url = new URL('https://pt.wikipedia.org/w/api.php');
+            var params = {action:'query',format:'json',formatversion:'2',origin:'*',maxlag:'5',prop:'revisions',titles:title,rvprop:'content',rvslots:'main'};
+            Object.keys(params).forEach(function (key) { url.searchParams.set(key,params[key]); });
+            var response = await sharedRequestJson(url.toString(),epoch), pages = response.query && response.query.pages;
+            checkLifecycle(epoch);
+            if (response.batchcomplete !== true || response.continue || !Array.isArray(pages) || pages.length !== 1) { return false; }
+            var page = pages[0], revision = page && page.revisions && page.revisions[0], slot = revision && revision.slots && revision.slots.main;
+            if (!page || page.title !== title || page.ns !== 2 || page.missing || page.invalid ||
+                !Array.isArray(page.revisions) || page.revisions.length !== 1 || !slot || slot.contentmodel !== 'wikitext' ||
+                typeof slot.content !== 'string' || slot.content.length > 260000) { return false; }
+            var preview = legacyPreviewApi.fromWikitext(slot.content,{user:configured.user,now:Date.now()});
+            if (!preview) { return false; }
+            legacyPreview = preview;
+            var marker = '<noinclude><syntaxhighlight lang="json">\n', start = slot.content.indexOf(marker), end = slot.content.indexOf('\n</syntaxhighlight></noinclude>',start);
+            if (start >= 0 && end >= 0) { storageSet('legacy-counter-source-v1',slot.content.slice(start+marker.length,end)); }
+            paintLegacyCounters(); return true;
+        } catch (_) { return false; }
     }
     function rememberDailyCover(value) {
         var checked=dailyCoverApi&&dailyCoverApi.normalize(value,Date.now());
@@ -5692,6 +5994,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
     function paint(state) {
         var retainedCreated=retainedAccountCreated();
         if (state && win.PerfilWikiCardsView) { win.PerfilWikiCardsView.paint(win.document, state.statistics, state.activity, Date.now(), appearance, {user:configured.user,timeZone:configured.timeZone,displayName:profileOptions.displayName,location:profileOptions.location,photo:profileOptions.photo,coverImage:profileOptions.coverImage,dailyCover:dailyCover,customFields:profileOptions.customFields,appearance:appearance,now:Date.now(),documentationPage:profileOptions.documentationPage}); }
+        paintLegacyCounters();
         paintHeader(state,retainedCreated);
         patchProfilePhotos();
         applyBlockOrder(); synchronizeActivityFooter();
@@ -5736,6 +6039,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             if (nextHelp) { nextHelp.open = true; }
         }
         enhancePresentation();
+        paintLegacyCounters();
     }
     function requestAllowed(url) { return win.PerfilWikiConfiguration.requestAllowed(url); }
     function canonicalRequest(url) { var value = new URL(url); value.searchParams.sort(); return value.toString(); }
@@ -6004,8 +6308,10 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             if (manual) { config.activityRefreshMs = 0; }
             queryAnchor = new Date().toISOString(); sharedRequests.clear();
             var requestedPeriod = activePeriod; priorityChanged = false;
-            var firstProgress = true;
-            var next = await core.update({ requestJson: function (url) { checkLifecycle(epoch); return sharedRequestJson(url, epoch); }, previous: current, config: config, now: queryAnchor, activePeriod: requestedPeriod, maxRequests: coverDue?39:40,
+            var firstProgress = true, legacyDue = legacyBootstrapDue();
+            var legacyTask = legacyDue ? bootstrapLegacyCounters(epoch) : Promise.resolve(false);
+            var next;
+            try { next = await core.update({ requestJson: function (url) { checkLifecycle(epoch); return sharedRequestJson(url, epoch); }, previous: current, config: config, now: queryAnchor, activePeriod: requestedPeriod, maxRequests:40-(coverDue?1:0)-(legacyDue?1:0),
                 customRange:appearance.customRange,
                 includeUserGroups: appearance.showUserGroups && ['top','activity','cards'].some(function(scope){return win.PerfilWikiAppearance.fieldIn(appearance,scope,'userGroups');}),
                 includeThanksSent: appearance.showCards && appearance.metrics.indexOf('thanksSent') >= 0,
@@ -6017,7 +6323,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
                     current = partial; hasAdvancedCurrent = true; paint(current);
                     saveCache(current,firstProgress); firstProgress = false;
                 }
-            });
+            }); } finally { await legacyTask; }
             next.config = Object.assign({}, configured);
             if (!owns()) { return; }
             if (!core.validateState(next).valid) { throw new Error('Os dados novos não passaram pela conferência.'); }
@@ -6048,7 +6354,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             else if (!suspended) {
                 var views = current && current.pageviews;
                 var customPending=appearance.customRange&&views&&(!views.periods.custom||JSON.stringify(views.customRange)!==JSON.stringify(appearance.customRange)||!views.periods.custom.complete);
-                var continuing = views && !views.allPeriodsComplete && views.progress && views.progress.pending > 0 && !views.error || customPending&&views.customProgress&&views.customProgress.resumable || current && (current.history && current.history.pending && !current.history.error || current.statistics && current.statistics.pending && !current.statistics.errors.length);
+                var continuing = views && (views.allPeriodsComplete && views.stale || !views.allPeriodsComplete && views.progress && views.progress.pending > 0 && !views.error) || customPending&&views.customProgress&&views.customProgress.resumable || current && (current.history && current.history.pending && !current.history.error || current.statistics && current.statistics.pending && !current.statistics.errors.length);
                 var delay = priorityChanged && views && (!views.allPeriodsComplete||customPending) ? 0 : (continuing ? 15000 : REFRESH);
                 nextCheck = Date.now() + delay;
                 storageSet('proxima-consulta', String(nextCheck)); schedule(delay);
@@ -6058,7 +6364,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
     function currentChoices() {
         var page=String(mw.config.get('wgTitle')||configured.user).replace(/_/g,' '),prefix=configured.user+'/';
         var subpage=page.indexOf(prefix)===0?page.slice(prefix.length):'';
-        return {version:'1.20.0',user:configured.user,displayName:profileOptions.displayName,location:profileOptions.location,
+        return {version:'1.20.1',user:configured.user,displayName:profileOptions.displayName,location:profileOptions.location,
             photo:profileOptions.photo,coverImage:profileOptions.coverImage,customFields:profileOptions.customFields,
             timeZone:configured.timeZone,destination:subpage?'subpage':'main',subpage:subpage||'PU',appearance:appearance};
     }
@@ -6177,6 +6483,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
     function begin() {
         if (started || !hasPanel()) { return; }
         started = true; readImages(); current = readCache(); appliedLocalRevision = localRevision;
+        readLegacyCounters();
         if (current) { lastCommittedAnchor = Date.parse(current.capturedAt); currentCheckpoint = checkpointNumber(current); }
         var copiedHeader=win.document.getElementById('dan-pu-profile-header');
         if(copiedHeader&&copiedHeader.getAttribute('data-perfilwiki-profile-top')==='true'&&copiedHeader.getAttribute('data-perfilwiki-user')!==configured.user&&copiedHeader.parentNode){copiedHeader.parentNode.removeChild(copiedHeader);}
@@ -6224,7 +6531,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             if (view.paintProfile) { view.paintProfile(win.document, null, {user:configured.user, timeZone:configured.timeZone, displayName:profileOptions.displayName, location:profileOptions.location, photo:profileOptions.photo,coverImage:profileOptions.coverImage,dailyCover:dailyCover, customFields:profileOptions.customFields, appearance:appearance, now:Date.now(), savedAccountCreated:startupCreated}); }
             bindControls(); applyPeriodVisibility(); enhancePresentation();
         }
-        paintHeader(current,startupCreated); patchProfilePhotos(); synchronizeActivityFooter();ensureEditButton();
+        paintHeader(current,startupCreated); patchProfilePhotos(); synchronizeActivityFooter();ensureEditButton();paintLegacyCounters();
         restoreLargeCache();
         mw.loader.using(['mediawiki.util']).then(function () {
             var refreshLink = mw.util.addPortletLink('p-tb', '#', 'Atualizar estatísticas', 't-perfilwiki-refresh');
@@ -6240,7 +6547,7 @@ return Object.freeze({languages:languages,languageNames:languageNames,catalogs:c
             schedule(1500);
         });
     }
-    win.PerfilWiki = Object.freeze({ version: '1.20.0', readOnly: true, refreshInterval: REFRESH,
+    win.PerfilWiki = Object.freeze({ version: '1.20.1', readOnly: true, refreshInterval: REFRESH,
         refresh: function () { return refresh(true); }, download: download, downloadActivity: download, downloadCards: downloadCards,downloadChoices:downloadChoices,editPanel:editPanel,
         getState: function () { return current ? JSON.parse(JSON.stringify(current)) : null; },
         getAppearance: function () { return JSON.parse(JSON.stringify(appearance)); } });

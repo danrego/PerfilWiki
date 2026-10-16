@@ -453,7 +453,7 @@ test('appearance choices export reopens in the installer without collecting data
   const r=runtime({cached:false,topProfile:true,photo:'Marina Exemplo.jpg',photoSize:200,photoShape:'round',wikiTitle});
   const personal=r.document.getElementById('dan-pu-content-sections');
   r.win.PerfilWiki.downloadChoices();const source=await r.downloads[0].text(),saved=JSON.parse(source),restored=importChoices(source);
-  assert.equal(saved.version,'1.20.0');assert.equal(saved.appearance.photoSize,200);assert.equal(saved.appearance.photoShape,'round');
+  assert.equal(saved.version,require('../package.json').version);assert.equal(saved.appearance.photoSize,200);assert.equal(saved.appearance.photoShape,'round');
   assert.equal(restored.user,USER);assert.equal(restored.appearance.photoSize,200);assert.equal(restored.appearance.photoShape,'round');
   assert.equal(restored.destination,wikiTitle===USER?'main':'subpage');assert.equal(restored.subpage,'PU');
   assert.equal(r.updates.length,0);assert.equal(Object.hasOwn(saved,'contentSections'),false);assert.deepEqual(restored.contentSections,[]);

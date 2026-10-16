@@ -314,17 +314,44 @@
                 state.metricUpdatedAt[key] = bytes[key] === null ? null : options.history.capturedAt;
             });
         }
+        var needsGroups = options.includeUserGroups === true && (!state.userGroups || options.force ||
+            nowMs - Date.parse(state.userGroupsAttemptAt || state.userGroups.checkedAt) >= DAY);
+        var needsGlobal = !state.global || state.global.thanksCompleteAt && (options.force || nowMs - Date.parse(state.global.infoAt) >= GLOBAL_TTL);
+        var needsEarliestRegistration = options.includeEarliestRegistration === true && (!state.registrationCoverage || options.force ||
+            nowMs - Date.parse(state.registrationCoverage.checkedAt) >= DAY);
+        var needsLocalRegistration = !state.metricUpdatedAt.registration || options.force || nowMs - Date.parse(state.metricUpdatedAt.registration) >= DAY;
+        // The initial identity paint reads independent Action API modules in
+        // one GET. Each consumer still checks its own fields and identity, so
+        // an absent module cannot erase another module's verified result.
+        var identityParams = {}, identityAttempted = false, identityData, identityFailure;
+        if (needsGlobal || needsEarliestRegistration) {
+            identityParams.meta = 'globaluserinfo'; identityParams.guiuser = user; identityParams.guiprop = 'editcount|merged';
+        }
+        if (needsGroups || needsLocalRegistration) {
+            identityParams.list = 'users'; identityParams.ususers = user;
+            identityParams.usprop = needsGroups ? 'registration|groups|implicitgroups' : 'registration';
+        }
+        function identityAvailable() { return remaining > 0 || options.deferDetails === true && identityAttempted; }
+        async function identityRequest(params) {
+            if (options.deferDetails !== true) { return request(queryUrl('https://' + PROJECT,params)); }
+            if (!identityAttempted) {
+                identityAttempted = true;
+                try { identityData = await request(queryUrl('https://' + PROJECT,identityParams)); }
+                catch (failure) { identityFailure = failure; }
+            }
+            if (identityFailure) { throw identityFailure; }
+            return identityData;
+        }
         // Optional public ptwiki groups are independent of edit metrics and
         // profile/cache identity. The selected account's public list needs
         // only one anonymous GET, no tokens or access to private preferences.
-        if (options.includeUserGroups === true && (!state.userGroups || options.force ||
-            nowMs - Date.parse(state.userGroupsAttemptAt || state.userGroups.checkedAt) >= DAY)) {
+        if (needsGroups) {
             if (!own(state,'userGroups')) { state.userGroups = null; }
-            if (!remaining) { state.pending = true; }
+            if (!identityAvailable()) { state.pending = true; }
             else {
                 try {
                     state.userGroupsAttemptAt = now;
-                    var groupResponse = await request(queryUrl('https://' + PROJECT,{list:'users',ususers:user,usprop:'groups|implicitgroups'}));
+                    var groupResponse = await identityRequest({list:'users',ususers:user,usprop:'groups|implicitgroups'});
                     var groupUsers = groupResponse.query && groupResponse.query.users;
                     if (!userGroups || !completed(groupResponse) || own(groupResponse,'continue') || !Array.isArray(groupUsers) || groupUsers.length !== 1 ||
                         !object(groupUsers[0]) || groupUsers[0].name !== user || !positive(groupUsers[0].userid) ||
@@ -384,20 +411,20 @@
             }
             if (state.thanksSentScan) { state.pending = true; }
         }
-        var needsGlobal = !state.global || state.global.thanksCompleteAt && (options.force || nowMs - Date.parse(state.global.infoAt) >= GLOBAL_TTL);
-        var needsEarliestRegistration = options.includeEarliestRegistration === true && (!state.registrationCoverage || options.force ||
-            nowMs - Date.parse(state.registrationCoverage.checkedAt) >= DAY);
         if (needsGlobal || needsEarliestRegistration) {
-            if (!remaining) { state.pending = true; }
+            if (!identityAvailable()) { state.pending = true; }
             else {
                 try {
-                    var data = await request(queryUrl('https://' + PROJECT, { meta: 'globaluserinfo', guiuser: user, guiprop: 'editcount|merged' }));
+                    var data = await identityRequest({ meta: 'globaluserinfo', guiuser: user, guiprop: 'editcount|merged' });
                     var info = data.query && data.query.globaluserinfo;
-                    if (!info || info.name !== user || !integer(info.editcount) || !Array.isArray(info.merged) || info.merged.length > MAX_PROJECTS || info.editcount > 0 && !info.merged.length || !completed(data)) { throw new Error('Identidade global incompleta.'); }
+                    if (!object(info) || info.name !== user || !integer(info.editcount) || !Array.isArray(info.merged) || info.merged.length > MAX_PROJECTS || info.editcount > 0 && !info.merged.length || !completed(data) ||
+                        options.deferDetails === true && (own(data,'continue') || ['missing','invalid','hidden','suppressed'].some(function (key) { return own(info,key); }))) { throw new Error('Identidade global incompleta.'); }
                     if (needsGlobal) {
                         var projects = {}, keys = [];
                         Array.from(info.merged).forEach(function (account) {
-                            if (!account || !projectKey(account.wiki) || own(projects, account.wiki) || !integer(account.editcount)) { throw new Error('Projeto global inválido.'); }
+                            if (!account || !projectKey(account.wiki) || own(projects, account.wiki) || !integer(account.editcount) ||
+                                options.deferDetails === true && (own(account,'name') && account.name !== user || own(account,'user') && account.user !== user ||
+                                ['missing','invalid','hidden','suppressed'].some(function (key) { return own(account,key); }))) { throw new Error('Projeto global inválido.'); }
                             var origin = allowedOrigin(account.url), old = state.projects[account.wiki];
                             var p = old && old.url === origin ? clone(old) : { url: origin, editcount: 0, thanks: null, thanksAt: null, articles: null, articlesAt: null, thanksScan: null };
                             p.editcount = account.editcount;
@@ -422,12 +449,15 @@
                 } catch (_) { error(needsGlobal ? 'Contribuições globais' : 'Data de criação da conta'); }
             }
         }
-        if (!state.metricUpdatedAt.registration || options.force || nowMs - Date.parse(state.metricUpdatedAt.registration) >= DAY) {
-            if (remaining) {
+        if (needsLocalRegistration) {
+            if (identityAvailable()) {
                 try {
-                    var local = await request(queryUrl('https://' + PROJECT, { list: 'users', ususers: user, usprop: 'registration' }));
+                    var local = await identityRequest({ list: 'users', ususers: user, usprop: 'registration' });
                     var users = local.query && local.query.users;
-                    if (!completed(local) || !Array.isArray(users) || users.length !== 1 || users[0].name !== user || flag(users[0], 'missing') || flag(users[0], 'invalid') || (users[0].registration !== null && !validTime(users[0].registration, nowMs))) { throw new Error('Inscrição local inválida.'); }
+                    if (!completed(local) || !Array.isArray(users) || users.length !== 1 || !object(users[0]) || users[0].name !== user || flag(users[0], 'missing') || flag(users[0], 'invalid') ||
+                        (users[0].registration !== null && !validTime(users[0].registration, nowMs)) ||
+                        options.deferDetails === true && (own(local,'continue') || !positive(users[0].userid) ||
+                        ['missing','invalid','hidden','suppressed'].some(function (key) { return own(users[0],key); }))) { throw new Error('Inscrição local inválida.'); }
                     setMetric('registration', users[0].registration);
                 } catch (_) { error('Data de ingresso na ptwiki'); }
             } else { state.pending = true; }

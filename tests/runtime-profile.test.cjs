@@ -100,7 +100,7 @@ test('Runtime forwards normalized photo and per-row placement through cold, cach
     await cold.win.PerfilWiki.refresh();
     assert.ok(cold.rendered.length >= 2); cold.rendered.forEach(assertPresentation); cold.paintedCards.forEach(assertPresentation);
     const cached = runtime(); assertPresentation(cached.rendered[0]); cached.paintedCards.forEach(assertPresentation);
-    assert.equal(cached.win.PerfilWiki.version,'1.20.0');
+    assert.equal(cached.win.PerfilWiki.version,require('../package.json').version);
     assert.deepEqual(JSON.parse(JSON.stringify(cached.win.PerfilWiki.getState().config)),cached.resolved.metrics);
     assert.equal(Object.hasOwn(cached.win.PerfilWiki.getState().config,'photo'),false);
     assert.ok([...cached.store.keys()].every(key => key.startsWith(cached.prefix)));

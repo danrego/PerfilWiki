@@ -477,6 +477,11 @@
                 }
             }
             if (profile && !profile.complete && p && p.progress) {
+                var latestUtcDay = new Date(new Date(presentation.now === undefined ? Date.now() : presentation.now).getTime() - 86400000).toISOString().slice(0,10);
+                if (key !== 'custom' && profile.period && profile.period.end < latestUtcDay) {
+                    h.push('<div role="status" style="margin-top:12px;color:#54595d;font-size:12px;">' +
+                        tr('Concluindo a consulta até {date}. Os dados mais recentes serão consultados em seguida.',{date:shortDate(profile.period.end)}) + '</div>');
+                }
                 var preparing = p.metadata && !p.metadata.complete;
                 var progressLabel = preparing ? tr('Preparando artigos · {done} de {total} títulos verificados', {
                     done: number(p.metadata.cursor), total: number(p.candidates.length)

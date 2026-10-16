@@ -121,7 +121,7 @@ test('runtime reuses cached account data after the display name changes and keep
     const prefix = 'perfilwiki-v1-' + encodeURIComponent(USER) + '-UTC-';
     const store = new Map([[prefix+'cache',Cache.packJson(JSON.stringify(state()))]]);
     const first = runtime('Primeiro nome',{store});
-    assert.equal(first.win.PerfilWiki.version,'1.20.0');
+    assert.equal(first.win.PerfilWiki.version,require('../package.json').version);
     assert.equal(first.rendered[0].displayName,'Primeiro nome');
     assert.equal(first.win.PerfilWiki.getState().config.user,USER);
     const second = runtime('Nome alterado',{store});

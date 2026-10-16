@@ -1,0 +1,112 @@
+{
+  "version": "1.20.1",
+  "status": "tested-browser-only-local-candidate",
+  "date": "2026-10-15",
+  "scope": "Validation before GitHub publication, with anonymous public installation reads and synthetic browser tests. No authenticated Wikimedia access or wiki writes.",
+  "automatedTests": {
+    "total": 799,
+    "passed": 799,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "runtimeBrowsers": {
+    "chrome": {
+      "passed": 23,
+      "failed": 0
+    },
+    "inAppBrowser": {
+      "passed": 23,
+      "failed": 0
+    },
+    "firefox": {
+      "tested": false,
+      "reason": "Unavailable in connected browser tools"
+    },
+    "safari": {
+      "tested": false,
+      "reason": "Unavailable in connected browser tools"
+    },
+    "data": "Synthetic only, no authenticated wiki session"
+  },
+  "build": {
+    "files": 77,
+    "reproducibleBuilds": 2,
+    "identical": true,
+    "verification": "Recorded after final rebuild before export"
+  },
+  "browserOnlyFixes": {
+    "identityRequests": 1,
+    "legacyCounters": "Bounded validated dated display-only preview, local v15/v14 first and at most one own public legacy subpage fallback",
+    "legacySourceLimitChars": 260000,
+    "legacyValuesUsedAsCollectorEvidence": false,
+    "legacyValuesExportedAsNewStatistics": false,
+    "incompleteWindowMaxDays": 7,
+    "candidateReorderKeepsVerifiedClassifications": true,
+    "firstEditCutoffPreserved": true,
+    "zeroEligibleDaysSkipArticleGet": true,
+    "hostedDataFeed": false
+  },
+  "clippingBenchmark": {
+    "before": {
+      "name": "before",
+      "requests": 119,
+      "eligible": 114,
+      "sourceDays": 4124,
+      "returnedDailyRecords": 478384,
+      "returnedJsonBytes": 71274640,
+      "elapsedMs": 8820.37925,
+      "totals": {
+        "30d": 6840,
+        "90d": 9804,
+        "12m": 9804,
+        "since": 9804
+      },
+      "valid": true,
+      "complete": true
+    },
+    "after": {
+      "name": "after",
+      "requests": 119,
+      "eligible": 114,
+      "sourceDays": 4124,
+      "returnedDailyRecords": 13150,
+      "returnedJsonBytes": 1930288,
+      "elapsedMs": 1437.221583999999,
+      "totals": {
+        "30d": 6840,
+        "90d": 9804,
+        "12m": 9804,
+        "since": 9804
+      },
+      "valid": true,
+      "complete": true
+    },
+    "recordReductionPercent": 97.25116224622897,
+    "elapsedSpeedup": 6.137104638695717
+  },
+  "bundleSHA256": "fbd7722ab14e4ecb6882e5bab7f923a51c067974d4426bd85441bea5a2d10fb1",
+  "stylesheet": {
+    "sha256": "e17639ab571e66813eb6f6f234562f32efc8ffa59f9960776a6aa6f32edb6944",
+    "unchangedFrom1200": true,
+    "sanitizerEvidence": "Existing exact-hash CSS validation, no CSS changes"
+  },
+  "privacyAndPublication": {
+    "wikimediaWrites": false,
+    "wikimediaAccountUsed": false,
+    "publicInstallationRead": "Anonymous public GET with empty cookies",
+    "publicMetricsSnapshotAdded": false,
+    "personalRawAuditIncludedInPublicExport": false,
+    "publicationPerformedWhenReportWasWritten": false
+  },
+  "limits": {
+    "firstFullCohortCalculationStillExpensive": true,
+    "oneArticleRequestNormallyRequiredPerEligibleArticle": true,
+    "liveOwnerPageLoadTimingMeasured": false,
+    "noClaimOfInstantFreshAllArticleTotals": true
+  },
+  "frozenPreviousArtifacts": {
+    "count": 1160,
+    "unchanged": true
+  }
+}

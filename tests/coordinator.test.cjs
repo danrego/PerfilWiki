@@ -68,9 +68,16 @@ function fixture(options = {}) {
             const rows = options.entries || edits(user);
             return done({ usercontribs: rows.filter(row => Date.parse(row.timestamp) <= Date.parse(p.ucstart) && (!p.ucend || Date.parse(row.timestamp) >= Date.parse(p.ucend))) });
         }
-        if (p.meta === 'globaluserinfo') return done({ globaluserinfo: { name: user, editcount: options.editcount ?? 123,
-            merged: [{ wiki: 'ptwiki', editcount: 12, url: 'https://pt.wikipedia.org' }] } });
-        if (p.list === 'users') return done({ users: [{ name: user, registration: '2010-08-20T00:00:00Z' }] });
+        if (p.meta === 'globaluserinfo' || p.list === 'users') {
+            const query = {};
+            if (p.meta === 'globaluserinfo') query.globaluserinfo = { name: user, editcount: options.editcount ?? 123,
+                merged: [{ wiki: 'ptwiki', editcount: 12, url: 'https://pt.wikipedia.org' }] };
+            if (p.list === 'users') {
+                query.users = [{ name: user, userid: 41, registration: '2010-08-20T00:00:00Z' }];
+                if ((p.usprop || '').split('|').includes('groups')) Object.assign(query.users[0],{groups:['user'],implicitgroups:['*','user']});
+            }
+            return done(query);
+        }
         if (p.list === 'logevents') return done({ logevents: [1, 2].map(logid => ({ logid, type: 'thanks', timestamp: '2024-08-16T10:00:00Z' })) });
         if (p.prop === 'info') return done({ pages: p.pageids.split('|').map(id => page(Number(id), (options.pages || {})[id])) });
         assert.fail('Unexpected public request: ' + address);
@@ -468,7 +475,7 @@ test('one actual request budget covers history, statistics and pageviews while t
         assert.ok(Object.values(state.pageviews.series).every(series=>!series.error),'No synthetic failed series is stored on budget exhaustion');
         if(state.complete)break;
     }
-    assert.ok(rounds>1&&rounds<30,'Repeated bounded cycles eventually finish the real collectors');
+    assert.ok(rounds>=1&&rounds<30,'Repeated bounded cycles eventually finish the real collectors');
     assert.equal(state.complete,true);assert.equal(state.statistics.metrics.edits,123);assert.equal(state.statistics.metrics.articles,7);assert.equal(state.pageviews.periods['30d'].allArticleTotal,6);
     assert.ok(snapshots.length>2);
 });

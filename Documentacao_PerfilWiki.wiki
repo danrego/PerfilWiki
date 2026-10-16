@@ -1,6 +1,6 @@
 O '''PerfilWiki''' reúne as caixas de estatísticas e o painel de atividade para páginas de usuário da Wikipédia em português. O programa consulta os dados públicos da sua conta e mostra os resultados na sua sessão, mantendo as caixas, o calendário, as metas de dias seguidos e as listas de artigos com suas visualizações.
 
-Esta documentação acompanha a versão '''1.20.0, candidato local de 15 de outubro de 2026''', ainda sem publicação na Wikipédia ou envio ao GitHub. Abrir o instalador local não atualiza os arquivos que já estão hospedados. O programa compartilhado precisa receber esta versão antes de usar a configuração com opções de aparência. Os estilos usam a folha existente [[Usuário:Daniel G Rego/RitmoPU-estilos]], que já tem o modelo de conteúdo exigido por TemplateStyles. A instalação compartilhada não exige criar uma folha de estilos nem mudar o modelo de conteúdo de uma página.
+Esta documentação acompanha a versão '''1.20.1, candidato local de 15 de outubro de 2026''', ainda sem publicação na Wikipédia ou envio ao GitHub. Abrir o instalador local não atualiza os arquivos que já estão hospedados. O programa compartilhado precisa receber esta versão antes de usar a configuração com opções de aparência. Os estilos usam a folha existente [[Usuário:Daniel G Rego/RitmoPU-estilos]], que já tem o modelo de conteúdo exigido por TemplateStyles. A instalação compartilhada não exige criar uma folha de estilos nem mudar o modelo de conteúdo de uma página.
 
 == Idioma, conta e exemplos ==
 
@@ -54,7 +54,7 @@ Use "Ver painel" depois de fazer os ajustes para abrir uma simulação local sem
 
 As escolhas ficam na mesma aba e podem ser recuperadas ao recarregar enquanto a sessão local existir, por até 24 horas desde a última gravação. O endereço recebe apenas um identificador aleatório, sem nome de conta ou conteúdo pessoal. Se o navegador impedir o armazenamento, o painel e os ajustes continuam funcionando na aba aberta, com um aviso de que o recarregamento não poderá recuperar as escolhas. Um endereço vencido ou sem a cópia correspondente informa o problema e volta à personalização.
 
-O programa 1.20.0 prepara "Editar painel" na sessão da própria conta para abrir o instalador em <code>https://danrego.github.io/PerfilWiki/INICIO.html</code> e transmitir as escolhas atuais. A passagem depende de a mesma versão estar hospedada e acessível nesse endereço. A abertura só acontece depois do clique, e as janelas conferem a origem, a janela esperada e um identificador temporário antes de transmitir os dados. O endereço contém apenas esse identificador, sem os campos pessoais.
+O programa 1.20.1 prepara "Editar painel" na sessão da própria conta para abrir o instalador em <code>https://danrego.github.io/PerfilWiki/INICIO.html</code> e transmitir as escolhas atuais. A passagem depende de a mesma versão estar hospedada e acessível nesse endereço. A abertura só acontece depois do clique, e as janelas conferem a origem, a janela esperada e um identificador temporário antes de transmitir os dados. O endereço contém apenas esse identificador, sem os campos pessoais.
 
 Depois do clique, uma consulta pública pode trazer o código-fonte e o número da revisão da página para preparar um rascunho. Um par único de marcadores reconhecidos permite substituir somente a área do painel. Sem esses marcadores, ou quando há ambiguidade, a ferramenta apresenta o bloco novo para uma substituição manual e conserva o original para conferência. Metas, categorias e textos fora da área permanecem no rascunho, sem serem transformados em campos de personalização. Se a leitura falhar, as escolhas ainda podem abrir, com aviso para preservar o conteúdo manualmente.
 
@@ -353,6 +353,14 @@ Se as caixas e o painel já estiverem na posição desejada, conserve a disposi�
 
 Feche as abas antigas depois de salvar. Um programa antigo ainda aberto pode continuar consultando dados até ser encerrado. O PerfilWiki confere a conta, o projeto e o fuso antes de aceitar um cache anterior. Quando não puder reaproveitá-lo, fará uma nova coleta. As chaves de outros programas não devem ser apagadas para instalar a ferramenta.
 
+== Retomar números já salvos ==
+
+Ao trocar os programas anteriores pelo PerfilWiki, os números e listas já salvos na página podem permanecer visíveis enquanto a consulta nova termina. A versão 1.20.1 também confere os caches antigos dos contadores do EstatisticasPU da mesma conta. Uma caixa recuperada recebe a indicação de dados salvos e sua data na dica do número, sem substituir um resultado novo já conferido.
+
+Se uma caixa compatível continuar sem número aproveitável, o programa pode ler uma vez a subpágina pública <code>Usuário:NOME/PU/Estatísticas</code> da própria conta. A leitura é anônima, usa uma das consultas permitidas do ciclo e aceita até 260.000 caracteres no formato anterior. O código recebido é lido como dados, sem ser executado. O programa não cria nem salva essa subpágina.
+
+Essa recuperação pode preencher contribuições globais, agradecimentos recebidos, artigos criados, melhor sequência, artigos diferentes editados, reversões e páginas técnicas criadas, conforme os dados de apoio disponíveis. O antigo total de edições em predefinições e módulos não substitui o total de páginas técnicas criadas. A caixa de anos e a data de criação da conta aguardam a prova própria. Os valores recuperados não entram nas provas das métricas nem nos downloads como se tivessem acabado de ser calculados.
+
 == Atualizar os números para visitantes ==
 
 O common.js pessoal atualiza a tela da própria conta. Quem visita a página vê o wikitexto salvo nela.<ref>[https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#Personal_scripts Carregamento dos scripts pessoais].</ref> O PerfilWiki não salva páginas, não pede tokens de edição e não faz edições em seu nome.
@@ -436,11 +444,17 @@ O calendário mostra doze semanas. O resumo dos últimos 30 dias separa o númer
 
 Cada artigo começa no primeiro dia completo em UTC depois da sua primeira edição pública nele. Se a edição foi em 10 de outubro UTC, a contagem começa em 11 de outubro. O dia da edição fica fora, pois a consulta diária não separa acessos anteriores e posteriores à edição. Editar novamente o artigo não reinicia a contagem.
 
-As abas de 30 dias, 90 dias e 12 meses respeitam o início individual de cada artigo e terminam no último dia completo em UTC. Doze meses seguem o calendário e podem abranger 365 ou 366 dias. "Total acumulado" soma a série disponível depois do corte individual. O serviço fornece dados desde 1 de julho de 2015, sem recuperar acessos anteriores a essa data.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html Séries de visualizações da Wikimedia].</ref>
+Numa consulta nova, as abas de 30 dias, 90 dias e 12 meses respeitam o início individual de cada artigo e terminam no último dia completo em UTC. Doze meses seguem o calendário e podem abranger 365 ou 366 dias. "Total acumulado" soma a série disponível depois do corte individual. O serviço fornece dados desde 1 de julho de 2015, sem recuperar acessos anteriores a essa data.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html Séries de visualizações da Wikimedia].</ref>
 
 Os totais somam todos os artigos aceitos, existentes no domínio principal e sem redirecionamentos. A lista mostra até 500 por período, com dez linhas no início e mais cem a cada expansão. Concluir a classificação dos artigos mais vistos não significa que a soma de todos os artigos já terminou.
 
 Durante uma primeira coleta grande, até dez artigos com suas séries conferidas podem aparecer antes do fim da classificação dos demais. A indicação "Ordem provisória" informa que outros artigos ainda podem entrar acima deles. O total do período continua pendente até completar a cobertura de todos os artigos elegíveis. Essa antecipação não transforma a lista inicial em um top dez definitivo nem reduz a soma final. As séries de milhares de artigos e os períodos mais antigos ainda podem exigir muitas consultas e continuar por mais tempo que o preenchimento inicial das caixas.
+
+A série pedida ao serviço começa no primeiro dia que pode entrar na soma daquele artigo, evitando baixar dias anteriores que seriam descartados. Se o período termina antes desse início, não há dias elegíveis e o valor é zero sem consulta. Uma falha do serviço continua desconhecida.
+
+Uma consulta incompleta pode manter suas datas por até sete dias para retomar o trabalho entre visitas, mesmo quando muda o dia UTC. O painel informa até qual data está concluindo aquela apuração. Quando ela termina, a rotina começa as datas seguintes. Novas edições podem mudar a ordem da lista de candidatos, e a retomada acompanha o identificador de cada página para conservar o trabalho já conferido. Um reinício explícito ou uma consulta antiga demais começa com as datas novas.
+
+O navegador continua fazendo os cálculos e guardando o progresso, sem um servidor próprio de apuração. A primeira soma de milhares de artigos pode exigir milhares de consultas. Os dados salvos permitem abrir a página com os resultados anteriores enquanto o restante é atualizado.
 
 A aba "Personalizado" aceita uma data inicial e uma data final, incluindo esses dois dias na soma, sem contar dias anteriores ao corte de cada artigo. Use datas entre 1 de julho de 2015 e o último dia completo em UTC. O total abrange todos os artigos elegíveis do histórico, e a lista começa com dez, com mais cem por vez até quinhentos. A prévia local usa dez artigos com números de exemplo, e as escolhas de datas mudam somente esses números.
 

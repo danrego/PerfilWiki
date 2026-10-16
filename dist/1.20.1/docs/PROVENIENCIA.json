@@ -1,0 +1,56 @@
+{
+  "project": "PerfilWiki",
+  "version": "1.0.1",
+  "inheritedSources": [
+    {
+      "file": "src/PageviewsCore.js",
+      "derivedFrom": "RitmoPU_core.js",
+      "sourceSha256": "76970a0ee864addeb53fb2a3c05cf61470991b883cdd2f3bc7237dbbd7b0a884",
+      "license": "CC-BY-SA-4.0",
+      "sourceVersion": "8.1.0 presentation; 8.0.3 metrics/cache",
+      "author": "Daniel G Rego",
+      "sourcePage": "https://pt.wikipedia.org/wiki/Usuário:Daniel_G_Rego/RitmoPU.js"
+    },
+    {
+      "file": "src/Presenter.js",
+      "derivedFrom": "RitmoPU_presenter.js",
+      "sourceSha256": "3d129c20b4c7fb0cefb08e9383ba5f8532387ee1b1c56132e9d73d1bb861fe5a",
+      "license": "CC-BY-SA-4.0",
+      "sourceVersion": "8.1.0 presentation; 8.0.3 metrics/cache",
+      "author": "Daniel G Rego",
+      "sourcePage": "https://pt.wikipedia.org/wiki/Usuário:Daniel_G_Rego/RitmoPU.js"
+    },
+    {
+      "file": "src/Cache.js",
+      "derivedFrom": "RitmoPU_cache.js",
+      "sourceSha256": "202f2800690345ad2c4edf9eb050e58139bc97f5e06daa1b088fa349a20f786d",
+      "license": "CC-BY-SA-4.0",
+      "sourceVersion": "8.1.0 presentation; 8.0.3 metrics/cache",
+      "author": "Daniel G Rego",
+      "sourcePage": "https://pt.wikipedia.org/wiki/Usuário:Daniel_G_Rego/RitmoPU.js"
+    },
+    {
+      "file": "src/ActivityView.js",
+      "derivedFrom": "RitmoPU_view.js",
+      "sourceSha256": "e0f0cd5f89300306dc7dae26a8d79fef5891d5a2ed7fd7d78b3dac0f5fc53255",
+      "license": "CC-BY-SA-4.0",
+      "sourceVersion": "8.1.0 presentation; 8.0.3 metrics/cache",
+      "author": "Daniel G Rego",
+      "sourcePage": "https://pt.wikipedia.org/wiki/Usuário:Daniel_G_Rego/RitmoPU.js"
+    },
+    {
+      "file": "src/PerfilWiki-estilos.css",
+      "derivedFrom": "RitmoPU.css, corrected TemplateStyles",
+      "sourceSha256": "e34067ba6f94653200a38cfe6c1c62476b522ba184f27a6b4e99d403b6298974",
+      "license": "CC-BY-SA-4.0",
+      "author": "Daniel G Rego",
+      "sourcePage": "https://pt.wikipedia.org/wiki/Usuário:Daniel_G_Rego/RitmoPU-estilos"
+    }
+  ],
+  "statisticsAlgorithmSource": {
+    "version": "EstatisticasPU 1.5.1",
+    "sourcePage": "https://pt.wikipedia.org/wiki/Usuário:Daniel_G_Rego/EstatisticasPU.js",
+    "sourceSha256": "15ab11fa364e2edf71efaeb68ddca318ca23410aed3c863ddc2617c1346eb62b",
+    "personalSeedsIncluded": false
+  }
+}

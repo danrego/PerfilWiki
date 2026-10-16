@@ -1,8 +1,8 @@
 # Como o programa está organizado
 
-O PerfilWiki consulta o histórico público da Wikipédia em português uma vez por ciclo e compartilha esse resultado com os cálculos de atividade e os contadores que precisam dele. As consultas da conta global e das visualizações usam seus serviços próprios, dentro da mesma rotina de atualização.
+O PerfilWiki percorre o histórico público da Wikipédia em português em lotes e compartilha esse resultado com os cálculos de atividade e os contadores que precisam dele. As consultas da conta global e das visualizações usam seus serviços próprios, dentro da mesma rotina de atualização.
 
-O JavaScript distribuído é montado a partir dos arquivos em `src`. O carregador pessoal importa esse arquivo uma só vez. A distribuição também traz os estilos, os trechos iniciais, o instalador em duas telas e a documentação para publicação manual. A versão 1.20.0 é um candidato local, ainda sem publicação na Wikipédia ou envio ao GitHub.
+O JavaScript distribuído é montado a partir dos arquivos em `src`. O carregador pessoal importa esse arquivo uma só vez. A distribuição também traz os estilos, os trechos iniciais, o instalador em duas telas e a documentação para publicação manual. A versão 1.20.1 é um candidato local, ainda sem publicação na Wikipédia ou envio ao GitHub.
 
 ## Partes do código
 
@@ -24,6 +24,7 @@ O JavaScript distribuído é montado a partir dos arquivos em `src`. O carregado
 | `Coordinator.js` | Reúne histórico, contadores e visualizações em um estado conferido e prepara as atualizações de progresso |
 | `LayoutView.js` | Compõe os blocos na disposição escolhida e move apenas os elementos reconhecidos do painel, sem copiá-los |
 | `CardsView.js` | Prepara as caixas na sessão e o trecho de wikitexto dos contadores |
+| `LegacyStatsPreview.js` | Recupera a apresentação de contadores antigos da mesma conta, com data, sem inseri-los no estado de coleta ou nas exportações |
 | `ActivityView.js` | Prepara o calendário, as metas, as listas e o trecho de wikitexto da atividade |
 | `Presenter.js` | Prepara a última edição e confere as miniaturas opcionais |
 | `Cache.js` | Compacta e restaura os resultados guardados no navegador |
@@ -55,7 +56,7 @@ O histórico guarda revisões distintas e os campos necessários às contagens, 
 
 As consultas incrementais retomam o histórico com sobreposição para conferir edições próximas ao ponto de retomada. A reconstrução periódica permite refazer o conjunto público. Cada etapa confere a identidade da conta e as datas antes de reutilizar dados.
 
-Na primeira coleta sem histórico completo aproveitável, o coordenador pede primeiro uma conferência curta da identidade global e da criação da conta. Esse resultado pode preencher os contadores de identidade antes da passagem por todas as revisões da ptwiki. A mesma consulta global é reaproveitada pelos detalhes posteriores, sem uma segunda busca só para obter esses campos. A continuação do histórico e os contadores de alcance local mantêm seus critérios de completude.
+Na primeira coleta sem histórico completo aproveitável, o coordenador pede primeiro uma conferência curta da identidade global e da criação da conta. Esse resultado pode preencher os contadores de identidade antes da passagem por todas as revisões da ptwiki. Os campos iniciais da conta global e da conta local podem chegar numa única consulta, com conferência separada de cada parte da resposta. Os detalhes posteriores reaproveitam esse resultado, sem outra busca só para obter os mesmos campos. A continuação do histórico e os contadores de alcance local mantêm seus critérios de completude.
 
 Uma conta com muitas edições exige muitos lotes na primeira passagem. O orçamento por ciclo, a fila única e as pausas exigidas pelos serviços podem levar essa etapa a minutos. Esse custo não corresponde a carregar apenas HTML e CSS. O cache conserva o ponto de retomada para que os próximos ciclos e visitas possam continuar ou consultar somente as edições novas.
 
@@ -70,6 +71,14 @@ Os contadores opcionais `articleEdits` e `talkEdits` separam as edições públi
 Com o resumo completo da atividade, `edits30` recebe `activity.summary.edits30`, incluindo o dia em andamento no fuso configurado. `averagePerActiveDay` divide o total de edições aceitas pelo número de dias com edições e usa uma casa decimal na apresentação. `activeYears` conta os anos distintos desses dias. `busiestMonth` agrupa as edições por mês e guarda o mês, o ano e seu total, escolhendo o mais antigo em caso de empate. Esses quatro contadores, acrescentados em 1.4.0, seguem as exclusões do calendário e aguardam a conclusão do histórico, sem exigir outra coleta.
 
 O contador opcional `thanksSent` consulta `list=logevents` na ptwiki, com `letype=thanks` e `leuser` igual à conta configurada. A consulta só entra no ciclo quando esse contador está selecionado. O filtro considera quem enviou o agradecimento. O evento precisa ter a ação `thank`, o identificador público válido, a conta esperada e uma data aceita. A continuação e os identificadores dos eventos evitam somar o mesmo agradecimento em lotes repetidos. A cobertura completa e o resultado anterior ficam separados do contador global de recebidos, que conserva suas regras. Consulte a [extensão Thanks](https://www.mediawiki.org/wiki/Extension:Thanks#SQL_documentation) e a [API de registros](https://www.mediawiki.org/wiki/API:Logevents) para os campos públicos usados.
+
+## Números salvos da versão anterior
+
+`LegacyStatsPreview.js` pode recuperar a apresentação de sete contadores do EstatisticasPU, usando os caches locais `dan-pu-estatisticas-v15-cache` e `dan-pu-estatisticas-v14-cache`. A leitura confere a conta exata, datas canônicas que não estejam no futuro, inteiros seguros e os dados de apoio disponíveis. Os totais globais são comparados às somas dos projetos quando há cobertura correspondente. A caixa técnica exige o modelo de páginas de código criadas, a lista de criações e os tipos aceitos das páginas, sem aproveitar o antigo contador de edições técnicas.
+
+Quando uma caixa compatível continua sem número aproveitável, a rotina pode ler uma vez `Usuário:NOME/PU/Estatísticas`, sempre da conta configurada. Essa leitura anônima usa a fila existente e reserva uma das quarenta consultas do ciclo. O texto aceito tem até 260.000 caracteres e precisa corresponder ao formato anterior, com JSON conferido. O código recebido não é executado.
+
+A apresentação usa `textContent` e conserva a data e a indicação de dados salvos na dica da caixa. Números já presentes e métricas novas conferidas têm prioridade. Essa recuperação não entra no estado do Coordenador, nas provas, no histórico nem nos downloads de resultados novos. A data de criação da conta e a caixa de anos aguardam sua prova própria. Um cache sem data de consulta não recebe uma data global inventada, embora um contador com histórico datado próprio possa ser recuperado.
 
 ## Estatutos públicos opcionais
 
@@ -101,7 +110,11 @@ O histórico precisa informar a diferença de tamanho de todas as revisões acei
 
 ## Visualizações e datas
 
-A atividade divide os dias pelo fuso escolhido. As visualizações usam UTC e começam no primeiro dia completo depois da primeira edição pública da conta em cada artigo. As quatro janelas fixas terminam no último dia UTC completo. O intervalo personalizado termina na data final escolhida, que também precisa ser um dia completo em UTC.
+A atividade divide os dias pelo fuso escolhido. As visualizações usam UTC e começam no primeiro dia completo depois da primeira edição pública da conta em cada artigo. Uma consulta nova das quatro janelas fixas termina no último dia UTC completo. O intervalo personalizado termina na data final escolhida, que também precisa ser um dia completo em UTC.
+
+A consulta de cada artigo começa no seu primeiro dia elegível, evitando baixar dias anteriores à primeira edição que seriam retirados da soma. Um intervalo que termina antes desse início tem zero dias elegíveis e pode receber zero sem pedir uma série ao serviço. Isso não converte uma falha de acesso em zero. As datas, os títulos e a cobertura continuam sendo conferidos.
+
+Uma apuração incompleta pode manter suas datas iniciais por até sete dias, mesmo depois de mudar o dia UTC. O painel mostra até qual data está concluindo aquela consulta e só depois começa a janela seguinte. Novas edições podem mudar a ordem dos candidatos, então a rotina reaproveita a classificação por identificador de página, com o mesmo título e corte de primeira edição, sem confiar na posição antiga da lista. Uma mudança no intervalo necessário, uma janela vencida ou um reinício explícito exige a conferência correspondente.
 
 A soma de cada período abrange todos os artigos aceitos. O núcleo pode manter uma classificação maior durante o cálculo, mas a apresentação mostra até 500 artigos por período. Classificação concluída e total concluído são conferidos separadamente.
 
@@ -183,7 +196,7 @@ O formulário marca apenas a entrada principal da conta como obrigatória, com a
 
 ## Construção da distribuição
 
-`npm run build` chama `node scripts/build-all.cjs`. A construção lê a versão de `package.json`, confere as notas em `docs/RELEASES.json`, prepara o programa e os arquivos de distribuição e compila o instalador. Para esta versão, a saída fica em `dist/1.20.0`.
+`npm run build` chama `node scripts/build-all.cjs`. A construção lê a versão de `package.json`, confere as notas em `docs/RELEASES.json`, prepara o programa e os arquivos de distribuição e compila o instalador. Para esta versão, a saída fica em `dist/1.20.1`.
 
 `INICIO.html` passa a ser o instalador em duas telas. `Arquivos.html` conserva o índice completo de manutenção, com o programa, os estilos, os documentos e os trechos genéricos. Cada arquivo mantém seu conteúdo inteiro, destino, resumo, download e ligação ao editor. A raiz e a distribuição usam os mesmos arquivos de referência.
 

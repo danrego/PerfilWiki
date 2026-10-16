@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.20.1",
+    "date": "2026-10-15",
+    "status": "local-candidate",
+    "changes": [
+      "Recupera na tela os últimos contadores compatíveis do EstatisticasPU, com sua data e indicação de dados salvos, sem usar essa apresentação como prova de uma consulta nova.",
+      "Lê os caches antigos da mesma conta e pode consultar uma vez sua subpágina pública de estatísticas quando faltam números, com leitura anônima limitada e dentro do orçamento do ciclo.",
+      "Limita a série pedida de cada artigo ao período posterior à primeira edição, evitando baixar dias que nunca entrariam na soma, e calcula sem consulta os intervalos sem dias elegíveis.",
+      "Conserva por até sete dias as datas de uma consulta incompleta ao atravessar a meia-noite UTC, mostra o corte mantido e retoma a classificação pelos identificadores das páginas quando novas edições mudam a ordem.",
+      "Reúne os campos iniciais de identidade numa única consulta pública, mantendo a conferência separada de cada resposta e as pausas e os limites do transporte.",
+      "Mantém os cálculos e as cópias no navegador, sem servidor de apuração, publicação automática ou mudança nos critérios dos totais de todos os artigos."
+    ]
+  },
+  {
     "version": "1.20.0",
     "date": "2026-10-15",
     "status": "local-candidate",

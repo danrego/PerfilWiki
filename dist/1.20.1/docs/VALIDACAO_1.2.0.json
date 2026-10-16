@@ -1,0 +1,55 @@
+{
+  "version": "1.2.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 204,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed"
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": true,
+    "validatedSha256": "f4081bec024863475b837f158fd47c85cfc59958495f921c74fabbcd27c1a7ad",
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "narrowWidth": 360,
+    "horizontalOverflow": false,
+    "checks": [
+      "All twelve selected counters render in the actual dashboard code",
+      "Total active days reuse the complete history summary",
+      "Cards-only and activity-only each show one invitation",
+      "Both block orders show one invitation under the last block",
+      "Separate layout preserves chosen source order and between-block placeholder",
+      "Removing tenure highlight restores its white background",
+      "Dark and light custom backgrounds use readable white or black text",
+      "Position selector moves a counter to an arbitrary slot",
+      "Exported activation and profile retain new keys, identity and one profile invitation",
+      "Direct editor links remain beside Copy without being opened"
+    ],
+    "notConfirmed": [
+      "Native pointer drag gesture through browser automation"
+    ],
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "errorsObserved": 0,
+    "screenshots": "../../qa_120/"
+  },
+  "publication": {
+    "wikipediaEdits": false,
+    "authenticatedWikiActions": false,
+    "githubPush": false
+  }
+}

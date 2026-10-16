@@ -1,4 +1,4 @@
-/* PerfilWiki 1.20.0. Shared scheduler and anonymous transport. Daniel G Rego, CC BY-SA 4.0. */
+/* PerfilWiki 1.20.1. Shared scheduler and anonymous transport. Daniel G Rego, CC BY-SA 4.0. */
 (function (win) {
     'use strict';
     var mw = win.mw, core = win.PerfilWikiCoordinator, view = win.PerfilWikiActivityView, codec = win.PerfilWikiCache, presenter = win.PerfilWikiPresenter;
@@ -25,7 +25,7 @@
     var REFRESH = 300000;
     var BLACKLIST_URL = 'https://raw.githubusercontent.com/wikimedia/analytics-refinery/master/static_data/cassandra/disallowed_cassandra_articles/disallowed_cassandra_articles.tsv';
     var queryAnchor = null, nextRequestAt = 0, nextActionRequestAt = 0;
-    var API_USER_AGENT = 'PerfilWiki/1.20.0 (https://github.com/danrego/PerfilWiki)';
+    var API_USER_AGENT = 'PerfilWiki/1.20.1 (https://github.com/danrego/PerfilWiki)';
     var TRANSPORT_PREFIX = 'perfilwiki-transport-v1-', TRANSPORT_LOCK = 'perfilwiki-public-transport-v1';
     var JSON_RESPONSE_LIMIT = 8 * 1024 * 1024, BLACKLIST_RESPONSE_LIMIT = 256000;
     var periodKeys = ['30d', '90d', '12m', 'since', 'custom'];
@@ -40,6 +40,9 @@
     var current = null, started = false, running = false, suspended = false, timer;
     var lifecycle = 0, releaseActiveLease = null, nextCheck = 0;
     var cachedRaw = null, cachedState = null;
+    var legacyPreviewApi = win.PerfilWikiLegacyStatsPreview, legacyPreview = null, legacyBootstrapAttempted = false;
+    var legacyCardIds = {edits:'dan-pu-edicoes',thanks:'dan-pu-agradecimentos',articles:'dan-pu-artigos',
+        bestStreak:'dan-pu-ritmo-melhor-sequencia',edited:'dan-pu-editados',technicalCreated:'dan-pu-criados-tecnicos',reverts:'dan-pu-reversoes'};
     var controllers = new Set(), pauses = Object.create(null);
     var active = 0, waiters = [];
     var images = Object.create(null), imageAttempts = Object.create(null), brokenImages = new Set();
@@ -171,6 +174,54 @@
             } catch (_) { /* Try the other strictly validated legacy cache. */ }
         }
         return null;
+    }
+    function readLegacyCounters() {
+        if (!legacyPreviewApi || !appearance.showCards) { return; }
+        [PREFIX+'legacy-counter-source-v1','dan-pu-estatisticas-v15-cache','dan-pu-estatisticas-v14-cache'].forEach(function (key) {
+            try {
+                var candidate = legacyPreviewApi.normalize(win.localStorage.getItem(key),{user:configured.user,now:Date.now()});
+                if (!candidate) { return; }
+                if (!legacyPreview) { legacyPreview = candidate; return; }
+                Object.keys(candidate.metrics).forEach(function (metric) {
+                    var old = legacyPreview.metrics[metric], fresh = candidate.metrics[metric];
+                    if (!old || Date.parse(fresh.savedAt) > Date.parse(old.savedAt)) { legacyPreview.metrics[metric] = fresh; }
+                });
+            } catch (_) { /* Unknown legacy data never enters the collector. */ }
+        });
+    }
+    function paintLegacyCounters() {
+        if (legacyPreviewApi && legacyPreview) {
+            legacyPreviewApi.paint(win.document,legacyPreview,current&&current.statistics,
+                {user:configured.user,language:appearance.language,now:Date.now(),activity:current&&current.activity});
+        }
+    }
+    function legacyBootstrapDue() {
+        if (!legacyPreviewApi || !appearance.showCards || legacyBootstrapAttempted) { return false; }
+        return appearance.metrics.some(function (key) {
+            var element = legacyCardIds[key] && win.document.getElementById(legacyCardIds[key]);
+            return element && !/\d/.test(element.textContent || '');
+        });
+    }
+    async function bootstrapLegacyCounters(epoch) {
+        legacyBootstrapAttempted = true;
+        try {
+            var title = 'Usuário:'+configured.user+'/PU/Estatísticas', url = new URL('https://pt.wikipedia.org/w/api.php');
+            var params = {action:'query',format:'json',formatversion:'2',origin:'*',maxlag:'5',prop:'revisions',titles:title,rvprop:'content',rvslots:'main'};
+            Object.keys(params).forEach(function (key) { url.searchParams.set(key,params[key]); });
+            var response = await sharedRequestJson(url.toString(),epoch), pages = response.query && response.query.pages;
+            checkLifecycle(epoch);
+            if (response.batchcomplete !== true || response.continue || !Array.isArray(pages) || pages.length !== 1) { return false; }
+            var page = pages[0], revision = page && page.revisions && page.revisions[0], slot = revision && revision.slots && revision.slots.main;
+            if (!page || page.title !== title || page.ns !== 2 || page.missing || page.invalid ||
+                !Array.isArray(page.revisions) || page.revisions.length !== 1 || !slot || slot.contentmodel !== 'wikitext' ||
+                typeof slot.content !== 'string' || slot.content.length > 260000) { return false; }
+            var preview = legacyPreviewApi.fromWikitext(slot.content,{user:configured.user,now:Date.now()});
+            if (!preview) { return false; }
+            legacyPreview = preview;
+            var marker = '<noinclude><syntaxhighlight lang="json">\n', start = slot.content.indexOf(marker), end = slot.content.indexOf('\n</syntaxhighlight></noinclude>',start);
+            if (start >= 0 && end >= 0) { storageSet('legacy-counter-source-v1',slot.content.slice(start+marker.length,end)); }
+            paintLegacyCounters(); return true;
+        } catch (_) { return false; }
     }
     function rememberDailyCover(value) {
         var checked=dailyCoverApi&&dailyCoverApi.normalize(value,Date.now());
@@ -516,6 +567,7 @@
     function paint(state) {
         var retainedCreated=retainedAccountCreated();
         if (state && win.PerfilWikiCardsView) { win.PerfilWikiCardsView.paint(win.document, state.statistics, state.activity, Date.now(), appearance, {user:configured.user,timeZone:configured.timeZone,displayName:profileOptions.displayName,location:profileOptions.location,photo:profileOptions.photo,coverImage:profileOptions.coverImage,dailyCover:dailyCover,customFields:profileOptions.customFields,appearance:appearance,now:Date.now(),documentationPage:profileOptions.documentationPage}); }
+        paintLegacyCounters();
         paintHeader(state,retainedCreated);
         patchProfilePhotos();
         applyBlockOrder(); synchronizeActivityFooter();
@@ -560,6 +612,7 @@
             if (nextHelp) { nextHelp.open = true; }
         }
         enhancePresentation();
+        paintLegacyCounters();
     }
     function requestAllowed(url) { return win.PerfilWikiConfiguration.requestAllowed(url); }
     function canonicalRequest(url) { var value = new URL(url); value.searchParams.sort(); return value.toString(); }
@@ -828,8 +881,10 @@
             if (manual) { config.activityRefreshMs = 0; }
             queryAnchor = new Date().toISOString(); sharedRequests.clear();
             var requestedPeriod = activePeriod; priorityChanged = false;
-            var firstProgress = true;
-            var next = await core.update({ requestJson: function (url) { checkLifecycle(epoch); return sharedRequestJson(url, epoch); }, previous: current, config: config, now: queryAnchor, activePeriod: requestedPeriod, maxRequests: coverDue?39:40,
+            var firstProgress = true, legacyDue = legacyBootstrapDue();
+            var legacyTask = legacyDue ? bootstrapLegacyCounters(epoch) : Promise.resolve(false);
+            var next;
+            try { next = await core.update({ requestJson: function (url) { checkLifecycle(epoch); return sharedRequestJson(url, epoch); }, previous: current, config: config, now: queryAnchor, activePeriod: requestedPeriod, maxRequests:40-(coverDue?1:0)-(legacyDue?1:0),
                 customRange:appearance.customRange,
                 includeUserGroups: appearance.showUserGroups && ['top','activity','cards'].some(function(scope){return win.PerfilWikiAppearance.fieldIn(appearance,scope,'userGroups');}),
                 includeThanksSent: appearance.showCards && appearance.metrics.indexOf('thanksSent') >= 0,
@@ -841,7 +896,7 @@
                     current = partial; hasAdvancedCurrent = true; paint(current);
                     saveCache(current,firstProgress); firstProgress = false;
                 }
-            });
+            }); } finally { await legacyTask; }
             next.config = Object.assign({}, configured);
             if (!owns()) { return; }
             if (!core.validateState(next).valid) { throw new Error('Os dados novos não passaram pela conferência.'); }
@@ -872,7 +927,7 @@
             else if (!suspended) {
                 var views = current && current.pageviews;
                 var customPending=appearance.customRange&&views&&(!views.periods.custom||JSON.stringify(views.customRange)!==JSON.stringify(appearance.customRange)||!views.periods.custom.complete);
-                var continuing = views && !views.allPeriodsComplete && views.progress && views.progress.pending > 0 && !views.error || customPending&&views.customProgress&&views.customProgress.resumable || current && (current.history && current.history.pending && !current.history.error || current.statistics && current.statistics.pending && !current.statistics.errors.length);
+                var continuing = views && (views.allPeriodsComplete && views.stale || !views.allPeriodsComplete && views.progress && views.progress.pending > 0 && !views.error) || customPending&&views.customProgress&&views.customProgress.resumable || current && (current.history && current.history.pending && !current.history.error || current.statistics && current.statistics.pending && !current.statistics.errors.length);
                 var delay = priorityChanged && views && (!views.allPeriodsComplete||customPending) ? 0 : (continuing ? 15000 : REFRESH);
                 nextCheck = Date.now() + delay;
                 storageSet('proxima-consulta', String(nextCheck)); schedule(delay);
@@ -882,7 +937,7 @@
     function currentChoices() {
         var page=String(mw.config.get('wgTitle')||configured.user).replace(/_/g,' '),prefix=configured.user+'/';
         var subpage=page.indexOf(prefix)===0?page.slice(prefix.length):'';
-        return {version:'1.20.0',user:configured.user,displayName:profileOptions.displayName,location:profileOptions.location,
+        return {version:'1.20.1',user:configured.user,displayName:profileOptions.displayName,location:profileOptions.location,
             photo:profileOptions.photo,coverImage:profileOptions.coverImage,customFields:profileOptions.customFields,
             timeZone:configured.timeZone,destination:subpage?'subpage':'main',subpage:subpage||'PU',appearance:appearance};
     }
@@ -1001,6 +1056,7 @@
     function begin() {
         if (started || !hasPanel()) { return; }
         started = true; readImages(); current = readCache(); appliedLocalRevision = localRevision;
+        readLegacyCounters();
         if (current) { lastCommittedAnchor = Date.parse(current.capturedAt); currentCheckpoint = checkpointNumber(current); }
         var copiedHeader=win.document.getElementById('dan-pu-profile-header');
         if(copiedHeader&&copiedHeader.getAttribute('data-perfilwiki-profile-top')==='true'&&copiedHeader.getAttribute('data-perfilwiki-user')!==configured.user&&copiedHeader.parentNode){copiedHeader.parentNode.removeChild(copiedHeader);}
@@ -1048,7 +1104,7 @@
             if (view.paintProfile) { view.paintProfile(win.document, null, {user:configured.user, timeZone:configured.timeZone, displayName:profileOptions.displayName, location:profileOptions.location, photo:profileOptions.photo,coverImage:profileOptions.coverImage,dailyCover:dailyCover, customFields:profileOptions.customFields, appearance:appearance, now:Date.now(), savedAccountCreated:startupCreated}); }
             bindControls(); applyPeriodVisibility(); enhancePresentation();
         }
-        paintHeader(current,startupCreated); patchProfilePhotos(); synchronizeActivityFooter();ensureEditButton();
+        paintHeader(current,startupCreated); patchProfilePhotos(); synchronizeActivityFooter();ensureEditButton();paintLegacyCounters();
         restoreLargeCache();
         mw.loader.using(['mediawiki.util']).then(function () {
             var refreshLink = mw.util.addPortletLink('p-tb', '#', 'Atualizar estatísticas', 't-perfilwiki-refresh');
@@ -1064,7 +1120,7 @@
             schedule(1500);
         });
     }
-    win.PerfilWiki = Object.freeze({ version: '1.20.0', readOnly: true, refreshInterval: REFRESH,
+    win.PerfilWiki = Object.freeze({ version: '1.20.1', readOnly: true, refreshInterval: REFRESH,
         refresh: function () { return refresh(true); }, download: download, downloadActivity: download, downloadCards: downloadCards,downloadChoices:downloadChoices,editPanel:editPanel,
         getState: function () { return current ? JSON.parse(JSON.stringify(current)) : null; },
         getAppearance: function () { return JSON.parse(JSON.stringify(appearance)); } });

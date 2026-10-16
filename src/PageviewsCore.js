@@ -657,18 +657,20 @@
             problem.method === 'get' && normalizedProblemPath(problem.uri) !== null && normalizedProblemPath(problem.uri) === normalizedProblemPath(url);
     }
 
+    function sourceIndex(date, source) { return Math.round((Date.parse(date) - Date.parse(source.start)) / DAY); }
     function refreshSeriesStats(series, periods, article) {
         var source = sourceOf(periods);
         series.firstEditAt = article.firstEditAt;
         series.countStartDate = countStart(article);
         series.creationDate = article.creationDate || null;
         series.creationEvidence = article.creationEvidence || (article.creationDate ? { type: 'user-new-flag' } : null);
-        if (article.creationDate && series.firstNonZeroDate && series.firstNonZeroDate < article.creationDate) { series.titleHistoryBeforePageCreation = true; }
+        if (article.creationDate && series.firstNonZeroDate && series.firstNonZeroDate < series.creationDate) { series.titleHistoryBeforePageCreation = true; }
         else { delete series.titleHistoryBeforePageCreation; }
-        series.missing = series.missing.filter(function (index) { return addDate(source.start, index) >= series.countStartDate; });
+        var firstIndex = Math.max(0,sourceIndex(series.countStartDate,source));
+        series.missing = series.missing.filter(function (index) { return index >= firstIndex; });
         PERIOD_IDS.forEach(function (id) {
-            var period = effectivePeriod(article, periods[id]);
-            var missing = series.missing.filter(function (index) { var date = addDate(source.start, index); return date >= period.start && date <= period.end; }).length;
+            var period = effectivePeriod(article, periods[id]), startIndex = sourceIndex(period.start,source), endIndex = sourceIndex(period.end,source);
+            var missing = series.missing.filter(function (index) { return index >= startIndex && index <= endIndex; }).length;
             series.covered[id] = period.days - missing;
             series.totals[id] = missing ? null : series.partialSums[id];
         });
@@ -676,20 +678,22 @@
         return series;
     }
 
-    function emptySeries(article, periods, capturedAt, error) {
-        var source = sourceOf(periods);
-        return refreshSeriesStats({ pageid: article.pageid, title: article.title,
+    function emptySeries(article, periods, capturedAt, error, requestPeriod) {
+        var source = sourceOf(periods), firstIndex = Math.max(0,sourceIndex(countStart(article),source));
+        var series = { pageid: article.pageid, title: article.title,
             lastEditAt: article.lastEditAt, sourcePeriod: source, capturedAt: capturedAt,
             totals: {}, partialSums: { '30d': 0, '90d': 0, '12m': 0, 'since': 0 }, covered: {},
-            missing: Array.from({ length: source.days }, function (_, index) { return index; }),
+            missing: Array.from({ length: Math.max(0,source.days-firstIndex) }, function (_, index) { return index + firstIndex; }),
             firstNonZeroDate: null, validated: false, creationChecked: !!article.creationDate,
-            error: error || null }, periods, article);
+            error: error || null };
+        if (requestPeriod) { series.requestPeriod = clone(requestPeriod); }
+        return refreshSeriesStats(series, periods, article);
     }
 
-    function validatedSeries(article, periods, response, config, capturedAt, availabilityProof) {
+    function validatedSeries(article, periods, response, config, capturedAt, availabilityProof, requestPeriod) {
         checkedResponse(response);
         if (!Array.isArray(response.items)) { fail('The annual daily series is missing.'); }
-        var source = sourceOf(periods);
+        var source = sourceOf(periods), queried = requestPeriod || source;
         var daily = new Map();
         var firstNonZeroDate = null;
         response.items.forEach(function (item) {
@@ -700,17 +704,23 @@
                 fail('An annual view item has invalid metadata or views.');
             }
             var date = item.timestamp.slice(0, 4) + '-' + item.timestamp.slice(4, 6) + '-' + item.timestamp.slice(6, 8);
-            if (!validDate(date) || date < source.start || date > source.end || daily.has(date)) { fail('The annual series contains duplicate or out-of-range dates.'); }
+            if (!validDate(date) || date < queried.start || date > queried.end || daily.has(date)) { fail('The annual series contains duplicate or out-of-range dates.'); }
             if (item.views && (!firstNonZeroDate || date < firstNonZeroDate)) { firstNonZeroDate = date; }
             daily.set(date, item.views);
         });
-        var series = emptySeries(article, periods, capturedAt);
+        var series = emptySeries(article, periods, capturedAt, null, requestPeriod);
         series.validated = true;
         series.reportedDays = daily.size;
         var documentedZeros = validAvailabilityProof(availabilityProof, source, config, capturedAt);
         series.missing = [];
         series.firstNonZeroDate = firstNonZeroDate;
-        for (var index = 0; index < source.days; index += 1) {
+        var firstIndex = Math.max(0,sourceIndex(countStart(article),source));
+        var bounds = {};
+        PERIOD_IDS.forEach(function (id) {
+            var period = effectivePeriod(article,periods[id]);
+            bounds[id] = {start:sourceIndex(period.start,source),end:sourceIndex(period.end,source)};
+        });
+        for (var index = firstIndex; index < source.days; index += 1) {
             var date = addDate(source.start, index);
             if (!daily.has(date)) {
                 if (documentedZeros) { series.zeroBasis = 'aqs-documented-omitted-zero'; series.availabilityProofAt = availabilityProof.capturedAt; }
@@ -719,7 +729,7 @@
             }
             var views = daily.get(date);
             PERIOD_IDS.forEach(function (id) {
-                if (date >= effectivePeriod(article, periods[id]).start && date <= periods[id].end) {
+                if (index >= bounds[id].start && index <= bounds[id].end) {
                     series.partialSums[id] += views;
                     if (!Number.isSafeInteger(series.partialSums[id])) { fail('A view total exceeds the safe integer range.'); }
                 }
@@ -903,7 +913,7 @@
             pending: state.allPeriodsComplete ? 0 : metadataRemaining + missingSeries + unavailable + creationNeeded + neededDates.size + aggregateNeeded,
             workPeriod: state.workPeriod, resumable: !state.allPeriodsComplete && !state.error
         });
-        state.stale = !state.allPeriodsComplete;
+        state.stale = !state.allPeriodsComplete || state.periods['12m'].period.end !== periodsFor(state.capturedAt)['12m'].end;
         state.phase = state.allPeriodsComplete ? 'complete' : (metadataRemaining ? 'metadata' : (missingSeries || creationNeeded ? 'annual-series' : 'bounds'));
         if (state.allPeriodsComplete) { state.error = null; }
         return Array.from(neededDates).sort();
@@ -948,10 +958,20 @@
         var candidates = articleCandidates(activity.entries);
         var definitions = periodsFor(now);
         var fingerprint = universeFingerprint(candidates);
+        var unchangedCandidates = previous && JSON.stringify(previous.candidates) === JSON.stringify(candidates);
+        // Finish a recent in-progress calculation before moving its UTC end
+        // date. Otherwise short visits spanning midnight repeatedly discard the
+        // same work. The displayed period dates remain the original dates.
+        var pinnedWindow = previous && !previous.allPeriodsComplete && !options.restartPageviews &&
+            now.getTime() >= Date.parse(previous.startedAt) && now.getTime() - Date.parse(previous.startedAt) <= 7 * DAY &&
+            previous.periods['12m'].period.end !== definitions['12m'].end &&
+            JSON.stringify(unchangedCandidates ? sourceForState(periodsFor(previous.startedAt),previous) :
+                sourceForArticles(periodsFor(previous.startedAt), candidates)) === JSON.stringify(previous.sourcePeriod);
+        var projectionNow = pinnedWindow ? nowDate(previous.startedAt) : now;
+        if (pinnedWindow) { definitions = periodsFor(projectionNow); }
         // An unfinished snapshot also belongs to its original history and UTC
         // windows. Rebuild metadata when either changes, retaining reusable
         // series through newStateV3 instead of producing an invalid checkpoint.
-        var unchangedCandidates = previous && JSON.stringify(previous.candidates) === JSON.stringify(candidates);
         var previousCandidates = new Map(previous ? previous.candidates.map(function (article) { return [article.pageid, article]; }) : []);
         var sameArticleIdentity = previous && candidates.every(function (article) {
             var old = previousCandidates.get(article.pageid);
@@ -960,7 +980,21 @@
         var resume = previous && previous.periods['12m'].period.start === definitions['12m'].start &&
             previous.periods['12m'].period.end === definitions['12m'].end && previous.universeFingerprint === fingerprint &&
             (unchangedCandidates || previous.metadata.complete && sameArticleIdentity);
-        var state = resume && !options.restartPageviews ? clone(previous) : newStateV3(config, now, activity, candidates, previous);
+        var state = resume && !options.restartPageviews ? clone(previous) : newStateV3(config, projectionNow, activity, candidates, previous);
+        // Editing an already known article can reorder the history candidates.
+        // Rebase classifications by page ID instead of trusting their old array
+        // positions. This map comes only from the validated previous snapshot.
+        var priorClassifications = new Map();
+        if (previous && !resume && !options.restartPageviews && now.getTime() - Date.parse(previous.startedAt) <= 7 * DAY &&
+            previous.periods['12m'].period.start === definitions['12m'].start && previous.periods['12m'].period.end === definitions['12m'].end &&
+            JSON.stringify(previous.sourcePeriod) === JSON.stringify(state.sourcePeriod)) {
+            previous.metadata.cohort.forEach(function (article) {
+                priorClassifications.set(article.pageid, {article:article});
+            });
+            previous.metadata.excluded.forEach(function (article) {
+                priorClassifications.set(article.pageid, {excluded:article});
+            });
+        }
         if (resume && !options.restartPageviews && !unchangedCandidates) {
             // A later edit does not change the first-edit cutoff or pageviews.
             // Metadata is complete, so changing candidate order cannot skip a
@@ -1053,16 +1087,19 @@
                 var work = queue.slice(0, Math.min(2, maxRequests - requests));
                 work.forEach(function (article) { attempted.add(article.pageid); });
                 await Promise.all(work.map(async function (article) {
-                    var series = state.series[article.pageid];
+                    var series = state.series[article.pageid], requestPeriod = effectivePeriod(article,sourceOf(periodDefinitions));
                     try {
-                        if (!series || (options.retryUnavailableSeries && !series.validated) || (zerosVerified && series.validated && series.missing.length)) {
-                            series = validatedSeries(article, periodDefinitions, await request(viewUrl(config, article.title, sourceOf(periodDefinitions))), config, now.toISOString(), state.availabilityProof);
+                        if (requestPeriod.days === 0) {
+                            series = emptySeries(article,periodDefinitions,now.toISOString(),null,requestPeriod);
+                            series.validated = true; series.reportedDays = 0; series.coverageBasis = 'before-first-edit';
+                        } else if (!series || (options.retryUnavailableSeries && !series.validated) || (zerosVerified && series.validated && series.missing.length)) {
+                            series = validatedSeries(article, periodDefinitions, await request(viewUrl(config, article.title, requestPeriod)), config, now.toISOString(), state.availabilityProof,requestPeriod);
                         }
                         state.series[article.pageid] = series;
                     } catch (error) {
                         if (error.code !== 'request-budget' && error.code !== 'aborted') {
-                            series = emptySeries(article, periodDefinitions, now.toISOString(), errorInfo(error));
-                            var articleUrl = viewUrl(config, article.title, sourceOf(periodDefinitions));
+                            series = emptySeries(article, periodDefinitions, now.toISOString(), errorInfo(error),requestPeriod);
+                            var articleUrl = viewUrl(config, article.title, requestPeriod);
                             if (zerosVerified && documentedEmptyError(error, articleUrl)) {
                                 series.validated = true; series.missing = []; series.reportedDays = 0;
                                 series.zeroBasis = 'aqs-documented-empty-series'; series.availabilityProofAt = state.availabilityProof.capturedAt;
@@ -1082,9 +1119,17 @@
             if (state.allPeriodsComplete) { state.capturedAt = oldCaptureAt; await checkpoint(true); return state; }
             while (!state.metadata.complete && requests < maxRequests) {
                 var batch = state.candidates.slice(state.metadata.cursor, state.metadata.cursor + 50);
-                var response = checkedResponse(await request(apiUrl(config, { prop: 'info', pageids: batch.map(function (article) { return article.pageid; }).join('|') })));
+                var carried = new Map();
+                batch.forEach(function (article) {
+                    var prior = priorClassifications.get(article.pageid), oldCandidate = previousCandidates.get(article.pageid);
+                    if (prior && oldCandidate && oldCandidate.firstEditAt === article.firstEditAt && oldCandidate.title === article.title &&
+                        (!prior.article || prior.article.title === article.title)) { carried.set(article.pageid,prior); }
+                });
+                var unknown = batch.filter(function (article) { return !carried.has(article.pageid); });
+                var response = unknown.length ? checkedResponse(await request(apiUrl(config, { prop: 'info', pageids: unknown.map(function (article) { return article.pageid; }).join('|') }))) :
+                    {batchcomplete:true,query:{pages:[]}};
                 if (response.continue || !assertedFlag(response, 'batchcomplete') || !response.query || !Array.isArray(response.query.pages)) { fail('Current article metadata is incomplete.'); }
-                var pages = new Map(); var requested = new Set(batch.map(function (article) { return article.pageid; }));
+                var pages = new Map(); var requested = new Set(unknown.map(function (article) { return article.pageid; }));
                 response.query.pages.forEach(function (page) {
                     if (!page || !Number.isSafeInteger(page.pageid) || !requested.has(page.pageid) || pages.has(page.pageid)) { fail('Current metadata has invalid or duplicate page IDs.'); }
                     pages.set(page.pageid, page);
@@ -1092,6 +1137,13 @@
                 var additions = []; var exclusions = [];
                 var knownTitles = new Set(state.metadata.cohort.map(function (article) { return normalizedTitle(article.title); }));
                 batch.forEach(function (article) {
+                    var prior = carried.get(article.pageid);
+                    if (prior) {
+                        if (prior.excluded) { exclusions.push(clone(prior.excluded)); return; }
+                        if (knownTitles.has(normalizedTitle(prior.article.title))) { fail('Current metadata resolves to duplicate titles.'); }
+                        knownTitles.add(normalizedTitle(prior.article.title));
+                        additions.push(Object.assign({},article,{title:prior.article.title})); return;
+                    }
                     var page = pages.get(article.pageid);
                     if (!page) { fail('Current metadata omitted a requested page.'); }
                     if (assertedFlag(page, 'missing') || assertedFlag(page, 'invalid') || assertedFlag(page, 'redirect') || page.ns !== 0) {
@@ -1505,6 +1557,10 @@
             check(Number.isSafeInteger(series.pageid) && series.pageid > 0 && typeof series.title === 'string' && !!series.title && validTimestamp(series.lastEditAt) && validTimestamp(series.capturedAt) && Date.parse(series.capturedAt) <= Date.parse(captureAt), label + 'invalid cached article.');
             check(validTimestamp(series.firstEditAt) && series.countStartDate === countStart(series), label + 'invalid first-edit cutoff.');
             check(JSON.stringify(series.sourcePeriod) === JSON.stringify(source) && Array.isArray(series.missing) && !!series.partialSums && !!series.totals && !!series.covered, label + 'invalid series projection.');
+            var requested = series.requestPeriod || source;
+            if (own(series,'requestPeriod')) {
+                check(JSON.stringify(series.requestPeriod) === JSON.stringify(effectivePeriod(series,source)), label + 'invalid clipped request period.');
+            }
             var seenMissing = new Set();
             (series.missing || []).forEach(function (index) {
                 check(Number.isInteger(index) && index >= 0 && index < source.days && !seenMissing.has(index), label + 'invalid or duplicate missing-date index.'); seenMissing.add(index);
@@ -1514,10 +1570,10 @@
                 var period = effectivePeriod(series, definitions[id]);
                 var missing = (series.missing || []).filter(function (index) { var date = addDate(source.start, index); return date >= period.start && date <= period.end; }).length;
                 check(Number.isSafeInteger(series.partialSums[id]) && series.partialSums[id] >= 0 && series.covered[id] === period.days - missing &&
-                    series.totals[id] === (missing ? null : series.partialSums[id]), label + 'period coverage or totals do not match the missing dates.');
+                    series.totals[id] === (missing ? null : series.partialSums[id]) && (period.days !== 0 || series.partialSums[id] === 0), label + 'period coverage or totals do not match the missing dates.');
             });
             check(series.partialSums['30d'] <= series.partialSums['90d'] && series.partialSums['90d'] <= series.partialSums['12m'] && series.partialSums['12m'] <= series.partialSums['since'], label + 'nested period sums are inconsistent.');
-            check(!series.firstNonZeroDate || (validDate(series.firstNonZeroDate) && series.firstNonZeroDate >= source.start && series.firstNonZeroDate <= source.end), label + 'invalid first positive date.');
+            check(!series.firstNonZeroDate || (validDate(series.firstNonZeroDate) && series.firstNonZeroDate >= requested.start && series.firstNonZeroDate <= requested.end), label + 'invalid first positive date.');
             check(!!series.titleHistoryBeforePageCreation === !!(series.creationDate && series.firstNonZeroDate && series.firstNonZeroDate < series.creationDate), label + 'invalid prior-title-history flag.');
             check(!series.creationDate || validDate(series.creationDate), label + 'invalid creation date.');
             if (series.creationEvidence && series.creationEvidence.type === 'first-revision') {
@@ -1525,19 +1581,25 @@
             }
             check(['available', 'partial', 'unavailable'].indexOf(series.status) >= 0 && (series.status !== 'available' || series.missing.length === 0), label + 'invalid series status.');
             if (own(series, 'reportedDays')) {
-                check(Number.isInteger(series.reportedDays) && series.reportedDays >= 0 && series.reportedDays <= source.days, label + 'invalid explicit reported-day count.');
+                check(Number.isInteger(series.reportedDays) && series.reportedDays >= 0 && series.reportedDays <= requested.days, label + 'invalid explicit reported-day count.');
+            }
+            if (own(series,'coverageBasis')) {
+                check(series.coverageBasis === 'before-first-edit' && !!series.requestPeriod && requested.days === 0 &&
+                    series.validated === true && series.reportedDays === 0 && !series.error && !series.firstNonZeroDate &&
+                    !series.zeroBasis && series.missing.length === 0 && PERIOD_IDS.every(function (id) { return series.partialSums[id] === 0; }),
+                    label + 'invalid before-first-edit coverage.');
             }
             if (series.zeroBasis) {
                 check(['aqs-documented-omitted-zero', 'aqs-documented-empty-series'].indexOf(series.zeroBasis) >= 0 &&
                     availabilityValid && Date.parse(section.availabilityProof.capturedAt) <= Date.parse(series.capturedAt) &&
                     series.availabilityProofAt === section.availabilityProof.capturedAt && series.validated === true &&
-                    series.status === 'available' && series.missing.length === 0 && Number.isInteger(series.reportedDays) && series.reportedDays < source.days,
+                    series.status === 'available' && series.missing.length === 0 && Number.isInteger(series.reportedDays) && series.reportedDays < requested.days,
                     label + 'zero-filled article lacks matching availability evidence.');
                 if (series.zeroBasis === 'aqs-documented-empty-series') {
                     var evidence = series.zeroEvidence;
                     check(!!evidence && evidence.status === 404 && series.reportedDays === 0 && !series.firstNonZeroDate &&
                         PERIOD_IDS.every(function (id) { return series.partialSums[id] === 0; }) &&
-                        documentedEmptyError({ status: 404, requestUrl: evidence.requestUrl, problem: evidence.problem }, viewUrl(DEFAULT_CONFIG, series.title, source)),
+                        documentedEmptyError({ status: 404, requestUrl: evidence.requestUrl, problem: evidence.problem }, viewUrl(DEFAULT_CONFIG, series.title, requested)),
                         label + 'empty series lacks a matching AQS not-found response.');
                 } else { check(!series.zeroEvidence, label + 'omitted-day series has incompatible not-found evidence.'); }
             } else { check(!series.availabilityProofAt && !series.zeroEvidence, label + 'article zero evidence has no declared basis.'); }

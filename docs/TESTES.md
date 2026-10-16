@@ -15,7 +15,19 @@ O comando `node scripts/build-all.cjs` reúne os módulos, copia os estilos e a 
 
 Para atualizar os índices depois de mudar uma fonte ou a documentação, repita a construção completa. Os scripts Python geram os arquivos do programa antes da compilação do instalador. Executá-los isoladamente substitui o índice principal pela visão antiga de manutenção.
 
-O instalador e o índice de manutenção da raiz e de `dist/1.20.0` usam caminhos relativos próprios. A construção não busca dados externos nem inclui uma fotografia pessoal de resultados.
+O instalador e o índice de manutenção da raiz e de `dist/1.20.1` usam caminhos relativos próprios. A construção não busca dados externos nem inclui uma fotografia pessoal de resultados.
+
+## Conferir a recuperação e a retomada da versão 1.20.1
+
+`tests/legacy-stats-preview.test.cjs` confere os sete contadores anteriores com uma conta inventada, as datas, as somas por projeto e a prova das páginas técnicas criadas. Os testes recusam identidade estrangeira, origem inesperada, datas futuras, números inválidos e texto fora do formato ou do tamanho aceito. A apresentação é conferida nos seis idiomas, dentro da raiz da própria conta e usando texto, sem substituir números já presentes ou novos valores conferidos. A exportação precisa continuar sem aproveitar essa apresentação como estatística nova.
+
+Na integração do programa, simule os caches locais antigos e uma resposta da subpágina pública da própria conta. Confira que a leitura adicional ocorre somente quando há uma caixa compatível sem número aproveitável, usa uma única tentativa anônima e deixa o total do ciclo dentro de quarenta consultas. Conta diferente, página ausente, resposta malformada e conteúdo maior que o limite precisam conservar os dados disponíveis. Os marcadores de dados antigos devem sair quando uma métrica nova preenche a caixa, incluindo o início do histórico e o modo com apenas caixas.
+
+`tests/pageviews-rollover.test.cjs` confere consultas incompletas que atravessam a meia-noite UTC, novas edições que mudam a ordem dos candidatos e um artigo editado pela primeira vez depois do corte mantido. As séries já aceitas não podem ser baixadas outra vez sem motivo. Os metadados precisam acompanhar os identificadores das páginas. Uma mudança de título ou de primeira edição exige a conferência correspondente. Depois da conclusão, a próxima consulta deve usar as datas novas. Um reinício explícito ou mais de sete dias não conserva a janela antiga.
+
+Confira as séries limitadas ao início elegível de cada artigo com respostas controladas. Os quatro totais, o corte individual e os critérios de disponibilidade precisam ser os mesmos da consulta anterior. Um artigo sem dias elegíveis recebe zero sem consulta, enquanto uma resposta indisponível continua desconhecida. A identidade inicial reúne os campos públicos numa chamada, com conferência independente das partes recebidas.
+
+No ensaio sintético com 114 artigos elegíveis, a limitação dos intervalos manteve as 119 consultas e os mesmos quatro totais, reduzindo os registros diários devolvidos de 478.384 para 13.150. A execução local passou de cerca de 8,82 para 1,44 segundo, uma redução de processamento próxima de seis vezes naquele ensaio. Esse resultado não mede o carregamento da página publicada nem elimina uma consulta por artigo na primeira apuração. O resultado completo da suíte, as construções e os testes de navegador desta versão ainda precisam ser registrados depois da execução correspondente.
 
 ## Executar os contratos locais
 

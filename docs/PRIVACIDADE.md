@@ -4,6 +4,14 @@ Ao configurar uma conta, você escolhe quais números e campos pessoais deseja m
 
 O programa usa pedidos públicos de leitura, com GET e `credentials: 'omit'`, sem aproveitar cookies de login. Ele não pede senha, token de edição nem acesso à lista de páginas vigiadas. Não há rotina para salvar páginas, enviar mensagens ou publicar arquivos. Esse cuidado não torna uma consulta anônima para o serviço que a recebe, pois uma conexão ainda informa dados de rede, como o endereço IP.
 
+## Recuperar números que já estavam salvos
+
+Na versão 1.20.1, o navegador pode mostrar novamente os contadores compatíveis de um cache antigo do EstatisticasPU, depois de conferir a mesma conta, os formatos e os dados de apoio. As caixas recebem uma indicação de dados salvos e sua data. Um número recuperado assim não passa a ser uma consulta nova, não entra nas provas das métricas e não é exportado como resultado recém-conferido. A criação mais antiga da conta continua exigindo sua própria prova.
+
+Se uma caixa compatível permanecer sem número aproveitável, a rotina pode fazer uma leitura anônima da subpágina pública `Usuário:NOME/PU/Estatísticas` da própria conta configurada. Há uma tentativa por carregamento do programa, dentro do orçamento compartilhado do ciclo. O conteúdo aceito tem até 260.000 caracteres e é lido como dados, sem executar seu texto. Uma cópia dessa fonte pode ficar no armazenamento local da conta e do fuso para evitar a mesma leitura nas visitas seguintes. Nenhuma subpágina é criada ou alterada.
+
+O cálculo das visualizações permanece no navegador e pede somente os dias elegíveis depois da primeira edição de cada artigo. A retomada por até sete dias conserva o corte de uma consulta incompleta, com a data visível, sem enviar o histórico a um servidor próprio de apuração. Uma primeira soma de milhares de artigos ainda pode exigir milhares de consultas aos serviços públicos existentes.
+
 ## O que acontece no instalador
 
 A prévia usa números, artigos, estatutos e imagens de exemplo guardados no pacote local. Digitar uma conta ou um texto pessoal não inicia a coleta do histórico, não busca uma foto e não envia o wikitexto à Wikipédia. Belo Horizonte e UFMG são exemplos nos campos, sem preencher sua localização ou formação. Uma instalação nova começa com o horário de Brasília, e uma configuração importada conserva o fuso escolhido.

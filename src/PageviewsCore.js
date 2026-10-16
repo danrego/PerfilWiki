@@ -587,6 +587,12 @@
         return { start: start, end: periods['12m'].end, days: Math.round((Date.parse(periods['12m'].end) - Date.parse(start)) / DAY) + 1, basis: 'UTC' };
     }
 
+    // Streaming scans keep the history-derived interval fixed while metadata
+    // excludes pages. Older caches retain their original eligible-cohort rule.
+    function sourceForState(periods, state) {
+        return sourceForArticles(periods, state.sourceBasis === 'history-candidates-v1' || !state.metadata.complete ? state.candidates : state.metadata.cohort);
+    }
+
     function sourceOf(periods) { return periods.sourcePeriod || periods['12m']; }
 
     var ZERO_DOCUMENTATION = 'https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/troubleshooting.html';
@@ -910,6 +916,7 @@
         var reusable = previous && previous.periods['12m'].period.start === definitions['12m'].start && previous.periods['12m'].period.end === definitions['12m'].end ? clone(previous.series) : {};
         return { identity: identity(config), scope: 'all-distinct-edited-existing-mainspace-nonredirect-articles', metricVersion: METRIC_VERSION, totalModel: TOTAL_MODEL, rankLimit: 1000,
             sourcePeriod: sourceForArticles(definitions, candidates),
+            sourceBasis: candidates.length > 50 ? 'history-candidates-v1' : 'eligible-cohort-v1',
             activePeriod: '30d', periods: periods, startedAt: now.toISOString(), capturedAt: now.toISOString(), lastAttemptAt: now.toISOString(),
             historyCapturedAt: activity.capturedAt, candidates: candidates, universeFingerprint: universeFingerprint(candidates),
             metadata: { cursor: 0, complete: candidates.length === 0, cohort: [], excluded: [] }, series: {}, reusableSeries: reusable,
@@ -923,7 +930,7 @@
             lastCompleteSnapshot: previous && previous.allPeriodsComplete ? snapshotV3(previous) : (previous && previous.lastCompleteSnapshot) || null };
     }
 
-    async function collectPageviews(options) {
+    async function collectFixedPageviews(options) {
         options = options || {};
         var requestJson = requireRequest(options);
         var config = normalizeConfig(options.config);
@@ -989,37 +996,18 @@
                 if (options.onProgress) { await options.onProgress(clone(state)); }
             }
         }
-        try {
-            refreshV3(state);
-            if (state.allPeriodsComplete) { state.capturedAt = oldCaptureAt; await checkpoint(true); return state; }
-            while (!state.metadata.complete && requests < maxRequests) {
-                var batch = state.candidates.slice(state.metadata.cursor, state.metadata.cursor + 50);
-                var response = checkedResponse(await request(apiUrl(config, { prop: 'info', pageids: batch.map(function (article) { return article.pageid; }).join('|') })));
-                if (response.continue || !assertedFlag(response, 'batchcomplete') || !response.query || !Array.isArray(response.query.pages)) { fail('Current article metadata is incomplete.'); }
-                var pages = new Map(); var requested = new Set(batch.map(function (article) { return article.pageid; }));
-                response.query.pages.forEach(function (page) {
-                    if (!page || !Number.isSafeInteger(page.pageid) || !requested.has(page.pageid) || pages.has(page.pageid)) { fail('Current metadata has invalid or duplicate page IDs.'); }
-                    pages.set(page.pageid, page);
-                });
-                var additions = []; var exclusions = [];
-                var knownTitles = new Set(state.metadata.cohort.map(function (article) { return normalizedTitle(article.title); }));
-                batch.forEach(function (article) {
-                    var page = pages.get(article.pageid);
-                    if (!page) { fail('Current metadata omitted a requested page.'); }
-                    if (assertedFlag(page, 'missing') || assertedFlag(page, 'invalid') || assertedFlag(page, 'redirect') || page.ns !== 0) {
-                        exclusions.push({ pageid: article.pageid, reason: assertedFlag(page, 'redirect') ? 'redirect' : (page.ns !== 0 ? 'namespace' : 'missing') });
-                    } else {
-                        if (typeof page.title !== 'string' || !page.title || knownTitles.has(normalizedTitle(page.title))) { fail('Current metadata has missing or duplicate titles.'); }
-                        knownTitles.add(normalizedTitle(page.title)); additions.push(Object.assign({}, article, { title: page.title }));
-                    }
-                });
-                state.metadata.cohort = state.metadata.cohort.concat(additions); state.metadata.excluded = state.metadata.excluded.concat(exclusions);
-                state.metadata.cursor += batch.length; state.metadata.complete = state.metadata.cursor === state.candidates.length;
-                await checkpoint(false);
-            }
-            if (!state.metadata.complete) { await checkpoint(true); return state; }
-            var periodDefinitions = {}; PERIOD_IDS.forEach(function (id) { periodDefinitions[id] = state.periods[id].period; });
-            state.sourcePeriod = sourceForArticles(periodDefinitions, state.metadata.cohort);
+        function metadataSource() {
+            var definitions={};PERIOD_IDS.forEach(function(id){definitions[id]=state.periods[id].period;});
+            state.sourcePeriod=sourceForState(definitions,state);
+            Object.keys(state.reusableSeries).forEach(function(id){if(JSON.stringify(state.reusableSeries[id].sourcePeriod)!==JSON.stringify(state.sourcePeriod))delete state.reusableSeries[id];});
+            if(state.availabilityProof&&!validAvailabilityProof(state.availabilityProof,state.sourcePeriod,config,now.toISOString())){state.availabilityProof=null;state.availabilityAttemptAt=null;}
+        }
+        var periodDefinitions = null, zerosVerified = false, seriesPrepared = false, attempted = new Set();
+        async function prepareSeries() {
+            if (seriesPrepared) { return; }
+            metadataSource();
+            periodDefinitions = {}; PERIOD_IDS.forEach(function (id) { periodDefinitions[id] = state.periods[id].period; });
+            state.sourcePeriod = sourceForState(periodDefinitions,state);
             periodDefinitions.sourcePeriod = state.sourcePeriod;
             if (!validAvailabilityProof(state.availabilityProof, sourceOf(periodDefinitions), config, now.toISOString()) &&
                 (!state.availabilityAttemptAt || options.retryUnavailableSeries)) {
@@ -1041,17 +1029,21 @@
                 }
                 await checkpoint(false);
             }
-            var zerosVerified = validAvailabilityProof(state.availabilityProof, sourceOf(periodDefinitions), config, now.toISOString());
+            zerosVerified = validAvailabilityProof(state.availabilityProof, sourceOf(periodDefinitions), config, now.toISOString());
+            seriesPrepared = true;
+        }
+        function reuseClassified() {
             state.metadata.cohort.forEach(function (article) {
                 var reusable = state.reusableSeries[article.pageid];
-                if (reusable && reusable.title === article.title && reusable.firstEditAt === article.firstEditAt && JSON.stringify(reusable.sourcePeriod) === JSON.stringify(state.sourcePeriod)) { state.series[article.pageid] = Object.assign({}, reusable, { lastEditAt: article.lastEditAt }); }
+                if (reusable && reusable.title === article.title && reusable.firstEditAt === article.firstEditAt && JSON.stringify(reusable.sourcePeriod) === JSON.stringify(state.sourcePeriod)) { state.series[article.pageid] = Object.assign({}, reusable, { lastEditAt: article.lastEditAt }); delete state.reusableSeries[article.pageid]; }
                 var aggregates = state.reusableAggregates[article.pageid];
-                if (aggregates && Object.keys(aggregates).every(function (id) { return aggregates[id].title === article.title; })) { state.aggregateTotals[article.pageid] = aggregates; }
+                if (aggregates && Object.keys(aggregates).every(function (id) { return aggregates[id].title === article.title; })) { state.aggregateTotals[article.pageid] = aggregates; delete state.reusableAggregates[article.pageid]; }
             });
-            state.reusableSeries = {}; state.reusableAggregates = {};
-            var attempted = new Set();
+        }
+        async function collectSeries(articles, publishFirst) {
+            var previewPublished = false;
             while (requests < maxRequests) {
-                var queue = state.metadata.cohort.filter(function (article) {
+                var queue = articles.filter(function (article) {
                     var series = state.series[article.pageid];
                     return !attempted.has(article.pageid) && (!series || (options.retryUnavailableSeries && !series.validated) ||
                         (zerosVerified && series.validated && series.missing.length));
@@ -1081,8 +1073,54 @@
                         }
                     }
                 }));
-                await checkpoint(false);
+                await checkpoint(!!publishFirst && !previewPublished); previewPublished = true;
             }
+        }
+        try {
+            metadataSource();
+            refreshV3(state);
+            if (state.allPeriodsComplete) { state.capturedAt = oldCaptureAt; await checkpoint(true); return state; }
+            while (!state.metadata.complete && requests < maxRequests) {
+                var batch = state.candidates.slice(state.metadata.cursor, state.metadata.cursor + 50);
+                var response = checkedResponse(await request(apiUrl(config, { prop: 'info', pageids: batch.map(function (article) { return article.pageid; }).join('|') })));
+                if (response.continue || !assertedFlag(response, 'batchcomplete') || !response.query || !Array.isArray(response.query.pages)) { fail('Current article metadata is incomplete.'); }
+                var pages = new Map(); var requested = new Set(batch.map(function (article) { return article.pageid; }));
+                response.query.pages.forEach(function (page) {
+                    if (!page || !Number.isSafeInteger(page.pageid) || !requested.has(page.pageid) || pages.has(page.pageid)) { fail('Current metadata has invalid or duplicate page IDs.'); }
+                    pages.set(page.pageid, page);
+                });
+                var additions = []; var exclusions = [];
+                var knownTitles = new Set(state.metadata.cohort.map(function (article) { return normalizedTitle(article.title); }));
+                batch.forEach(function (article) {
+                    var page = pages.get(article.pageid);
+                    if (!page) { fail('Current metadata omitted a requested page.'); }
+                    if (assertedFlag(page, 'missing') || assertedFlag(page, 'invalid') || assertedFlag(page, 'redirect') || page.ns !== 0) {
+                        exclusions.push({ pageid: article.pageid, reason: assertedFlag(page, 'redirect') ? 'redirect' : (page.ns !== 0 ? 'namespace' : 'missing') });
+                    } else {
+                        if (typeof page.title !== 'string' || !page.title || knownTitles.has(normalizedTitle(page.title))) { fail('Current metadata has missing or duplicate titles.'); }
+                        knownTitles.add(normalizedTitle(page.title)); additions.push(Object.assign({}, article, { title: page.title }));
+                    }
+                });
+                state.metadata.cohort = state.metadata.cohort.concat(additions); state.metadata.excluded = state.metadata.excluded.concat(exclusions);
+                state.metadata.cursor += batch.length; state.metadata.complete = state.metadata.cursor === state.candidates.length;
+                if(state.metadata.complete)metadataSource();
+                await checkpoint(false);
+                if (state.sourceBasis === 'history-candidates-v1' && !state.metadata.complete && options.metadataOnly !== true) {
+                    reuseClassified();
+                    var preview = state.metadata.cohort.slice(0,10);
+                    if (preview.some(function (article) { return !state.series[article.pageid]; })) {
+                        await prepareSeries();
+                        await collectSeries(preview,true);
+                    }
+                }
+            }
+            if (!state.metadata.complete) { await checkpoint(true); return state; }
+            metadataSource();
+            if (options.metadataOnly === true) { await checkpoint(true); return state; }
+            await prepareSeries();
+            reuseClassified();
+            state.reusableSeries = {}; state.reusableAggregates = {};
+            await collectSeries(state.metadata.cohort,false);
             var neededDates = refreshV3(state);
             if (state.allPeriodsComplete) { state.lastCompleteSnapshot = snapshotV3(state); await checkpoint(true); return state; }
             if (state.progress.seriesRemaining || state.progress.creationRemaining || requests >= maxRequests) { await checkpoint(true); return state; }
@@ -1163,6 +1201,248 @@
         }
     }
 
+    function normalizeCustomRange(value, now) {
+        if (value === undefined || value === null) { return null; }
+        if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 2 ||
+            Object.keys(value).some(function (key) { return key !== 'start' && key !== 'end'; }) ||
+            !validDate(value.start) || !validDate(value.end) || value.start < COVERAGE_FLOOR || value.end < value.start ||
+            value.end > addDate(nowDate(now).toISOString().slice(0,10),-1)) { fail('Escolha datas completas entre 01/07/2015 e o último dia UTC encerrado.', 'invalid-custom-range'); }
+        return {start:value.start,end:value.end};
+    }
+    function customDefinition(range) {
+        return {start:range.start,end:range.end,days:Math.round((Date.parse(range.end)-Date.parse(range.start))/DAY)+1,basis:'UTC'};
+    }
+    function customFingerprint(articles) {
+        return JSON.stringify(articles.map(function (a) { return [a.pageid,a.title,a.firstEditAt]; }).sort(function (a,b) { return a[0]-b[0]; }));
+    }
+    function customSource(range, articles) {
+        var starts = articles.map(function (article) { return effectivePeriod(article,customDefinition(range)); }).filter(function (period) { return period.days > 0; }).map(function (period) { return period.start; });
+        return customDefinition({start:starts.length ? starts.sort()[0] : range.start,end:range.end});
+    }
+    function customProofValid(proof, source, config, at) {
+        return !!proof && !!proof.sourcePeriod && proof.sourcePeriod.start <= source.start && proof.sourcePeriod.end >= source.end &&
+            validAvailabilityProof(proof,proof.sourcePeriod,config,at);
+    }
+    function fixedProjection(section) {
+        var result = clone(section);
+        delete result.customRange; delete result.customCache; delete result.customProgress;
+        if (result.periods) { delete result.periods.custom; }
+        return result;
+    }
+    function customRow(article, entry, period) {
+        return {pageid:article.pageid,title:article.title,lastEditAt:article.lastEditAt,firstEditAt:article.firstEditAt,
+            countFromDate:effectivePeriod(article,period).start,coverageTruncated:false,creationDate:article.creationDate || null,
+            creationEvidence:article.creationEvidence || null,views:entry.total,status:'available',sourcePeriod:entry.period,
+            sourceGranularity:entry.basis === 'fixed-period' ? 'cached-period' : 'daily',coveredDays:entry.period.days,
+            dailyCoveredDays:entry.period.days,capturedAt:entry.capturedAt};
+    }
+    function projectCustom(section) {
+        var cache = section.customCache, period = customDefinition(section.customRange), articles = section.metadata.cohort;
+        var exact = articles.filter(function (article) { var entry=cache.series[article.pageid];return entry && entry.status === 'available'; });
+        var rows = sortedViewRows(exact.map(function (article) { return customRow(article,cache.series[article.pageid],period); }));
+        var complete = section.metadata.complete && exact.length === articles.length;
+        var total = complete ? rows.reduce(function (sum,row) { return sum+row.views; },0) : null;
+        var ranked = rows.slice(0,500), rankedTotal = complete ? ranked.reduce(function (sum,row) { return sum+row.views; },0) : null;
+        if (total !== null && !Number.isSafeInteger(total)) { fail('O total de visualizações excedeu o limite numérico.'); }
+        return {period:period,rows:ranked,rankingComplete:complete,complete:complete,total:total,totalScope:'all-eligible-articles',
+            allArticleTotal:total,rankedTotal:rankedTotal,proof:{kind:'exhaustive-custom-daily-totals',strict:true,metadataComplete:section.metadata.complete,
+                eligible:articles.length,exactArticles:exact.length,uncertainArticles:articles.length-exact.length,truncatedArticles:0,
+                unboundedRemaining:articles.length-exact.length,cutoff:complete && ranked.length ? ranked[ranked.length-1].views : null,
+                remainingMaxUpper:complete ? -1 : null,complete:complete,rankingComplete:complete,totalComplete:complete}};
+    }
+    function installCustomProjection(section) {
+        var result = projectCustom(section), cache = section.customCache;
+        if (!result.complete && cache.lastCompleteSnapshot) { result.lastCompleteSnapshot=clone(cache.lastCompleteSnapshot); }
+        section.periods.custom=result;
+        section.customProgress={requests:cache.requests,totalRequests:cache.totalRequests,eligible:section.metadata.cohort.length,
+            completed:result.proof.exactArticles,pending:section.metadata.complete ? result.proof.uncertainArticles : section.candidates.length-section.metadata.cursor,
+            resumable:!result.complete && !cache.error,error:cache.error};
+        return result;
+    }
+    function newCustomCache(section,range,previous,now) {
+        var fingerprint=customFingerprint(section.metadata.cohort), same=previous && JSON.stringify(previous.range)===JSON.stringify(range);
+        var source=customSource(range,section.metadata.cohort), entries={};
+        if (same && section.metadata.complete) {
+            section.metadata.cohort.forEach(function (article) {
+                var entry=previous.series[article.pageid];
+                if (entry && entry.title===article.title && entry.firstEditAt===article.firstEditAt) entries[article.pageid]=clone(entry);
+            });
+        }
+        return {version:1,identity:section.identity,range:range,sourcePeriod:source,cohortFingerprint:fingerprint,capturedAt:now,
+            series:entries,controls:same && JSON.stringify(previous.sourcePeriod)===JSON.stringify(source) ? clone(previous.controls) : [],
+            controlAttempts:same && JSON.stringify(previous.sourcePeriod)===JSON.stringify(source) ? clone(previous.controlAttempts) : {},availabilityProof:same && customProofValid(previous.availabilityProof,source,DEFAULT_CONFIG,now) ? clone(previous.availabilityProof) : null,
+            lastCompleteSnapshot:same && previous.cohortFingerprint===fingerprint ? clone(previous.lastCompleteSnapshot) : null,
+            requests:0,totalRequests:same ? previous.totalRequests : 0,error:null};
+    }
+    function customEntry(article,range,now) {
+        return {pageid:article.pageid,title:article.title,firstEditAt:article.firstEditAt,period:effectivePeriod(article,customDefinition(range)),
+            capturedAt:now,status:'unavailable',total:null,partialTotal:0,missingDates:[],reportedDays:0,basis:'daily',error:null};
+    }
+    function parseCustomDaily(article,range,response,config,now,proof) {
+        checkedResponse(response);
+        if (!response || !Array.isArray(response.items)) { fail('A série do intervalo personalizado está incompleta.'); }
+        var entry=customEntry(article,range,now), counts=new Map();
+        Array.from(response.items).forEach(function (item) {
+            if (!item || typeof item.timestamp!=='string' || !/^\d{8}00$/.test(item.timestamp) ||
+                !Number.isSafeInteger(item.views) || item.views<0 || item.agent!=='user' || item.access!=='all-access' || item.granularity!=='daily' ||
+                typeof item.project!=='string' || item.project.replace(/\.org$/,'')!==config.project.replace(/\.org$/,'') ||
+                typeof item.article!=='string' || normalizedTitle(item.article)!==normalizedTitle(article.title)) { fail('Uma observação do intervalo personalizado é inválida.'); }
+            var date=item.timestamp.slice(0,4)+'-'+item.timestamp.slice(4,6)+'-'+item.timestamp.slice(6,8);
+            if (!validDate(date) || date<entry.period.start || date>entry.period.end || counts.has(date)) { fail('A série personalizada contém datas repetidas ou fora do intervalo.'); }
+            counts.set(date,item.views);
+        });
+        entry.reportedDays=counts.size;
+        var zeroProof=customProofValid(proof,entry.period,config,now);
+        for(var day=entry.period.start;day<=entry.period.end;day=addDate(day,1)) {
+            if (!counts.has(day)) { if (!zeroProof) entry.missingDates.push(day); else entry.zeroBasis='aqs-documented-omitted-zero'; }
+            else entry.partialTotal+=counts.get(day);
+            if (!Number.isSafeInteger(entry.partialTotal)) fail('Uma soma personalizada excedeu o limite numérico.');
+        }
+        if (!entry.missingDates.length) { entry.status='available';entry.total=entry.partialTotal; }
+        return entry;
+    }
+    function reusableCustomFixed(section,article,range,now) {
+        var matched=PERIOD_IDS.find(function (id) { var p=section.periods[id].period;return p.start===range.start && p.end===range.end; });
+        if (!matched) return null;
+        var series=section.series[article.pageid], aggregate=section.aggregateTotals[article.pageid] && section.aggregateTotals[article.pageid][matched];
+        var total=aggregate ? aggregate.total : series && series.totals[matched];
+        if (!Number.isSafeInteger(total) || total<0) return null;
+        var entry=customEntry(article,range,now);entry.status='available';entry.total=total;entry.partialTotal=total;entry.basis='fixed-period';entry.fixedPeriod=matched;
+        return entry;
+    }
+    async function collectCustomRange(section,range,options,previous,request,remaining) {
+        var now=nowDate(options.now).toISOString(), config=normalizeConfig(options.config);
+        section.customRange=range;section.customCache=newCustomCache(section,range,previous,now);
+        var cache=section.customCache, completed=0, checkpointEvery=options.checkpointEvery===undefined?8:options.checkpointEvery;
+        async function checkpoint(force) {if(force||completed>=checkpointEvery){installCustomProjection(section);completed=0;if(options.onProgress)await options.onProgress(clone(section));}}
+        if (!section.metadata.complete) {await checkpoint(true);return section;}
+        section.metadata.cohort.forEach(function (article) {
+            if (cache.series[article.pageid] && cache.series[article.pageid].status==='available') return;
+            var entry=customEntry(article,range,now);
+            if (!entry.period.days) {entry.status='available';entry.total=0;entry.basis='before-first-edit';cache.series[article.pageid]=entry;}
+            else {var reused=reusableCustomFixed(section,article,range,now);if(reused)cache.series[article.pageid]=reused;}
+        });
+        if (projectCustom(section).complete) {cache.lastCompleteSnapshot=projectCustom(section);await checkpoint(true);return section;}
+        if (!cache.availabilityProof && customProofValid(section.availabilityProof,cache.sourcePeriod,config,now)) cache.availabilityProof=clone(section.availabilityProof);
+        if (!cache.availabilityProof) {
+            var names=expectedControlTitles(cache.sourcePeriod), definitions=periodsFor(now);definitions.sourcePeriod=cache.sourcePeriod;
+            for(var index=0;index<names.length && remaining()>0;index+=1) {
+                var title=names[index];
+                if (cache.controls.some(function (control) {return control.title===title;}) || cache.controlAttempts[title] && !options.retryUnavailableSeries &&
+                    Date.parse(now)-Date.parse(cache.controlAttempts[title].capturedAt)<300000) continue;
+                try {cache.controls.push(availabilityControl(title,definitions,await request(viewUrl(config,title,cache.sourcePeriod)),config,now));}
+                catch(error){if(error.code==='aborted'||error.code==='request-budget')throw error;cache.controlAttempts[title]=Object.assign({capturedAt:now},errorInfo(error));}
+                cache.requests+=1;cache.totalRequests+=1;completed+=1;
+                await checkpoint();
+            }
+            if(cache.controls.length===2) cache.availabilityProof={complete:true,kind:'aqs-documented-omitted-zero',documentation:ZERO_DOCUMENTATION,project:config.project,
+                sourcePeriod:cache.sourcePeriod,capturedAt:now,controls:clone(cache.controls)};
+        }
+        section.metadata.cohort.forEach(function(article){
+            var entry=cache.series[article.pageid];
+            if(entry && entry.status!=='available' && !entry.error && entry.missingDates.length && customProofValid(cache.availabilityProof,entry.period,config,now)) {
+                entry.total=entry.partialTotal;entry.status='available';entry.missingDates=[];entry.zeroBasis='aqs-documented-omitted-zero';entry.capturedAt=now;
+            }
+        });
+        var attempted=new Set();
+        while(remaining()>0) {
+            var article=section.metadata.cohort.find(function(a){var entry=cache.series[a.pageid];return !attempted.has(a.pageid)&&(!entry||entry.status!=='available'&&
+                (options.retryUnavailableSeries||Date.parse(now)-Date.parse(entry.capturedAt)>=300000));});
+            if(!article)break;attempted.add(article.pageid);
+            var entry=customEntry(article,range,now), url=viewUrl(config,article.title,entry.period);
+            try {entry=parseCustomDaily(article,range,await request(url),config,now,cache.availabilityProof);}
+            catch(error) {
+                if(error.code==='aborted'||error.code==='request-budget')throw error;
+                entry.error=errorInfo(error);
+                if(customProofValid(cache.availabilityProof,entry.period,config,now)&&documentedEmptyError(error,url)) {
+                    entry.status='available';entry.total=0;entry.zeroBasis='aqs-documented-empty-series';entry.zeroEvidence={requestUrl:url,status:404,problem:clone(error.problem)};entry.error=null;
+                }
+            }
+            cache.series[article.pageid]=entry;cache.requests+=1;cache.totalRequests+=1;completed+=1;await checkpoint();
+        }
+        var result=projectCustom(section);
+        if(result.complete)cache.lastCompleteSnapshot=result;
+        else if(remaining()>0)cache.error={code:'custom-views-incomplete',message:'Algumas datas ainda não puderam ser conferidas.'};
+        await checkpoint(true);return section;
+    }
+    async function collectPageviews(options) {
+        options=options||{};
+        var range=normalizeCustomRange(options.customRange,options.now), original=sectionPrevious(options.previous,'pageviews',normalizeConfig(options.config));
+        if(options.activePeriod==='custom'&&!range)fail('Escolha as datas do intervalo personalizado.','invalid-custom-range');
+        var previousCustom=original && original.customCache;
+        var limit=options.maxRequests===undefined?40:options.maxRequests, used=0, requestJson=requireRequest(options);
+        if(limit!==Infinity && (!Number.isInteger(limit)||limit<1))fail('Invalid request budget.');
+        async function request(url) {if(options.signal&&options.signal.aborted)fail('Collection was paused.','aborted');if(used>=limit)fail('The request budget is exhausted.','request-budget');used+=1;return requestJson(url);}
+        var previous=options.previous;
+        if(original && original.customRange) previous=Object.assign({},options.previous,{pageviews:fixedProjection(original)});
+        var fixedPeriod=PERIOD_IDS.indexOf(options.activePeriod)>=0?options.activePeriod:(original&&original.activePeriod)||'30d';
+        var customReady=original&&JSON.stringify(original.customRange)===JSON.stringify(range)&&original.periods.custom&&original.periods.custom.complete;
+        var fixed=await collectFixedPageviews(Object.assign({},options,{previous:previous,requestJson:request,activePeriod:fixedPeriod,
+            metadataOnly:!!range&&options.activePeriod==='custom'&&!customReady,onProgress:range?undefined:options.onProgress}));
+        if(!range)return fixed;
+        return collectCustomRange(fixed,range,options,previousCustom,request,function(){return limit-used;});
+    }
+    function validateCustomCache(section,captureAt,check) {
+        var hasCustom=own(section,'customRange')||own(section,'customCache')||section.periods&&own(section.periods,'custom');
+        if(!hasCustom)return;
+        var label='Custom article range: ', range=normalizeCustomRange(section.customRange,captureAt), cache=section.customCache;
+        check(!!range&&!!cache&&cache.version===1&&sameIdentity(cache,section.identity),label+'invalid range cache identity.');
+        if(!range||!cache)return;
+        check(JSON.stringify(cache.range)===JSON.stringify(range)&&validTimestamp(cache.capturedAt)&&Date.parse(cache.capturedAt)<=Date.parse(captureAt),label+'invalid cache anchor.');
+        var articles=new Map(section.metadata.cohort.map(function(a){return[a.pageid,a];})),source=customSource(range,section.metadata.cohort);
+        check(cache.cohortFingerprint===customFingerprint(section.metadata.cohort)&&JSON.stringify(cache.sourcePeriod)===JSON.stringify(source),label+'article cohort or source interval mismatch.');
+        check(cache.series&&typeof cache.series==='object'&&!Array.isArray(cache.series)&&Array.isArray(cache.controls)&&cache.controls.length<=2&&
+            cache.controlAttempts&&typeof cache.controlAttempts==='object'&&!Array.isArray(cache.controlAttempts),label+'missing collection evidence.');
+        var controlTitles=new Set();
+        (cache.controls||[]).forEach(function(control){
+            check(control&&expectedControlTitles(source).indexOf(control.title)>=0&&!controlTitles.has(control.title)&&control.requestUrl===viewUrl(DEFAULT_CONFIG,control.title,source)&&
+                control.project===DEFAULT_CONFIG.project&&control.agent==='user'&&control.access==='all-access'&&control.granularity==='daily'&&
+                validTimestamp(control.capturedAt)&&Date.parse(control.capturedAt)<=Date.parse(cache.capturedAt)&&Array.isArray(control.daily)&&control.daily.length===source.days&&
+                control.daily.every(function(day,index){return day&&day.date===addDate(source.start,index)&&Number.isSafeInteger(day.views)&&day.views>=0;}),label+'invalid partial availability control.');
+            controlTitles.add(control.title);
+        });
+        if(cache.availabilityProof)check(customProofValid(cache.availabilityProof,source,DEFAULT_CONFIG,cache.capturedAt),label+'invalid zero-availability proof.');
+        Object.keys(cache.controlAttempts||{}).forEach(function(title){var error=cache.controlAttempts[title];check(expectedControlTitles(source).indexOf(title)>=0&&error&&typeof error.code==='string'&&typeof error.message==='string'&&
+            validTimestamp(error.capturedAt)&&Date.parse(error.capturedAt)<=Date.parse(cache.capturedAt),label+'invalid availability attempt.');});
+        Object.keys(cache.series||{}).forEach(function(key){
+            var entry=cache.series[key],article=articles.get(Number(key));
+            check(article&&entry&&entry.pageid===Number(key)&&entry.title===article.title&&entry.firstEditAt===article.firstEditAt&&
+                JSON.stringify(entry.period)===JSON.stringify(effectivePeriod(article,customDefinition(range)))&&validTimestamp(entry.capturedAt)&&
+                Date.parse(entry.capturedAt)<=Date.parse(cache.capturedAt),label+'cached article identity, cutoff or interval mismatch.');
+            if(!entry||!article)return;
+            check(['available','unavailable'].indexOf(entry.status)>=0&&['daily','fixed-period','before-first-edit'].indexOf(entry.basis)>=0&&
+                Number.isSafeInteger(entry.partialTotal)&&entry.partialTotal>=0&&Array.isArray(entry.missingDates)&&new Set(entry.missingDates).size===entry.missingDates.length&&
+                entry.missingDates.every(function(date){return validDate(date)&&date>=entry.period.start&&date<=entry.period.end;})&&
+                Number.isInteger(entry.reportedDays)&&entry.reportedDays>=0&&entry.reportedDays<=entry.period.days,label+'invalid cached daily sum.');
+            if(entry.status==='available')check(Number.isSafeInteger(entry.total)&&entry.total>=0&&entry.total===entry.partialTotal&&!entry.missingDates.length,label+'available article has unknown dates or mismatched sums.');
+            else check(entry.total===null&&(entry.error||entry.missingDates.length),label+'unavailable article must not provide a total.');
+            if(entry.basis==='before-first-edit')check(entry.period.days===0&&entry.total===0,label+'unverified first-edit zero.');
+            if(entry.basis==='fixed-period') {
+                var fixed=periodsFor(entry.capturedAt)[entry.fixedPeriod];
+                check(fixed&&fixed.start===range.start&&fixed.end===range.end&&entry.status==='available',label+'invalid reused fixed-period sum.');
+            }
+            if(entry.basis==='daily'&&entry.status==='available'&&entry.reportedDays<entry.period.days) {
+                check(customProofValid(cache.availabilityProof,entry.period,DEFAULT_CONFIG,entry.capturedAt)&&
+                    ['aqs-documented-omitted-zero','aqs-documented-empty-series'].indexOf(entry.zeroBasis)>=0,label+'omitted dates need availability evidence.');
+            }
+            if(entry.zeroBasis==='aqs-documented-empty-series')check(entry.total===0&&entry.reportedDays===0&&entry.zeroEvidence&&
+                documentedEmptyError({status:404,requestUrl:entry.zeroEvidence.requestUrl,problem:entry.zeroEvidence.problem},viewUrl(DEFAULT_CONFIG,entry.title,entry.period)),label+'unverified empty-series response.');
+        });
+        check(Number.isSafeInteger(cache.requests)&&cache.requests>=0&&Number.isSafeInteger(cache.totalRequests)&&cache.totalRequests>=cache.requests,label+'invalid request progress.');
+        if(cache.lastCompleteSnapshot) {
+            var snapshot=cache.lastCompleteSnapshot;
+            check(snapshot.complete===true&&JSON.stringify(snapshot.period)===JSON.stringify(customDefinition(range))&&snapshot.proof&&
+                snapshot.proof.eligible===articles.size&&snapshot.proof.exactArticles===articles.size&&snapshot.proof.complete===true&&
+                Array.isArray(snapshot.rows)&&snapshot.rows.length===Math.min(500,articles.size)&&snapshot.rows.every(function(row){var article=articles.get(row.pageid);return article&&row.title===article.title&&row.firstEditAt===article.firstEditAt&&Number.isSafeInteger(row.views)&&row.views>=0;})&&
+                Number.isSafeInteger(snapshot.total)&&snapshot.total>=0&&snapshot.total===snapshot.allArticleTotal&&snapshot.totalScope==='all-eligible-articles'&&
+                snapshot.rankedTotal===snapshot.rows.reduce(function(sum,row){return sum+row.views;},0)&&snapshot.total>=snapshot.rankedTotal,label+'invalid prior same-range snapshot.');
+            check(new Set(snapshot.rows.map(function(row){return row.pageid;})).size===snapshot.rows.length&&
+                JSON.stringify(snapshot.rows)===JSON.stringify(sortedViewRows(snapshot.rows)),label+'prior snapshot has repeated or unsorted articles.');
+        }
+        var projected=clone(section);installCustomProjection(projected);
+        check(JSON.stringify(section.periods.custom)===JSON.stringify(projected.periods.custom)&&JSON.stringify(section.customProgress)===JSON.stringify(projected.customProgress),label+'custom ranking or progress does not match article evidence.');
+    }
+
     function streakGoal(current, best) {
         if (!Number.isSafeInteger(current) || current < 0 || (best !== undefined && (!Number.isSafeInteger(best) || best < current))) {
             fail('Invalid current or best editing streak.');
@@ -1210,7 +1490,8 @@
             check(section.blacklist.source === TOP_BLACKLIST_URL && validTimestamp(section.blacklist.snapshotAt) && Date.parse(section.blacklist.snapshotAt) <= Date.parse(captureAt) &&
                 Array.isArray(section.blacklist.excludedTitles) && section.blacklist.excludedTitles.every(function (title) { return section.boundExcludedTitles.indexOf(title) >= 0; }), label + 'invalid live exclusion list.');
         }
-        var source = sourceForArticles(definitions, section.metadata.complete ? section.metadata.cohort : section.candidates);
+        check(!own(section,'sourceBasis') || ['history-candidates-v1','eligible-cohort-v1'].indexOf(section.sourceBasis) >= 0, label + 'invalid source interval basis.');
+        var source = sourceForState(definitions,section);
         check(JSON.stringify(section.sourcePeriod) === JSON.stringify(source), label + 'source interval does not cover lifetime and rolling periods.');
         // The same controls and source interval apply to every cached article.
         // Validate their observations once, retaining the per-series chronology
@@ -1369,6 +1650,7 @@
             if (state.pageviews) {
                 check(JSON.stringify(state.pageviews.candidates) === JSON.stringify(articleCandidates(activity.entries)), 'First-edit candidate history does not match the complete public contributions.');
                 validateV3(state.pageviews, state.capturedAt, check, expectedRankLimit, projectionModel);
+                validateCustomCache(state.pageviews,state.capturedAt,check);
             }
         } catch (error) { errors.push(errorInfo(error).message); }
         return { valid: errors.length === 0, errors: errors };
@@ -1411,7 +1693,7 @@
                     if (!candidate || typeof old.title !== 'string' || !old.title) { fail('Legacy metadata is outside the public contribution history.', 'invalid-legacy-cache'); }
                     return Object.assign({}, candidate, { title: old.title });
                 }), excluded: clone(oldMetadata.excluded) };
-            pageviews.sourcePeriod = sourceForArticles(periodsFor(pageviews.startedAt), pageviews.metadata.complete ? pageviews.metadata.cohort : candidates);
+            pageviews.sourcePeriod = sourceForState(periodsFor(pageviews.startedAt),pageviews);
         }
         refreshV3(pageviews);
         var state = { schemaVersion: 4, config: config, capturedAt: previous.capturedAt, activity: activity,
@@ -1454,7 +1736,7 @@
         summarize: summarize, collectActivity: collectActivity, collectPageviews: collectPageviews,
         update: update, validateState: validateState, upgradeRankingCache: upgradeRankingCache, upgradeAfterFirstEditCache: upgradeAfterFirstEditCache, upgradeAllArticleTotalCache: upgradeAllArticleTotalCache, packEntry: packEntry, unpackEntry: unpackEntry,
         streakGoal: streakGoal, TOP_BLACKLIST_URL: TOP_BLACKLIST_URL,
-        periodsFor: periodsFor, addMonthsClamped: addMonthsClamped, PERIOD_IDS: PERIOD_IDS,
+        periodsFor: periodsFor, addMonthsClamped: addMonthsClamped, PERIOD_IDS: PERIOD_IDS, normalizeCustomRange:normalizeCustomRange,
         METRIC_VERSION: METRIC_VERSION, TOTAL_MODEL: TOTAL_MODEL, COVERAGE_FLOOR: COVERAGE_FLOOR, effectivePeriod: effectivePeriod,
         viewPeriod: function (now) { return viewPeriod(nowDate(now)); }
     });

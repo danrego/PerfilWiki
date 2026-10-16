@@ -1,0 +1,77 @@
+{
+  "version": "1.16.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 593,
+    "pass": 593,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "opaque per-tab local session handoff, full settings recovery, history, invalid snapshot and blocked storage fallback",
+    "actual App panel/edit callbacks without JSON dialogs or export of local controls",
+    "clock UTC/DST/fractional offsets and exact saved timestamp tooltip/checker",
+    "stable prepared snippets across clock ticks and local editor insertion/preview/save/reopen",
+    "daily cover strict canonical feed/proof, trusted generated image/credit URLs, no API HTML",
+    "daily cover once/day caching, duplicate-tab lease, abort, hidden/manual guards, UTC rollover and five-minute failure pause",
+    "independent metrics identity and request budget",
+    "daily pending/proof installation validation and tamper rejection",
+    "backward configuration defaults and manual image retention"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "required account red asterisk, native and aria required, empty field focus",
+      "optional labels 11px and subdued readable color",
+      "manual/daily selector preserves filename and disables manual input",
+      "daily cover local illustration with object-fit cover and object-position 50% 50%",
+      "compact UTC+5:30 clock, dated tooltip and machine timestamp",
+      "profile fields, wiki links, photo size/shape, personal raw wiki and 90-day period survive panel/edit/reload/Back",
+      "local editor insert, preview, save and reopen preserve exact timestamp and existing page text",
+      "initial daily wiki snippet pending without fictitious filename or local illustration",
+      "local session token and edit controls excluded from exported wiki files",
+      "outer document width345 equals scrollWidth345, iframe width307 equals scrollWidth307",
+      "direct Wiki editor URLs inspected without visiting"
+    ],
+    "consoleErrors": [],
+    "externalRequestsInCompleteBoundedRecheck": [],
+    "boundedRecheckRequests": 41,
+    "boundedRecheckTruncated": false,
+    "earlierMonitorTruncated": true,
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "uploadActions": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "626d758fab790ebbfb10c20731259d7d2fbc4a3af367f050e7d01a47af115a30",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 855,
+  "limitations": [
+    "Synthetic browser data and illustrative images only.",
+    "Native Firefox and Safari were not rerun.",
+    "First long browser network log lost older events. A separate bounded reload check captured 41 requests with no gaps and no external destinations.",
+    "Public anonymous Wikifeeds documentation and sample feed were read separately for design verification. Browser tests use no Wikimedia services.",
+    "No Wikimedia installation, authenticated session, edit, upload or GitHub push occurred.",
+    "Live owner refresh changes only the screen. Visitors retain the last manually saved cover.",
+    "Edit panel controls remain local and are not wired into a live Wikipedia page."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1160/browser-verification.json",
+    "network": "../../qa_1160/browser-network-final.json",
+    "css": "../../qa_1160/validation_summary.json"
+  }
+}

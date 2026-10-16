@@ -1,0 +1,20 @@
+{
+  "cssSanitizerVersion": "v6.2.1",
+  "cssSanitizerCommit": "60973b8355c72a4acdddca3dcaa93bc901e0ccf2",
+  "templateStylesConstructionCommit": "a54d5da4d15166031cc4a501941439860db6311c",
+  "stylesheetSha256": "e17639ab571e66813eb6f6f234562f32efc8ffa59f9960776a6aa6f32edb6944",
+  "phpVersion": "8.3.33",
+  "mbstring": true,
+  "iconv": true,
+  "parserErrors": [],
+  "sanitizerErrors": [],
+  "networkAttempts": [],
+  "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened.",
+  "runtimePackagesVersion": "3.1.58",
+  "validationDate": "2026-10-15",
+  "localEvidence": "../../qa_1180/validation_summary.json",
+  "release": "1.19.0",
+  "validationReusedFrom": "1.17.0",
+  "unchangedStylesheetVerified": true,
+  "reuseReason": "Exact SHA-256 match with the stylesheet already validated for 1.17.0 and rechecked for 1.18.0. No new parser or sanitizer run is claimed."
+}

@@ -1,13 +1,16 @@
-/* PerfilWiki 1.0.0. Public statistics collectors, without DOM, timers or personal data. */
+/* PerfilWiki 1.1.0. Public statistics collectors, without DOM, timers or personal data. */
 (function (root, factory) {
     'use strict';
-    var api = factory();
+    var api = factory(typeof module === 'object' && module.exports ? require('./UserGroups.js') : root.PerfilWikiUserGroups);
     if (typeof module === 'object' && module.exports) { module.exports = api; }
     else { root.PerfilWikiStatistics = api; }
-}(typeof globalThis === 'object' ? globalThis : this, function () {
+}(typeof globalThis === 'object' ? globalThis : this, function (userGroups) {
     'use strict';
     var DAY = 86400000, GLOBAL_TTL = 300000, MAX_PROJECTS = 2000, MAX_PAGES = 200000, MAX_LOGS = 250000;
-    var METRICS = ['edits', 'thanks', 'articles', 'edited', 'technicalCreated', 'reverts', 'bestStreak', 'registration'];
+    var METRICS = ['edits', 'thanks', 'articles', 'edited', 'technicalCreated', 'reverts', 'bestStreak', 'registration',
+        'bytesAdded', 'bytesRemoved', 'averageBytesPerEdit', 'largestAddition', 'largestRemoval', 'thanksSent', 'earliestRegistration'];
+    var BYTE_METRICS = ['bytesAdded', 'bytesRemoved', 'averageBytesPerEdit', 'largestAddition', 'largestRemoval'];
+    var OPTIONAL_METRICS = BYTE_METRICS.concat(['thanksSent','earliestRegistration']);
     var PROJECT = 'pt.wikipedia.org';
     var own = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
     function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -22,6 +25,12 @@
     function object(value) { return !!value && typeof value === 'object' && !Array.isArray(value); }
     function flag(o, key) { return own(o, key) && (o[key] === true || o[key] === 1 || o[key] === ''); }
     function projectKey(value) { return typeof value === 'string' && value.length <= 64 && /^[a-z0-9_]+$/.test(value) && ['__proto__', 'constructor', 'prototype'].indexOf(value) < 0; }
+    function recipientTitle(value) {
+        if (typeof value !== 'string' || value.length > 1024 || value !== value.trim() ||
+            !/^[^\x00-\x1f\x7f-\x9f|<>\[\]{}#:]+:[^\x00-\x1f\x7f-\x9f|<>\[\]{}#:]+$/.test(value)) { return false; }
+        var separator = value.indexOf(':');
+        return value.slice(0,separator).trim().length > 0 && value.slice(separator + 1).trim().length > 0;
+    }
     function allowedOrigin(value) {
         var url = new URL(value);
         if (url.protocol !== 'https:' || url.username || url.password || url.port ||
@@ -51,6 +60,34 @@
         if (!integer(sum)) { throw new Error('Contagem fora do limite numérico.'); }
         return sum;
     }
+    function registrationData(info,user,now) {
+        var at = Date.parse(now);
+        if (!username(user) || !validTime(now) || !object(info) || info.name !== user ||
+            ['missing','invalid','hidden','suppressed'].some(function (key) { return flag(info,key); }) ||
+            !Array.isArray(info.merged) || info.merged.length > MAX_PROJECTS) { throw new Error('Identidade de registro global incompleta.'); }
+        function timestamp(value) {
+            if (value === undefined || value === null) { return null; }
+            if (!validTime(value,at)) { throw new Error('Data de criação inválida.'); }
+            return value;
+        }
+        var globalRegistration = timestamp(info.registration), seen = new Set();
+        var accounts = Array.from(info.merged).map(function (account) {
+            if (!object(account) || !projectKey(account.wiki) || seen.has(account.wiki) ||
+                own(account,'name') && account.name !== user || own(account,'user') && account.user !== user ||
+                ['missing','invalid','hidden','suppressed'].some(function (key) { return flag(account,key); })) {
+                throw new Error('Conta vinculada sem identidade completa.');
+            }
+            seen.add(account.wiki);
+            return {wiki:account.wiki,url:allowedOrigin(account.url),registration:timestamp(account.registration)};
+        }).sort(function (a,b) { return a.wiki < b.wiki ? -1 : a.wiki > b.wiki ? 1 : 0; });
+        var earliest = globalRegistration;
+        accounts.forEach(function (account) {
+            if (account.registration !== null && (earliest === null || Date.parse(account.registration) < Date.parse(earliest))) { earliest = account.registration; }
+        });
+        return {earliestRegistration:earliest,registrationCoverage:{version:1,user:user,checkedAt:now,
+            complete:globalRegistration !== null && accounts.every(function (account) { return account.registration !== null; }),
+            globalRegistration:globalRegistration,accounts:accounts}};
+    }
     function technicalSubpageExcluded(title) {
         var value = title.replace(/_/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
         if (/(?:^|[._ -])(?:test|tests|teste|testes|spec)\.js$/.test(value.split(':').pop())) { return true; }
@@ -71,7 +108,8 @@
         var metrics = {}, updated = {};
         METRICS.forEach(function (key) { metrics[key] = null; updated[key] = null; });
         return { schema: 1, user: user, project: PROJECT, capturedAt: now, metrics: metrics, metricUpdatedAt: updated,
-            errors: [], pending: false, projects: {}, pageInfo: {}, global: null, metadataScan: null, articlesScan: null };
+            errors: [], pending: false, projects: {}, pageInfo: {}, global: null, metadataScan: null, articlesScan: null, byteCoverage:null,
+            thanksSentScan:null, thanksSentCoverage:null, registrationCoverage:null };
     }
     function validate(state, options) {
         options = options || {};
@@ -85,13 +123,80 @@
             if (!object(state)) { return { valid: false, errors: errors }; }
             check(!options.user || state.user === options.user, 'O cache pertence a outro usuário.');
             check(time(state.capturedAt), 'Horário futuro ou inválido no cache.');
+            if (state.userGroups !== undefined && state.userGroups !== null) {
+                check(!!userGroups && !!userGroups.fromProof(state.userGroups,state.user,now), 'Estatutos sem conferência pública válida.');
+            }
+            if (state.userGroupsAttemptAt !== undefined && state.userGroupsAttemptAt !== null) {
+                check(time(state.userGroupsAttemptAt), 'Horário de consulta dos estatutos inválido.');
+            }
             check(object(state.metrics) && object(state.metricUpdatedAt), 'Métricas ausentes.');
             METRICS.forEach(function (key) {
                 var value = state.metrics && state.metrics[key], updated = state.metricUpdatedAt && state.metricUpdatedAt[key];
-                check(key === 'registration' ? value === null || time(value) : value === null || integer(value), 'Métrica inválida: ' + key);
+                // Earlier caches remain valid without the optional counters.
+                if (OPTIONAL_METRICS.indexOf(key) >= 0 && value === undefined && updated === undefined) { return; }
+                check(key === 'registration' || key === 'earliestRegistration' ? value === null || time(value) : key === 'averageBytesPerEdit' ? value === null ||
+                    typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER : value === null || integer(value), 'Métrica inválida: ' + key);
                 check(optionalTime(updated), 'Horário da métrica inválido: ' + key);
                 check(value === null || updated !== null, 'Métrica sem horário: ' + key);
             });
+            if (state.byteCoverage !== undefined && state.byteCoverage !== null) {
+                var coverage = state.byteCoverage;
+                check(object(coverage) && coverage.version === 1 && typeof coverage.complete === 'boolean' &&
+                    integer(coverage.knownEdits) && integer(coverage.totalEdits) && coverage.knownEdits <= coverage.totalEdits &&
+                    optionalTime(coverage.scannedAt) && (!coverage.complete || coverage.scannedAt !== null && coverage.knownEdits === coverage.totalEdits), 'Cobertura de bytes inválida.');
+            }
+            BYTE_METRICS.forEach(function (key) {
+                if (state.metrics && state.metrics[key] !== null && state.metrics[key] !== undefined) {
+                    check(state.byteCoverage && state.byteCoverage.complete === true, 'Contagem de bytes sem cobertura completa.');
+                }
+            });
+            if (state.metrics && state.metrics.averageBytesPerEdit !== null && state.metrics.averageBytesPerEdit !== undefined) {
+                check(integer(state.metrics.bytesAdded) && state.byteCoverage &&
+                    state.metrics.averageBytesPerEdit === (state.byteCoverage.totalEdits ? state.metrics.bytesAdded / state.byteCoverage.totalEdits : 0), 'Média de bytes sem denominador completo.');
+            }
+            if (state.thanksSentScan !== undefined && state.thanksSentScan !== null) {
+                var sentScan = state.thanksSentScan;
+                check(object(sentScan) && time(sentScan.anchorAt) && Array.isArray(sentScan.logids) && sentScan.logids.length <= MAX_LOGS &&
+                    Array.from(sentScan.logids).every(positive) && new Set(sentScan.logids).size === sentScan.logids.length, 'Fila de agradecimentos enviados inválida.');
+                check(Array.isArray(sentScan.seen) && sentScan.seen.length <= 2000 && Array.from(sentScan.seen).every(function (s) {
+                    return typeof s === 'string' && s.length > 0 && s.length <= 1024;
+                }) && new Set(sentScan.seen).size === sentScan.seen.length, 'Cursores de agradecimentos enviados inválidos.');
+                check(sentScan.continuation === null || object(sentScan.continuation) && typeof sentScan.continuation.lecontinue === 'string' &&
+                    sentScan.continuation.lecontinue.length > 0 && sentScan.continuation.lecontinue.length <= 1024 &&
+                    Object.keys(sentScan.continuation).every(function (k) { return k === 'lecontinue' || k === 'continue'; }) &&
+                    (!own(sentScan.continuation,'continue') || typeof sentScan.continuation.continue === 'string' && sentScan.continuation.continue.length <= 1024), 'Continuação de agradecimentos enviados inválida.');
+                if (object(sentScan) && Array.isArray(sentScan.logids) && Array.isArray(sentScan.seen)) {
+                    check(sentScan.continuation === null ? sentScan.logids.length === 0 && sentScan.seen.length === 0 :
+                        object(sentScan.continuation) && sentScan.logids.length > 0 && sentScan.seen.indexOf(sentScan.continuation.lecontinue) >= 0,
+                        'Cursor de agradecimentos enviados sem página conferida.');
+                }
+            }
+            if (state.thanksSentCoverage !== undefined && state.thanksSentCoverage !== null) {
+                var sentCoverage = state.thanksSentCoverage;
+                check(object(sentCoverage) && sentCoverage.version === 1 && time(sentCoverage.completedAt) && integer(sentCoverage.count) &&
+                    state.metrics.thanksSent === sentCoverage.count && state.metricUpdatedAt.thanksSent === sentCoverage.completedAt,
+                    'Cobertura de agradecimentos enviados inválida.');
+            }
+            if (state.metrics && state.metrics.thanksSent !== null && state.metrics.thanksSent !== undefined) {
+                check(!!state.thanksSentCoverage, 'Agradecimentos enviados sem conferência completa.');
+            }
+            if (state.registrationCoverage !== undefined && state.registrationCoverage !== null) {
+                var registration = state.registrationCoverage;
+                check(object(registration) && registration.version === 1 && registration.user === state.user && time(registration.checkedAt) &&
+                    typeof registration.complete === 'boolean' && optionalTime(registration.globalRegistration), 'Cobertura de criação de conta inválida.');
+                var derivedRegistration = registrationData({name:registration.user,registration:registration.globalRegistration,merged:registration.accounts},state.user,registration.checkedAt);
+                check(registration.complete === derivedRegistration.registrationCoverage.complete &&
+                    registration.accounts.every(function (account,index) {
+                        var derived = derivedRegistration.registrationCoverage.accounts[index];
+                        return account.wiki === derived.wiki && account.url === derived.url && account.registration === derived.registration;
+                    }) &&
+                    state.metrics.earliestRegistration === derivedRegistration.earliestRegistration &&
+                    state.metricUpdatedAt.earliestRegistration === registration.checkedAt, 'Data de criação sem provas correspondentes.');
+            }
+            if (state.metrics && (state.metrics.earliestRegistration !== null && state.metrics.earliestRegistration !== undefined ||
+                state.metricUpdatedAt.earliestRegistration !== null && state.metricUpdatedAt.earliestRegistration !== undefined)) {
+                check(!!state.registrationCoverage, 'Data de criação sem conferência global.');
+            }
             check(Array.isArray(state.errors) && state.errors.length <= 100 && Array.from(state.errors).every(function (e) { return typeof e === 'string' && e.length <= 300; }), 'Erros inválidos.');
             check(typeof state.pending === 'boolean', 'Fila inválida.');
             check(object(state.projects) && Object.keys(state.projects).length <= MAX_PROJECTS, 'Projetos inválidos.');
@@ -128,13 +233,40 @@
         if (!history || history.user !== user || history.project !== PROJECT || history.complete !== true || !Array.isArray(history.entries) || history.entries.length > 2000000 || !validTime(history.capturedAt, now)) { throw new Error('Histórico local completo indisponível.'); }
         var seen = new Map();
         Array.from(history.entries).forEach(function (entry) {
-            if (!Array.isArray(entry) || entry.length !== 9 || !positive(entry[0]) || !integer(entry[1]) || !integer(entry[2]) || typeof entry[3] !== 'string' || !entry[3] || entry[3].length > 1024 || !validTime(entry[4], now) ||
+            if (!Array.isArray(entry) || entry.length !== 9 && entry.length !== 10 || !positive(entry[0]) || !integer(entry[1]) || !integer(entry[2]) || typeof entry[3] !== 'string' || !entry[3] || entry[3].length > 1024 || !validTime(entry[4], now) ||
                 (entry[5] !== 0 && entry[5] !== 1) || !integer(entry[6]) || entry[7] !== user || !Array.isArray(entry[8]) || entry[8].length > 500 || Array.from(entry[8]).some(function (t) { return typeof t !== 'string' || !t || t.length > 255; })) { throw new Error('Provas do histórico local inválidas.'); }
+            if (entry.length === 10 && entry[9] !== null && !Number.isSafeInteger(entry[9])) { throw new Error('Diferença de tamanho inválida.'); }
             var previous = seen.get(entry[0]);
             if (previous && JSON.stringify(previous) !== JSON.stringify(entry)) { throw new Error('Revisão com provas conflitantes.'); }
             seen.set(entry[0], entry);
         });
         return Array.from(seen.values());
+    }
+    function totalsFromEntries(entries, history, now) {
+        var known = entries.filter(function (entry) { return Number.isSafeInteger(entry[9]); }).length;
+        var proof = history.byteCoverage;
+        var scannedAt = proof && validTime(proof.scannedAt, now) && proof.scannedAt === history.fullScanAt ? proof.scannedAt : null;
+        var complete = !!(proof && proof.version === 1 && proof.complete === true && scannedAt &&
+            proof.knownEdits === known && proof.totalEdits === entries.length && known === entries.length);
+        var result = {bytesAdded:null, bytesRemoved:null, averageBytesPerEdit:null, largestAddition:null, largestRemoval:null, byteCoverage:{version:1, scannedAt:scannedAt,
+            complete:complete, knownEdits:known, totalEdits:entries.length}};
+        if (complete) {
+            var added = 0, removed = 0, largestAddition = 0, largestRemoval = 0;
+            entries.forEach(function (entry) {
+                if (entry[9] > 0) { added += entry[9]; largestAddition = Math.max(largestAddition,entry[9]); }
+                else if (entry[9] < 0) { removed -= entry[9]; largestRemoval = Math.max(largestRemoval,-entry[9]); }
+            });
+            result.largestAddition = largestAddition; result.largestRemoval = largestRemoval;
+            if (integer(added) && integer(removed)) {
+                result.bytesAdded = added; result.bytesRemoved = removed;
+                result.averageBytesPerEdit = entries.length ? added / entries.length : 0;
+            }
+        }
+        return result;
+    }
+    function byteTotals(history, user, now) {
+        var at = now === undefined ? Date.now() : new Date(now).getTime();
+        return totalsFromEntries(validateHistory(history,user,at),history,at);
     }
     function articleCount(data, user, host) {
         responseData(data);
@@ -150,11 +282,22 @@
         var now = date.toISOString(), limit = options.maxRequests === undefined ? 20 : options.maxRequests;
         if (!Number.isInteger(limit) || limit < 1 || limit > 1000) { throw new Error('Orçamento de consultas inválido.'); }
         var state = options.previous && validate(options.previous, { user: user, now: now }).valid ? clone(options.previous) : blank(user, now);
+        OPTIONAL_METRICS.forEach(function (key) { if (!own(state.metrics,key)) { state.metrics[key] = null; state.metricUpdatedAt[key] = null; } });
+        if (!own(state,'byteCoverage')) { state.byteCoverage = null; }
+        if (!own(state,'thanksSentScan')) { state.thanksSentScan = null; }
+        if (!own(state,'thanksSentCoverage')) { state.thanksSentCoverage = null; }
+        if (!own(state,'registrationCoverage')) { state.registrationCoverage = null; }
+        var previousGroupError = state.errors.indexOf('Estatutos na ptwiki') >= 0;
         state.capturedAt = now; state.errors = []; state.pending = false;
-        var remaining = limit;
-        function error(label) { if (state.errors.length < 100 && state.errors.indexOf(label) < 0) { state.errors.push(label); } }
+        var remaining = limit, budgetExhausted = false;
+        function error(label) { if (!budgetExhausted && state.errors.length < 100 && state.errors.indexOf(label) < 0) { state.errors.push(label); } }
         function setMetric(key, value, at) { state.metrics[key] = value; state.metricUpdatedAt[key] = at || now; }
-        async function request(url) { if (!remaining) { throw new Error('Orçamento esgotado.'); } remaining -= 1; return responseData(await options.requestJson(url)); }
+        async function request(url) {
+            if (!remaining || budgetExhausted) { var error = new Error('Orçamento esgotado.'); error.code='request-budget'; budgetExhausted=true; throw error; }
+            remaining -= 1;
+            try { return responseData(await options.requestJson(url)); }
+            catch (failure) { if (failure && failure.code === 'request-budget') { budgetExhausted=true; } throw failure; }
+        }
         var entries = null;
         try { entries = validateHistory(options.history, user, nowMs); }
         catch (_) { error('Histórico local completo indisponível'); }
@@ -164,30 +307,119 @@
         }
         if (entries) {
             setMetric('reverts', entries.filter(function (entry) { return entry[8].some(function (tag) { return ['mw-rollback', 'mw-undo', 'mw-manual-revert'].indexOf(tag) >= 0; }); }).length, options.history.capturedAt);
+            var bytes = totalsFromEntries(entries,options.history,nowMs);
+            state.byteCoverage = bytes.byteCoverage;
+            BYTE_METRICS.forEach(function (key) {
+                state.metrics[key] = bytes[key];
+                state.metricUpdatedAt[key] = bytes[key] === null ? null : options.history.capturedAt;
+            });
+        }
+        // Optional public ptwiki groups are independent of edit metrics and
+        // profile/cache identity. The selected account's public list needs
+        // only one anonymous GET, no tokens or access to private preferences.
+        if (options.includeUserGroups === true && (!state.userGroups || options.force ||
+            nowMs - Date.parse(state.userGroupsAttemptAt || state.userGroups.checkedAt) >= DAY)) {
+            if (!own(state,'userGroups')) { state.userGroups = null; }
+            if (!remaining) { state.pending = true; }
+            else {
+                try {
+                    state.userGroupsAttemptAt = now;
+                    var groupResponse = await request(queryUrl('https://' + PROJECT,{list:'users',ususers:user,usprop:'groups|implicitgroups'}));
+                    var groupUsers = groupResponse.query && groupResponse.query.users;
+                    if (!userGroups || !completed(groupResponse) || own(groupResponse,'continue') || !Array.isArray(groupUsers) || groupUsers.length !== 1 ||
+                        !object(groupUsers[0]) || groupUsers[0].name !== user || !positive(groupUsers[0].userid) ||
+                        ['missing','invalid','hidden','suppressed'].some(function (key) { return own(groupUsers[0],key); }) ||
+                        !Array.isArray(groupUsers[0].groups) || !Array.isArray(groupUsers[0].implicitgroups)) { throw new Error('Estatutos públicos incompletos.'); }
+                    var groups = userGroups.normalize(userGroups.normalize(groupUsers[0].groups).concat(userGroups.normalize(groupUsers[0].implicitgroups)));
+                    state.userGroups = {version:1,user:user,project:PROJECT,checkedAt:now,groups:groups};
+                } catch (_) { error('Estatutos na ptwiki'); }
+            }
+        } else if (options.includeUserGroups === true && previousGroupError) { error('Estatutos na ptwiki'); }
+        // This optional count reads only the public log of the selected account
+        // on ptwiki. Its cursor and verified total are independent of received thanks.
+        if (options.deferDetails !== true && options.includeThanksSent === true) {
+            var sent = state.thanksSentScan;
+            if (!sent && (state.metrics.thanksSent === null || options.force ||
+                nowMs - Date.parse(state.metricUpdatedAt.thanksSent) >= GLOBAL_TTL)) {
+                sent = state.thanksSentScan = {anchorAt:now,logids:[],continuation:null,seen:[]};
+            }
+            var sentBudget = Math.min(remaining,Math.max(1,Math.floor(limit / 4)));
+            while (sent && sentBudget > 0 && remaining > 0) {
+                sentBudget -= 1;
+                try {
+                    var sentParams = Object.assign({list:'logevents',letype:'thanks',leuser:user,
+                        leprop:'ids|type|user|title|timestamp',lelimit:500,ledir:'older',lestart:sent.anchorAt},sent.continuation || {});
+                    var sentResponse = await request(queryUrl('https://' + PROJECT,sentParams));
+                    var sentEvents = sentResponse.query && sentResponse.query.logevents;
+                    if (!Array.isArray(sentEvents)) { throw new Error('Agradecimentos enviados incompletos.'); }
+                    var sentIds = new Set(sent.logids), sentAdded = 0;
+                    Array.from(sentEvents).forEach(function (event) {
+                        if (!object(event) || event.type !== 'thanks' || event.action !== 'thank' || !positive(event.logid) ||
+                            event.user !== user || event.ns !== 2 || !recipientTitle(event.title) ||
+                            !validTime(event.timestamp,Date.parse(sent.anchorAt)) ||
+                            ['userhidden','actionhidden','titlehidden','suppressed'].some(function (key) { return own(event,key); })) {
+                            throw new Error('Agradecimento enviado sem identidade pública completa.');
+                        }
+                        if (!sentIds.has(event.logid)) { sentIds.add(event.logid); sentAdded += 1; }
+                    });
+                    if (sentIds.size > MAX_LOGS) { throw new Error('Limite de agradecimentos enviados excedido.'); }
+                    var sentContinuation = null, sentSeen = sent.seen.slice();
+                    if (sentResponse.continue) {
+                        var nextSent = sentResponse.continue;
+                        if (!object(nextSent) || typeof nextSent.lecontinue !== 'string' || !nextSent.lecontinue || nextSent.lecontinue.length > 1024 ||
+                            sentSeen.indexOf(nextSent.lecontinue) >= 0 || !sentAdded || sentSeen.length >= 2000 ||
+                            Object.keys(nextSent).some(function (key) { return key !== 'continue' && key !== 'lecontinue'; }) ||
+                            own(nextSent,'continue') && (typeof nextSent.continue !== 'string' || nextSent.continue.length > 1024)) { throw new Error('Paginação de agradecimentos enviados inválida.'); }
+                        sentContinuation = {lecontinue:nextSent.lecontinue};
+                        if (own(nextSent,'continue')) { sentContinuation.continue = nextSent.continue; }
+                        sentSeen.push(nextSent.lecontinue);
+                    } else if (!completed(sentResponse)) { throw new Error('Agradecimentos enviados sem conclusão.'); }
+                    sent.logids = Array.from(sentIds); sent.seen = sentSeen; sent.continuation = sentContinuation;
+                    if (!sentContinuation) {
+                        setMetric('thanksSent',sentIds.size,sent.anchorAt);
+                        state.thanksSentCoverage = {version:1,completedAt:sent.anchorAt,count:sentIds.size};
+                        state.thanksSentScan = null; sent = null;
+                    }
+                } catch (_) { error('Agradecimentos enviados na ptwiki'); break; }
+            }
+            if (state.thanksSentScan) { state.pending = true; }
         }
         var needsGlobal = !state.global || state.global.thanksCompleteAt && (options.force || nowMs - Date.parse(state.global.infoAt) >= GLOBAL_TTL);
-        if (needsGlobal) {
+        var needsEarliestRegistration = options.includeEarliestRegistration === true && (!state.registrationCoverage || options.force ||
+            nowMs - Date.parse(state.registrationCoverage.checkedAt) >= DAY);
+        if (needsGlobal || needsEarliestRegistration) {
             if (!remaining) { state.pending = true; }
             else {
                 try {
                     var data = await request(queryUrl('https://' + PROJECT, { meta: 'globaluserinfo', guiuser: user, guiprop: 'editcount|merged' }));
                     var info = data.query && data.query.globaluserinfo;
                     if (!info || info.name !== user || !integer(info.editcount) || !Array.isArray(info.merged) || info.merged.length > MAX_PROJECTS || info.editcount > 0 && !info.merged.length || !completed(data)) { throw new Error('Identidade global incompleta.'); }
-                    var projects = {}, keys = [];
-                    Array.from(info.merged).forEach(function (account) {
-                        if (!account || !projectKey(account.wiki) || own(projects, account.wiki) || !integer(account.editcount)) { throw new Error('Projeto global inválido.'); }
-                        var origin = allowedOrigin(account.url), old = state.projects[account.wiki];
-                        var p = old && old.url === origin ? clone(old) : { url: origin, editcount: 0, thanks: null, thanksAt: null, articles: null, articlesAt: null, thanksScan: null };
-                        p.editcount = account.editcount;
-                        // This optimization only reuses a previously verified zero.
-                        if (p.editcount === 0 && p.thanks === 0) { p.thanksAt = now; p.thanksScan = null; }
-                        else { p.thanksScan = { anchorAt: now, logids: [], continuation: null, seen: [] }; }
-                        projects[account.wiki] = p; keys.push(account.wiki);
-                    });
-                    state.projects = projects;
-                    state.global = { anchorAt: now, infoAt: now, editcount: info.editcount, accountKeys: keys.sort(), thanksCompleteAt: null };
-                    setMetric('edits', info.editcount);
-                } catch (_) { error('Contribuições globais'); }
+                    if (needsGlobal) {
+                        var projects = {}, keys = [];
+                        Array.from(info.merged).forEach(function (account) {
+                            if (!account || !projectKey(account.wiki) || own(projects, account.wiki) || !integer(account.editcount)) { throw new Error('Projeto global inválido.'); }
+                            var origin = allowedOrigin(account.url), old = state.projects[account.wiki];
+                            var p = old && old.url === origin ? clone(old) : { url: origin, editcount: 0, thanks: null, thanksAt: null, articles: null, articlesAt: null, thanksScan: null };
+                            p.editcount = account.editcount;
+                            // This optimization only reuses a previously verified zero.
+                            if (p.editcount === 0 && p.thanks === 0) { p.thanksAt = now; p.thanksScan = null; }
+                            else { p.thanksScan = { anchorAt: now, logids: [], continuation: null, seen: [] }; }
+                            projects[account.wiki] = p; keys.push(account.wiki);
+                        });
+                        state.projects = projects;
+                        state.global = { anchorAt: now, infoAt: now, editcount: info.editcount, accountKeys: keys.sort(), thanksCompleteAt: null };
+                        setMetric('edits', info.editcount);
+                    }
+                    // CentralAuth already supplies global and local registration
+                    // dates here. No request to each linked wiki is needed.
+                    if (options.includeEarliestRegistration === true) {
+                        try {
+                            var registrationResult = registrationData(info,user,now);
+                            state.registrationCoverage = registrationResult.registrationCoverage;
+                            setMetric('earliestRegistration',registrationResult.earliestRegistration);
+                        } catch (_) { error('Data de criação da conta'); }
+                    }
+                } catch (_) { error(needsGlobal ? 'Contribuições globais' : 'Data de criação da conta'); }
             }
         }
         if (!state.metricUpdatedAt.registration || options.force || nowMs - Date.parse(state.metricUpdatedAt.registration) >= DAY) {
@@ -199,6 +431,15 @@
                     setMetric('registration', users[0].registration);
                 } catch (_) { error('Data de ingresso na ptwiki'); }
             } else { state.pending = true; }
+        }
+        // Identity counters can be shown before the full contribution scan and
+        // the linked-project logs. A later ordinary pass resumes the same state.
+        if (options.deferDetails === true) {
+            state.pending = true;
+            state.errors.sort();
+            var identityCheck = validate(state, {user:user, now:now});
+            if (!identityCheck.valid) { throw new Error('As estatísticas iniciais são inválidas: ' + identityCheck.errors.join(' ')); }
+            return state;
         }
         var pageids = entries ? Array.from(new Set(entries.map(function (entry) { return entry[1]; }).filter(positive))).sort(function (a, b) { return a - b; }) : [];
         if (pageids.length > MAX_PAGES) { error('Limite de páginas locais excedido'); entries = null; }
@@ -296,10 +537,11 @@
             }
             else { state.pending = true; }
         } else { state.pending = true; }
+        if (budgetExhausted) { state.pending = true; }
         state.errors.sort();
         var checkedState = validate(state, { user: user, now: now });
         if (!checkedState.valid) { throw new Error('As estatísticas coletadas são inválidas: ' + checkedState.errors.join(' ')); }
         return state;
     }
-    return Object.freeze({ collect: collect, validate: validate, technicalKind: technicalKind, technicalSubpageExcluded: technicalSubpageExcluded, articleCount: articleCount, allowedOrigin: allowedOrigin });
+    return Object.freeze({ collect: collect, validate: validate, byteTotals:byteTotals, technicalKind: technicalKind, technicalSubpageExcluded: technicalSubpageExcluded, articleCount: articleCount, allowedOrigin: allowedOrigin });
 }));

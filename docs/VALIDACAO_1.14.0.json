@@ -1,0 +1,64 @@
+{
+  "version": "1.14.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 530,
+    "pass": 530,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "final metadata order after city and custom fields, with statuses immediately before account creation",
+    "bold labels with ordinary values in HTML wiki and safe DOM",
+    "qualified incomplete creation dates and owner-bound saved proofs",
+    "photo alignment default migration, strict validation and independent name alignment",
+    "left center right across scopes, cached startup, progress, refresh, storage and download",
+    "installer controls, configuration export and installation checker tampering rejection",
+    "no change to metric identity or collection requests"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "desktop three photo geometries",
+      "mobile three photo geometries without horizontal overflow",
+      "bold final metadata in all three scopes",
+      "cover remains above profile and uses mobile height",
+      "actual prepared configuration and starter markup in local editor",
+      "existing text preserved and no synthetic roles exported",
+      "HTTP 200 installer and maintenance index",
+      "direct destination links inspected without opening"
+    ],
+    "consoleErrors": [],
+    "externalRequests": [],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "uploadActions": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "ba43bcff04640b49ce3988d3559c825dbadf5c8b820ed476471bc6358b3fdab2",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 727,
+  "limitations": [
+    "Synthetic local data and illustrative local photo only.",
+    "Native Firefox and Safari were not rerun.",
+    "No live Wikimedia installation was attempted or checked."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1140/browser-verification.json",
+    "css": "../../qa_1140/validation_summary.json"
+  }
+}

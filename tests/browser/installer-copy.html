@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src 'self'; img-src 'self' data: blob:; object-src 'none'; form-action 'none'; base-uri 'self'">
+  <base href="/">
+  <title>PerfilWiki, teste local de cópia e downloads</title>
+  <style>
+    #qa-capture { padding:12px 20px; background:#fff7d6; color:#202122; border-bottom:2px solid #8a6400; font:14px/1.5 system-ui,sans-serif; }
+    #qa-capture p { margin:4px 0; }
+    #qa-capture details { margin-top:8px; }
+    #qa-capture textarea { display:block; width:100%; box-sizing:border-box; min-height:100px; margin:4px 0 12px; font:12px/1.4 monospace; }
+    #qa-capture input[readonly] { width:min(480px,100%); box-sizing:border-box; }
+    #qa-capture label { display:block; }
+  </style>
+</head>
+<body>
+  <aside id="qa-capture" aria-label="Capturas do teste local">
+    <p><strong>Teste local com dados fictícios.</strong> As cópias e os downloads gerados ficam nesta página, sem usar a área de transferência do sistema.</p>
+    <label><input type="checkbox" id="qa-copy-reject"> Simular falha de cópia</label>
+    <p id="qa-status" role="status">Preparando o instalador compilado.</p>
+    <details>
+      <summary>Conferir conteúdo capturado</summary>
+      <label>Cópias capturadas <output id="qa-copy-count">0</output></label>
+      <label for="qa-copied-text">Texto da última cópia</label>
+      <textarea id="qa-copied-text" readonly></textarea>
+      <label>Downloads capturados <output id="qa-download-count">0</output></label>
+      <label for="qa-download-name">Nome do último arquivo</label>
+      <input id="qa-download-name" readonly>
+      <label for="qa-downloaded-text">Texto do último download</label>
+      <textarea id="qa-downloaded-text" readonly></textarea>
+    </details>
+  </aside>
+  <div id="root"></div>
+  <script>
+    (async function () {
+      'use strict';
+      const status = document.getElementById('qa-status');
+      const copied = document.getElementById('qa-copied-text');
+      const downloadText = document.getElementById('qa-downloaded-text');
+      const downloadName = document.getElementById('qa-download-name');
+      let copies = 0;
+      let downloads = 0;
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable:false,
+        writable:false,
+        value:Object.freeze({writeText:async function (text) {
+          if (document.getElementById('qa-copy-reject').checked) {
+            status.textContent = 'Falha de cópia simulada. Confira o campo de cópia manual do instalador.';
+            throw new DOMException('Falha simulada pelo teste local.', 'NotAllowedError');
+          }
+          copied.value = String(text);
+          document.getElementById('qa-copy-count').value = String(++copies);
+          status.textContent = 'Mock de cópia chamado. Texto completo capturado localmente.';
+        }})
+      });
+      const blobs = new Map();
+      const createObjectURL = URL.createObjectURL.bind(URL);
+      const revokeObjectURL = URL.revokeObjectURL.bind(URL);
+      URL.createObjectURL = function (blob) {
+        const url = createObjectURL(blob);
+        blobs.set(url, blob);
+        return url;
+      };
+      URL.revokeObjectURL = function (url) {
+        blobs.delete(url);
+        revokeObjectURL(url);
+      };
+      const anchorClick = HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click = function () {
+        const blob = blobs.get(this.href);
+        if (!this.download || !blob) return anchorClick.call(this);
+        const filename = this.download;
+        blob.text().then(function (text) {
+          downloadName.value = filename;
+          downloadText.value = text;
+          document.getElementById('qa-download-count').value = String(++downloads);
+          status.textContent = 'Arquivo completo capturado localmente.';
+        }).catch(function (error) {
+          status.textContent = 'Falha ao conferir o arquivo gerado: ' + error.message;
+        });
+        // Deliberately omit the native click, so no real download is started.
+      };
+      try {
+        const response = await fetch('/INICIO.html', {credentials:'omit'});
+        if (!response.ok) throw new Error('INICIO.html respondeu ' + response.status);
+        const source = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const styles = source.querySelectorAll('link[rel="stylesheet"][href]');
+        const scripts = source.querySelectorAll('script[type="module"][src]');
+        if (!scripts.length) throw new Error('O instalador compilado não contém um módulo de entrada.');
+        function localAsset(value) {
+          const url = new URL(value, new URL('/INICIO.html', location.origin));
+          if (url.origin !== location.origin) throw new Error('O teste aceita apenas arquivos locais.');
+          return url.href;
+        }
+        for (const original of styles) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = localAsset(original.getAttribute('href'));
+          document.head.appendChild(link);
+        }
+        for (const original of scripts) {
+          const script = document.createElement('script');
+          script.type = 'module';
+          script.src = localAsset(original.getAttribute('src'));
+          script.addEventListener('error', function () { status.textContent = 'Falha ao carregar o módulo compilado.'; });
+          script.addEventListener('load', function () { status.textContent = 'Instalador compilado pronto para o teste local.'; });
+          document.body.appendChild(script);
+        }
+      } catch (error) {
+        status.textContent = 'Falha ao preparar o teste local: ' + error.message;
+      }
+    }());
+  </script>
+</body>
+</html>

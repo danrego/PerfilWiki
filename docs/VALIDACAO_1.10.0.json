@@ -1,0 +1,69 @@
+{
+  "version": "1.10.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 460,
+    "pass": 460,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "legacy single-value and new grouped profile fields, safe internal wikilinks and bounded input",
+    "inline separators, lines and bullets in HTML, wikitext and installation checker",
+    "nine independent placements, top-only behavior and hidden component fallbacks",
+    "name size and profile alignment in shared preview and dashboard renderers",
+    "DST, fractional UTC offsets, day rollover and parts-based Intl fallback",
+    "one existing minute timer, no additional network for clock updates",
+    "cold, cached, progress and storage updates with retained verified creation proof",
+    "same-owner headers, copied foreign header cleanup and explicit unavailable evidence",
+    "complete exports, counter fragments and local editor duplicate guard",
+    "installer configuration, packaging manifests, destination and copy/download controls"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "multi-item wikilinks",
+      "pipe and dot inline separators",
+      "separate lines and bullets",
+      "32px display name",
+      "independent top and card placement",
+      "hidden field removal",
+      "local time on all scopes",
+      "timezone change to UTC and back",
+      "mobile wrapping without horizontal overflow",
+      "complete profile export in local editor",
+      "preserved existing profile text and duplicate prevention",
+      "destination href inspection without navigation"
+    ],
+    "consoleErrors": [],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "02588e7a927e3081d8c472e4943e759a717c2036d07fbd901ac6b1ec90639838",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 488,
+  "limitations": [
+    "Synthetic local data only. No public APIs or real Commons photos were used in browser checks.",
+    "Native Firefox and Safari were not rerun for this candidate.",
+    "Local clock uses the device clock. Public saved markup carries its capture date and time."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1100/browser-verification.json",
+    "css": "../../qa_1100/validation_summary.json"
+  }
+}

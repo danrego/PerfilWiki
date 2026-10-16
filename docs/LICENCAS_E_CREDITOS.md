@@ -15,9 +15,15 @@ O [manifesto de origem](PROVENIENCIA.json) guarda os arquivos de origem e seus h
 
 ## Licença do pacote
 
-O código e a documentação do PerfilWiki são distribuídos sob [CC BY-SA 4.0](../LICENSE). O campo de licença do pacote usa `CC-BY-SA-4.0`. Os avisos das fontes e o manifesto de origem acompanham a distribuição. Daniel G Rego é o autor indicado nos arquivos de origem relacionados no manifesto.
+O código próprio e a documentação do PerfilWiki são distribuídos sob [CC BY-SA 4.0](../LICENSE). O campo de licença do pacote usa `CC-BY-SA-4.0`. Os avisos das fontes e o manifesto de origem acompanham a distribuição. Daniel G Rego é o autor indicado nos arquivos de origem relacionados no manifesto.
 
 Não substituir os avisos de um componente copiado pela licença geral do repositório. Qualquer arquivo com licença própria precisa conservar seu aviso e suas condições.
+
+## Componentes do instalador
+
+O instalador compilado contém React 19.2.0, React DOM 19.2.0, Scheduler 0.27.0 e o auxiliar de pré-carregamento de módulos gerado pelo Vite 6.4.3. Esses componentes usam MIT. O arquivo [THIRD_PARTY_NOTICES.txt](../THIRD_PARTY_NOTICES.txt) conserva seus avisos completos de autoria, permissão e garantia e acompanha o instalador e a distribuição. A licença CC BY-SA do código próprio não substitui esses termos.
+
+As ferramentas de compilação e teste são recuperadas pelas versões e pelos hashes de integridade do lockfile. A pasta node_modules não acompanha o pacote público. [BUILD_TOOLCHAIN.json](../BUILD_TOOLCHAIN.json) informa as versões fixadas, as referências oficiais conferidas e os componentes presentes no programa compilado. A existência de um fluxo de CI preparado não quer dizer que ele já tenha sido executado no GitHub.
 
 ## Recursos do MediaWiki e imagens
 

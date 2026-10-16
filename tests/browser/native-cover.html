@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>PerfilWiki, teste local da capa por calendário</title>
+  <link rel="stylesheet" href="../../local-preview/PerfilWiki-estilos.css">
+  <style>
+    html{font:14px/1.5 Arial,Helvetica,sans-serif;background:#f8f9fa;color:#202122}body{max-width:960px;margin:0 auto;padding:24px;box-sizing:border-box}*{box-sizing:border-box}h1{margin:0 0 8px;font-size:23px;font-weight:600}.qa-note{margin:0 0 18px;color:#54595d}.qa-controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;margin-bottom:12px}.qa-controls label{display:grid;gap:5px;font-size:12px;font-weight:600}.qa-controls select{min-height:38px;max-width:100%;padding:8px;border:1px solid #a2a9b1;border-radius:4px;background:#fff;color:#202122;font:14px Arial,Helvetica,sans-serif}.qa-controls select:focus{outline:2px solid #36c;outline-offset:2px}#qa-render{display:block;font-size:12px;color:#54595d;margin-bottom:18px}#dashboard{min-width:0}#dashboard>div{margin-bottom:0}.qa-footnote{margin:16px 0 0;color:#54595d;font-size:12px}@media(max-width:420px){body{padding:12px}h1{font-size:20px}.qa-controls{gap:10px}.qa-controls label{width:100%}.qa-controls select{width:100%}}
+  </style>
+  <script defer src="../../local-preview/Appearance.js"></script>
+  <script defer src="../../local-preview/LayoutView.js"></script>
+  <script defer src="../../local-preview/DailyCover.js"></script>
+  <script defer src="../../local-preview/NativeDailyCover.js"></script>
+  <script defer src="../../local-preview/ProfileText.js"></script>
+  <script defer src="../../local-preview/ProfileFields.js"></script>
+  <script defer src="../../local-preview/ProfileClock.js"></script>
+  <script defer src="../../local-preview/UserGroups.js"></script>
+  <script defer src="../../local-preview/Presenter.js"></script>
+  <script defer src="../../local-preview/ActivityView.js"></script>
+  <script defer src="../../local-preview/ProfileHeaderView.js"></script>
+  <script defer src="./native-cover-fixture.js"></script>
+</head>
+<body>
+  <h1>Capa da imagem do dia</h1>
+  <p class="qa-note">Simulação local de duas renderizações, sem consulta à Wikipédia</p>
+  <div class="qa-controls">
+    <label for="qa-orientation">Formato da imagem<select id="qa-orientation"><option value="landscape">Paisagem</option><option value="portrait">Retrato</option></select></label>
+    <label for="qa-day">Data da renderização em UTC<select id="qa-day"><option value="2026-10-15">15 de outubro de 2026</option><option value="2026-10-16">16 de outubro de 2026</option></select></label>
+  </div>
+  <output id="qa-render" aria-live="polite">Preparando a renderização local.</output>
+  <main id="dashboard" aria-label="Perfil fictício com capa simulada"></main>
+  <p class="qa-footnote">As imagens são ilustrações geradas neste teste. O teste confere o recorte e a troca de duas respostas simuladas, sem executar o parser da Wikipédia.</p>
+</body>
+</html>

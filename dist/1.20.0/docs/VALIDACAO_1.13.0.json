@@ -1,0 +1,73 @@
+{
+  "version": "1.13.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 513,
+    "pass": 513,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "label-only normalization HTML wiki and DOM paint without empty lists or colon",
+    "per-label layout helper for legacy and grouped values",
+    "paired city and local time across layouts scopes and minute updates",
+    "optional public user groups with exact owner project and canonical proof validation",
+    "lower confirmation suppression and independent roles",
+    "daily refresh force exception request budget cooldown and last-good recovery",
+    "optional visibility gate without new requests when disabled or hidden",
+    "backwards compatible cached statistics and unchanged metric identity",
+    "installation checker validates label-only fields city-clock order and pending or verified groups",
+    "initial exports contain no synthetic status claims"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "immediate label-only preview",
+      "independent per-label layouts",
+      "adjacent city and local time before other fields",
+      "higher confirmation without lower duplicate",
+      "Commons upload href inspection without navigation",
+      "no horizontal overflow",
+      "local editor preserves prior text and refuses duplicates",
+      "pending statuses in real starter without example roles",
+      "HTTP 200 installer and maintenance index"
+    ],
+    "consoleErrors": [],
+    "externalRequests": [],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "uploadActions": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "3bf8a89ab6d3142cc189b48d8118b9accaf6644ad9d011292c743041fa7caffc",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 665,
+  "limitations": [
+    "Synthetic local data only. The new public users API collector was tested with simulated responses.",
+    "Native Firefox and Safari were not rerun.",
+    "Public saved statuses stay at the last manually saved snapshot; the tooltip carries the query date."
+  ],
+  "publicDocumentationReviewed": [
+    "https://www.mediawiki.org/wiki/API:Users",
+    "https://pt.wikipedia.org/wiki/Wikip%C3%A9dia:Tipos_de_usu%C3%A1rios",
+    "https://commons.wikimedia.org/wiki/Commons:Upload"
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1130/browser-verification.json",
+    "css": "../../qa_1130/validation_summary.json"
+  }
+}

@@ -1,4 +1,4 @@
-/* PerfilWiki 1.0.0: shared, public Portuguese Wikipedia contribution history. */
+/* PerfilWiki 1.1.0: shared, public Portuguese Wikipedia contribution history. */
 (function (root, factory) {
     'use strict';
     var api = factory();
@@ -60,8 +60,8 @@
     }
 
     function packEntry(raw, user, upper, lower, fromApi) {
-        if (!fromApi && (!Array.isArray(raw) || raw.length !== 9)) {
-            fail('invalid-entry', 'Cached edits must contain nine fields.');
+        if (!fromApi && (!Array.isArray(raw) || raw.length !== 9 && raw.length !== 10)) {
+            fail('invalid-entry', 'Cached edits must contain nine or ten fields.');
         }
         if (fromApi && !object(raw)) { fail('invalid-entry', 'An edit must be an API object.'); }
         if (fromApi) {
@@ -72,7 +72,8 @@
             });
         }
         var result = fromApi ? [raw.revid, raw.pageid, raw.ns, raw.title, raw.timestamp,
-            raw.new === true ? 1 : 0, raw.parentid, raw.user, raw.tags] : raw;
+            raw.new === true ? 1 : 0, raw.parentid, raw.user, raw.tags,
+            Number.isSafeInteger(raw.sizediff) ? raw.sizediff : null] : raw;
         if (!Number.isSafeInteger(result[0]) || result[0] <= 0 ||
             !Number.isSafeInteger(result[1]) || result[1] < 0 ||
             !Number.isSafeInteger(result[2]) || result[2] < 0 ||
@@ -84,11 +85,20 @@
             fail('wrong-identity', 'An edit belongs to another user or omits its user.');
         }
         var time = timestamp(result[4]);
+        if (!fromApi && result.length === 10 && result[9] !== null && !Number.isSafeInteger(result[9])) {
+            fail('invalid-entry', 'A cached size difference must be a safe signed integer or null.');
+        }
         if (time > upper || (lower && time < lower)) {
             fail('invalid-bounds', 'An edit falls outside the requested time bounds.');
         }
         return [result[0], result[1], result[2], text(result[3], 1024, 'title'), time,
-            result[5], result[6], result[7], tags(result[8])];
+            result[5], result[6], result[7], tags(result[8]), result.length === 10 ? result[9] : null];
+    }
+
+    function byteCoverage(entries, scannedAt) {
+        var known = entries.reduce(function (count, entry) { return count + (Number.isSafeInteger(entry[9]) ? 1 : 0); }, 0);
+        return {version:1, scannedAt:scannedAt, complete:scannedAt !== null && known === entries.length,
+            knownEdits:known, totalEdits:entries.length};
     }
 
     function compare(left, right) { return right[4].localeCompare(left[4]) || right[0] - left[0]; }
@@ -145,7 +155,7 @@
             user: user, project: PROJECT, entries: [], complete: input.complete,
             capturedAt: null, fullScanAt: null, scanMode: input.scanMode,
             cacheHit: input.cacheHit, stale: input.stale, error: input.error ? { code: input.error.code, message: input.error.message } : null,
-            pending: null
+            pending: null, byteCoverage:byteCoverage([], null)
         };
         if (input.complete) {
             result.capturedAt = timestamp(input.capturedAt);
@@ -158,12 +168,27 @@
             input.scanMode !== 'full' || !input.stale || input.cacheHit) {
             fail('invalid-cache', 'An incomplete cold scan must not expose contributions.');
         }
+        if (own(input, 'byteCoverage')) {
+            var coverage = input.byteCoverage;
+            if (!object(coverage) || coverage.version !== 1 || typeof coverage.complete !== 'boolean' ||
+                !Number.isSafeInteger(coverage.knownEdits) || !Number.isSafeInteger(coverage.totalEdits)) {
+                fail('invalid-cache', 'The byte coverage metadata is invalid.');
+            }
+            var scannedAt = coverage.scannedAt === null ? null : timestamp(coverage.scannedAt);
+            if (scannedAt !== null && (!result.complete || scannedAt !== result.fullScanAt)) {
+                fail('invalid-cache', 'The byte coverage must belong to the completed full scan.');
+            }
+            result.byteCoverage = byteCoverage(result.entries, scannedAt);
+            if (coverage.complete !== result.byteCoverage.complete || coverage.knownEdits !== result.byteCoverage.knownEdits ||
+                coverage.totalEdits !== result.byteCoverage.totalEdits) { fail('invalid-cache', 'The byte coverage does not match the revisions.'); }
+        } else { result.byteCoverage = byteCoverage(result.entries, null); }
         return result;
     }
 
     function pendingState(input, base, now) {
         if (!object(input) || input.version !== 1 || input.user !== base.user || input.project !== PROJECT ||
-            (input.scanMode !== 'full' && input.scanMode !== 'incremental')) {
+            (input.scanMode !== 'full' && input.scanMode !== 'incremental') ||
+            own(input, 'sizeDiffVersion') && input.sizeDiffVersion !== 1) {
             fail('invalid-pending', 'The pending scan has a different identity or schema.');
         }
         var anchor = timestamp(input.anchor);
@@ -194,7 +219,7 @@
         var entries = cachedEntries(input.entries, base.user, anchor, lower);
         if (!entries.length) { fail('invalid-pending', 'A continuing scan must contain contributions.'); }
         return {
-            version: 1, user: base.user, project: PROJECT, scanMode: input.scanMode,
+            version: 1, sizeDiffVersion:input.sizeDiffVersion || 0, user: base.user, project: PROJECT, scanMode: input.scanMode,
             anchor: anchor, lowerBound: lower, baseCapturedAt: base.capturedAt, baseFullScanAt: base.fullScanAt,
             entries: entries, cursor: next, seenCursors: input.seenCursors.slice(), pagesFetched: input.pagesFetched
         };
@@ -225,7 +250,7 @@
         var url = new URL('https://' + PROJECT + '/w/api.php');
         var params = {
             action: 'query', format: 'json', formatversion: 2, origin: '*', maxlag: 5,
-            list: 'usercontribs', ucuser: user, ucprop: 'ids|title|timestamp|flags|tags',
+            list: 'usercontribs', ucuser: user, ucprop: 'ids|title|timestamp|flags|tags|sizediff',
             ucdir: 'older', uclimit: 500, ucstart: stage.anchor
         };
         if (stage.lowerBound) { params.ucend = stage.lowerBound; }
@@ -262,7 +287,7 @@
 
     function emptyState(user) {
         return { user: user, project: PROJECT, entries: [], complete: false, capturedAt: null, fullScanAt: null,
-            scanMode: 'full', cacheHit: false, stale: true, error: null, pending: null };
+            scanMode: 'full', cacheHit: false, stale: true, error: null, pending: null, byteCoverage:byteCoverage([],null) };
     }
 
     // requestJson receives a URL for a public GET. It must not add authentication or write parameters.
@@ -292,14 +317,17 @@
                 }
             } catch (ignoreCache) { base = emptyState(user); }
         }
-        var full = !base.complete || nowMs - new Date(base.fullScanAt).getTime() >= fullRescanMs;
+        // A legacy cache gets one resumable full scan for sizediff. A completed
+        // attempt remains cacheable even when a hidden delta stays unavailable.
+        if (stage && stage.sizeDiffVersion !== 1) { stage = null; }
+        var full = !base.complete || !base.byteCoverage.scannedAt || nowMs - new Date(base.fullScanAt).getTime() >= fullRescanMs;
         if (!stage && base.complete && !base.stale && !base.error && !full && !options.force &&
             nowMs - new Date(base.capturedAt).getTime() < refreshMs) {
             base.cacheHit = true;
             return base;
         }
         if (!stage) {
-            stage = { version: 1, user: user, project: PROJECT, scanMode: full ? 'full' : 'incremental',
+            stage = { version: 1, sizeDiffVersion:1, user: user, project: PROJECT, scanMode: full ? 'full' : 'incremental',
                 anchor: now, lowerBound: full ? null : overlapStart(base), baseCapturedAt: base.capturedAt,
                 baseFullScanAt: base.fullScanAt, entries: [], cursor: null, seenCursors: [], pagesFetched: 0 };
         }
@@ -351,10 +379,12 @@
                     }
                     fetched.forEach(function (entry, revid) { merged.set(revid, entry); });
                     if (merged.size > LIMITS.entries) { fail('history-limit', 'The merged history exceeds the entry limit.'); }
-                    return { user: user, project: PROJECT, entries: Array.from(merged.values()).sort(compare), complete: true,
+                    var completeEntries = Array.from(merged.values()).sort(compare);
+                    return { user: user, project: PROJECT, entries: completeEntries, complete: true,
                         capturedAt: stage.anchor, fullScanAt: stage.scanMode === 'full' ? stage.anchor : base.fullScanAt,
                         scanMode: stage.scanMode, cacheHit: false, stale: nowMs - new Date(stage.anchor).getTime() >= refreshMs,
-                        error: null, pending: null };
+                        error: null, pending: null,
+                        byteCoverage:byteCoverage(completeEntries, stage.scanMode === 'full' ? stage.anchor : base.byteCoverage.scannedAt) };
                 }
                 stage.cursor = next;
                 stage.seenCursors.push(next.uccontinue);

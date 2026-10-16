@@ -49,21 +49,21 @@ test('CommonJS and browser global export the same portable API', () => {
     assert.equal(typeof context.PerfilWikiHistory.richToActivityEntries, 'function');
 });
 
-test('full scan requests only public ptwiki usercontribs and preserves all nine fields', async () => {
-    const io = transport([done([edit(3, undefined, { new: true, tags: ['mobile edit', 'visualeditor'] })])]);
+test('full scan requests only public ptwiki usercontribs and preserves the ten rich fields', async () => {
+    const io = transport([done([edit(3, undefined, { new: true, tags: ['mobile edit', 'visualeditor'], sizediff:17 })])]);
     const result = await History.collect({ user: USER, now: NOW, requestJson: io.requestJson });
     assert.equal(result.complete, true);
     assert.equal(result.scanMode, 'full');
     assert.equal(result.stale, false);
     assert.equal(result.pending, null);
-    assert.deepEqual(result.entries[0], [3, 103, 0, 'Página 3', shift(NOW, -3000), 1, 2, USER, ['mobile edit', 'visualeditor']]);
+    assert.deepEqual(result.entries[0], [3, 103, 0, 'Página 3', shift(NOW, -3000), 1, 2, USER, ['mobile edit', 'visualeditor'], 17]);
     assert.deepEqual(History.validate(result, { user: USER, now: NOW }), { valid: true, errors: [] });
     const url = io.calls[0];
     assert.equal(url.origin + url.pathname, 'https://pt.wikipedia.org/w/api.php');
     assert.equal(url.searchParams.get('action'), 'query');
     assert.equal(url.searchParams.get('list'), 'usercontribs');
     assert.equal(url.searchParams.get('ucuser'), USER);
-    assert.equal(url.searchParams.get('ucprop'), 'ids|title|timestamp|flags|tags');
+    assert.equal(url.searchParams.get('ucprop'), 'ids|title|timestamp|flags|tags|sizediff');
     assert.equal(url.searchParams.get('ucdir'), 'older');
     assert.equal(url.searchParams.get('uclimit'), '500');
     assert.equal(url.searchParams.get('formatversion'), '2');

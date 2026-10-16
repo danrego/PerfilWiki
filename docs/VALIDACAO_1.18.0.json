@@ -1,0 +1,79 @@
+{
+  "version": "1.18.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 641,
+    "pass": 641,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "optional strict per-label/single-value/grouped-value color schema, lowercased hex, old defaults unchanged",
+    "malformed colors, wrong array lengths, holes and mixed legacy/group schema rejected",
+    "empty values filter matching color indexes; inheritance stays canonical",
+    "independent label/plain text/wiki link colors across all layouts and placements",
+    "real DOM repaint resets override to current inherited profile default",
+    "actual UI handlers retain color mappings when converting, adding and removing entries",
+    "activation export, JSON import, opaque local session and reload retain overrides",
+    "owner runtime startup/progress/refresh/storage preserves per-item colors without changing metrics identity",
+    "owner choices download reimports exact customFields and saved wiki includes every override",
+    "installation checker rejects label/item color tampering"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "unique independent color controls beside each label and information item",
+      "GWU blue #244477 and MIT green #335522 in the same field; label #772244",
+      "removing GWU moves MIT to item1 without changing its color",
+      "new item inherits global information color #663377 until explicitly overridden",
+      "Padrão do perfil resets an overridden item to the current global color",
+      "a second legacy field remains inherited while first field uses individual colors",
+      "line layout retains per-item color and independent wiki links",
+      "panel/edit/reload restores exact per-item colors",
+      "exported activation stores matched values/valueColors and labelColor; inherited legacy fields omit overrides",
+      "local profile insertion/save preserves previous text and safe colored wiki links",
+      "mobile custom controls fit: outer345px equals scrollWidth345; item controls244px right277px",
+      "installer reload HTTP200; no errors in console"
+    ],
+    "consoleErrors": [],
+    "boundedNetworkCheck": {
+      "requests": 23,
+      "externalRequests": [],
+      "truncated": false,
+      "hasMore": false
+    },
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "uploadActions": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "e17639ab571e66813eb6f6f234562f32efc8ffa59f9960776a6aa6f32edb6944",
+    "unchangedFrom": "1.17.0",
+    "priorActualParserErrors": [],
+    "priorActualSanitizerErrors": [],
+    "reuse": "Actual previous sanitizer result reused after exact stylesheet SHA256 match; no stylesheet declarations changed."
+  },
+  "frozenPreviousFiles": 991,
+  "limitations": [
+    "Synthetic local browser data and local editor only.",
+    "Native Firefox and Safari were not rerun.",
+    "No custom wikitext was sent to a remote parser.",
+    "No external request, Wikimedia edit, login/session operation, purge, clipboard write, upload or GitHub push occurred.",
+    "TemplateStyles validation was reused after confirming the stylesheet is byte-identical to the previously validated 1.17.0 stylesheet."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1180/browser-verification.json",
+    "network": "../../qa_1180/browser-network.json",
+    "css": "../../qa_1180/validation_summary.json"
+  }
+}

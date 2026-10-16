@@ -1,0 +1,65 @@
+{
+  "version": "1.12.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 484,
+    "pass": 484,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "city and local time controls grouped with timezone",
+    "unambiguous activity labels and four photo choices",
+    "Commons cover normalization and safe HTML and wiki output",
+    "readable top background with contrast at least 4.5 to 1",
+    "cover-only headers, DOM repaint and saved creation proof",
+    "cold cached progress and storage cover persistence",
+    "image failures preserve profile text and hide failed link",
+    "loader and complete or fragment exports preserve configuration",
+    "installation checker rejects missing duplicated misplaced or altered covers and background style tampering"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "four photo positions",
+      "cover independent from hidden photo",
+      "dark and light top backgrounds",
+      "color palette and outside click dismissal",
+      "mobile 120px cover and no horizontal overflow",
+      "local editor preserves existing text and refuses duplicate insertion",
+      "Commons file markup without local illustration in export",
+      "HTTP 200 installer and maintenance index"
+    ],
+    "consoleErrors": [],
+    "externalRequests": [],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "4225860228cacedba8891f6cdd5cb98ff9cb0280f2e8dfe6c12316aebf1ec404",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "method": "Actual local run of Wikimedia CSS parser, StylePropertySanitizer and selector grammar with the TemplateStyles rule construction used by this stylesheet. No site-specific Wikimedia hooks are loaded. Existing dependencies were read locally, fetch was blocked, no wiki was opened."
+  },
+  "frozenPreviousFiles": 605,
+  "limitations": [
+    "Synthetic local data only. Actual Commons files and Wikimedia services were not queried.",
+    "Native Firefox and Safari were not rerun.",
+    "The local cover illustration is a placeholder and is not exported."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1120/browser-verification.json",
+    "css": "../../qa_1120/validation_summary.json"
+  }
+}

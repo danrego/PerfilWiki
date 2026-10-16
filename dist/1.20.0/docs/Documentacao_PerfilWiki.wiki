@@ -1,0 +1,523 @@
+O '''PerfilWiki''' reúne as caixas de estatísticas e o painel de atividade para páginas de usuário da Wikipédia em português. O programa consulta os dados públicos da sua conta e mostra os resultados na sua sessão, mantendo as caixas, o calendário, as metas de dias seguidos e as listas de artigos com suas visualizações.
+
+Esta documentação acompanha a versão '''1.20.0, candidato local de 15 de outubro de 2026''', ainda sem publicação na Wikipédia ou envio ao GitHub. Abrir o instalador local não atualiza os arquivos que já estão hospedados. O programa compartilhado precisa receber esta versão antes de usar a configuração com opções de aparência. Os estilos usam a folha existente [[Usuário:Daniel G Rego/RitmoPU-estilos]], que já tem o modelo de conteúdo exigido por TemplateStyles. A instalação compartilhada não exige criar uma folha de estilos nem mudar o modelo de conteúdo de uma página.
+
+== Idioma, conta e exemplos ==
+
+O seletor oferece português do Brasil, português de Portugal, inglês, espanhol, francês e italiano para os controles e os textos do painel. Nomes de pessoas, títulos de artigos e campos pessoais permanecem como foram escritos. A escolha fica em <code>appearance.language</code>, com <code>pt-BR</code> como padrão para configurações antigas. O idioma não muda a conta consultada nem as regras das contagens.
+
+O instalador começa novas escolhas no fuso de Brasília, com Belo Horizonte e UFMG como exemplos nos campos, sem atribuir esses dados à pessoa. Uma configuração importada conserva o fuso e o conteúdo anteriores. Quando o instalador está na própria ptwiki e recebe <code>wgUserName</code>, aproveita esse contexto sem consulta ao login. Abrir diretamente um endereço local ou externo conserva o campo manual. Uma abertura por "Editar painel" pode receber as escolhas da sessão dona do painel, depois da troca conferida entre as janelas.
+
+== Experimentar o instalador local ==
+
+O arquivo <code>INICIO.html</code>, aberto pelo servidor local, apresenta duas telas, personalização e instalação. Na primeira, os campos da conta ficam em "Seu perfil", junto aos ajustes de aparência e à prévia. Em "Conta da Wikipédia", informe o nome exato da conta. Esse é o único campo de perfil obrigatório, com asterisco vermelho e indicação acessível. As indicações opcionais ficam menores e mais discretas. Os seletores já começam preenchidos, e uma opção ativada pode exigir os dados de que precisa para funcionar. O instalador pode preencher esse campo quando é executado na própria Wikipédia em português e encontra a conta na configuração da página, sem fazer pedidos de autenticação. No endereço local, o preenchimento continua manual. Essa configuração está disponível no objeto <code>mw.config</code> do MediaWiki.<ref>[https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#mw.config Configuração da página no JavaScript do MediaWiki].</ref>
+
+Use o campo opcional "Nome de exibição" para mostrar outro nome nos títulos da prévia e do painel, incluindo o de visualizações. Deixá-lo vazio usa o nome da conta. São aceitos até 100 caracteres Unicode, sem caracteres de controle nem os sinais <code>&lt;</code>, <code>&gt;</code>, <code>[</code>, <code>]</code>, <code>{</code>, <code>}</code> e <code>|</code>. Esse nome não muda a conta das consultas, os destinos dos arquivos nem a identidade dos dados guardados.
+
+Os campos opcionais "Localização" e "Informações adicionais" aceitam texto e ligações internas, como <nowiki>[[Rio de Janeiro]]</nowiki> ou <nowiki>[[Rio de Janeiro|Rio]]</nowiki>. A localização aceita até 120 pontos de código Unicode. Até três informações aceitam rótulos de até 40 pontos de código e até oito itens de 160 pontos cada. Esses limites contam o texto digitado inteiro, incluindo os sinais da marcação das ligações. O rótulo usa apenas texto e já aparece na prévia quando é preenchido, mesmo sem dado, sem receber dois-pontos ou uma lista vazia. HTML, predefinições e marcação malformada não são aceitos. As ligações levam à Wikipédia em português. O trecho exportado acrescenta dois-pontos antes do destino, como em <nowiki>[[:Rio de Janeiro|Rio]]</nowiki>, para manter uma ligação mesmo em páginas de arquivos ou categorias. Campos vazios ficam fora da configuração preparada. Ao lado de cada campo, escolha se ele aparece nas caixas, na atividade ou nos dois blocos, ou use "Ocultar". A opção "Padrão" segue "Posição padrão das informações", que começa no topo. Quando só um bloco está visível, os campos destinados aos blocos acompanham esse bloco, sem retirar os campos do topo ou mostrar campos ocultos. O alinhamento pode ser à esquerda, ao centro ou à direita, separado dos números das caixas.
+
+A posição do nome, da localização, de cada informação adicional e da data de criação pode ser escolhida separadamente. A foto tem seu próprio seletor, com topo, atividade, os dois ou ocultar. "Padrão" acompanha "Posição padrão das informações", inicialmente no topo. "Ocultar" retira o campo da apresentação. Quando só um bloco está visível, os campos destinados aos blocos acompanham esse bloco, sem retirar os campos do topo ou mostrar campos ocultos. As configurações anteriores conservam a posição geral que já usavam.
+
+Junto de cada rótulo, "Disposição das informações" escolhe os itens na mesma linha, um por linha ou em lista com marcadores. A escolha vale somente para aquela informação e permanece disponível com um único item. Um rótulo sem dado também aparece na prévia e no código preparado, sem dois-pontos. A configuração anterior da disposição geral continua aceita, embora seu controle tenha saído do instalador.
+
+"Foto do Wikimedia Commons" recebe o nome de uma imagem já existente, como <code>Example.jpg</code>. São aceitos até 240 pontos de código Unicode e as extensões JPG, JPEG, PNG, WebP, GIF e SVG, com o prefixo opcional <code>File:</code> ou <code>Ficheiro:</code>. Informe somente o nome, sem endereço ou código de imagem. A prévia usa uma imagem ilustrativa local e não busca o arquivo nem confere sua existência. O trecho exportado usa a chamada de imagem do MediaWiki e oferece "Ver arquivo no Commons" para abrir a página do arquivo, onde você pode consultar os créditos e a licença.<ref>[https://www.mediawiki.org/wiki/Help:Images Uso de imagens no MediaWiki].</ref><ref>[https://www.mediawiki.org/wiki/Help:Linking_to_files Ligações à página de um arquivo].</ref> O instalador não envia imagens nem acrescenta consultas de métricas para essa escolha.
+
+Ocultar um campo não apaga o valor do carregador preparado. Se esse código for publicado manualmente no common.js, o texto continuará público, mesmo quando o campo não aparecer no painel.
+
+"Mostrar a data de criação da conta" começa desmarcado. O programa usa a menor data pública entre o registro global e os registros das contas locais vinculadas, que podem ser recebidos na mesma consulta do CentralAuth.<ref>[https://www.mediawiki.org/wiki/Extension:CentralAuth/API Dados públicos da conta global e das contas vinculadas].</ref><ref>[https://phabricator.wikimedia.org/T124534 Datas de registro das contas locais na consulta global].</ref> A data aparece por extenso no idioma escolhido, com dia, mês e ano em UTC. Se faltar parte das datas, o painel mostra "Data de criação mais antiga disponível" e avisa que podem existir contas anteriores sem data registrada. Sem nenhuma data conhecida, informa a indisponibilidade. A caixa "Na Wikipédia" conta os anos completos desde essa mesma data pública conferida, mesmo que o registro local da ptwiki seja posterior. Sem uma data global ou vinculada conferida, a caixa aguarda dados e não usa o registro local como substituto.
+
+O fuso começa no horário de Brasília, preservando uma escolha já importada. A lista reúne 55 opções em oito grupos geográficos, incluindo UTC, sem campo de busca. Havaí, Alasca e mais cidades da Europa e da Ásia estão disponíveis, com as diferenças de UTC calculadas pelo navegador para a data de abertura. Um fuso válido já escolhido ou recebido do navegador continua disponível mesmo quando não está nessa seleção. A diferença mostrada para UTC vale para a data de abertura e pode mudar com o horário de verão. A configuração conserva o identificador do fuso para calcular cada data corretamente.<ref>[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat Datas e fusos com Intl.DateTimeFormat].</ref> Escolha também o destino dos blocos, na página de usuário ou numa subpágina.
+
+A prévia usa dados inventados e os mesmos componentes de apresentação do programa, sem consultar o histórico da conta informada.
+
+Em "Personalize seu painel", os ajustes ficam nos grupos recolhíveis "Seu perfil", "Disposição" e "Conteúdo". Em telas largas, a coluna tem sua própria rolagem para manter a prévia à vista. Use uma das cores sugeridas ou "Escolher outra cor" e ajuste o espaçamento e o alinhamento. Os oito contadores anteriores ficam selecionados entre 24 opções. "Adicionar caixas", junto à prévia, permite escolher os que deseja mostrar. Cada caixa tem uma estrela para aplicar ou retirar o destaque, um botão × para removê-la e uma alça para mudar sua ordem. Arraste pela alça ou use as setas com o foco nela. Esquerda ou cima antecipam a caixa, enquanto direita ou baixo a colocam depois. Esses controles ficam apenas no instalador local. O painel exportado mantém a apresentação pública. A prévia usa somente os cabeçalhos do próprio painel, sem repetir o nome em um cabeçalho fictício. As ligações internas dos campos mantêm a aparência de ligação, mas os cliques não abrem outra página no teste local. As caixas e a atividade podem ficar juntas na ordem escolhida ou em posições independentes. A aba inicial das visualizações pode ser escolhida sem mudar as regras das contagens.
+
+A última tela oferece os trechos pessoais com conteúdo inteiro, destinos, resumos de edição, downloads e atalhos aos editores. Os arquivos compartilhados ficam no índice de manutenção, acessível por "Arquivos e documentação". Os arquivos iniciais usam "Aguardando dados". Os números inventados da prévia não entram no código preparado.
+
+Os editores locais permitem acrescentar os trechos e conferir se o texto anterior foi preservado. O código fica como texto, sem ser executado, e "Salvar" encerra apenas o teste local. Nenhuma dessas ações publica uma página. O índice completo de manutenção, com o programa, os estilos e a documentação, fica em <code>Arquivos.html</code>.
+
+A caixa tracejada "Adicionar caixa +" ocupa a posição seguinte da grade enquanto houver algum contador disponível. Com sete caixas, ela ocupa a oitava posição. O botão abre por clique, Enter ou Espaço o mesmo seletor de "Adicionar caixas", que continua na barra da prévia. O seletor fecha por clique externo, Escape ou pelo botão de fechar. Quando apropriado, o foco volta à caixa que o abriu. Com os 24 contadores selecionados, a caixa tracejada desaparece. Ela não é um contador, não recebe destaque ou arraste e não entra nos trechos exportados.
+
+=== Textos e projetos abaixo do painel ===
+
+Em "Textos e projetos", acrescente blocos para suas metas, os projetos em que trabalha ou uma declaração que deseja publicar sobre sua participação. Cada bloco tem um título de texto simples e um corpo em wikitexto. É possível mudar a ordem e remover blocos antes de preparar a página. O instalador aceita até oito blocos, títulos de até 100 caracteres e textos de até 50.000 caracteres por bloco, com um total de até 200.000 nos corpos. A ferramenta não presume nem redige uma declaração sobre conflito de interesses em seu nome.
+
+O wikitexto digitado fica no trecho completo, incluindo ligações, listas e predefinições. A prévia local aproxima a formatação simples, enquanto HTML e predefinições aparecem como texto, sem execução. Tabelas podem ser conferidas como código em uma área recolhível. Essa prévia não pede a análise do texto à Wikipédia. O botão "Editar" do bloco na prévia volta ao campo correspondente no instalador.
+
+Esses textos ficam depois do painel, fora das raízes e dos marcadores substituídos pela atualização das métricas. Eles não entram no carregador pessoal nem nos downloads de números. Uma futura atualização do painel deve preservar os textos que estiverem abaixo dele. Os blocos usam títulos de seção nativos para permitir a edição de seção pelo editor normal quando essa opção estiver disponível na página.
+
+No arquivo de escolhas, os blocos ficam em <code>contentSections</code>, fora da configuração de ativação. Cada objeto usa <code>title</code> e <code>content</code>. Um exemplo é <code>{title: 'Metas e projetos', content: '* Revisar artigos sobre [[História]].'}</code>. Esse exemplo mostra a estrutura do campo, sem substituir o arquivo completo baixado pelo instalador.
+
+=== Retomar e editar depois da instalação ===
+
+Use "Ver painel" depois de fazer os ajustes para abrir uma simulação local sem alças, estrelas ou campos de edição. No painel, "Editar painel" volta à personalização com as escolhas atuais, incluindo foto, cores, contadores, ordem, posição dos campos, fuso e textos pessoais. Não é preciso baixar ou importar JSON para alternar entre essas duas telas.
+
+As escolhas ficam na mesma aba e podem ser recuperadas ao recarregar enquanto a sessão local existir, por até 24 horas desde a última gravação. O endereço recebe apenas um identificador aleatório, sem nome de conta ou conteúdo pessoal. Se o navegador impedir o armazenamento, o painel e os ajustes continuam funcionando na aba aberta, com um aviso de que o recarregamento não poderá recuperar as escolhas. Um endereço vencido ou sem a cópia correspondente informa o problema e volta à personalização.
+
+O programa 1.20.0 prepara "Editar painel" na sessão da própria conta para abrir o instalador em <code>https://danrego.github.io/PerfilWiki/INICIO.html</code> e transmitir as escolhas atuais. A passagem depende de a mesma versão estar hospedada e acessível nesse endereço. A abertura só acontece depois do clique, e as janelas conferem a origem, a janela esperada e um identificador temporário antes de transmitir os dados. O endereço contém apenas esse identificador, sem os campos pessoais.
+
+Depois do clique, uma consulta pública pode trazer o código-fonte e o número da revisão da página para preparar um rascunho. Um par único de marcadores reconhecidos permite substituir somente a área do painel. Sem esses marcadores, ou quando há ambiguidade, a ferramenta apresenta o bloco novo para uma substituição manual e conserva o original para conferência. Metas, categorias e textos fora da área permanecem no rascunho, sem serem transformados em campos de personalização. Se a leitura falhar, as escolhas ainda podem abrir, com aviso para preservar o conteúdo manualmente.
+
+Para manter uma cópia de segurança fora da sessão, "Baixar minhas escolhas" guarda um JSON com as opções e os textos presentes no instalador. Na primeira etapa, "Carregar minhas escolhas" permite reabrir esse arquivo. O conteúdo é conferido como dados antes de trocar o que está na tela, sem executar código. As configurações anteriores da série 1 recebem os padrões das opções que ainda não existiam. Confira o arquivo antes de compartilhá-lo, pois ele contém os campos que você preencheu.
+
+Depois da instalação, "Baixar minhas escolhas" na sessão da própria conta guarda a configuração do painel, sem recuperar os textos que você editou diretamente na página. Para mudar esses textos, abra sua página no editor normal da Wikipédia e use a edição da seção correspondente. Para mudar a aparência, use "Editar painel" ou reabra o JSON no instalador, prepare novos trechos e confira o que será substituído. Preserve os outros scripts e o conteúdo da página.
+
+As alterações futuras passam por "Mostrar previsão" e pelo salvamento acionado pela pessoa no editor da Wikipédia. O fluxo local não acrescenta pedidos de escrita nem uma rotina de publicação automática.
+
+=== Foto, capa e fundo do topo ===
+
+Em "Seu perfil", a foto pode ficar em "No topo, padrão", "Na atividade", "Topo e atividade" ou "Ocultar". Os controles passam a chamar de "atividade" a área antes chamada "cabeçalho", para distingui-la do topo. As configurações anteriores com outras posições explícitas continuam aceitas pelo programa.
+
+Junto da foto, os botões de "Alinhamento da foto" escolhem "À esquerda", "Centralizado" ou "À direita". À esquerda, o padrão, a foto fica ao lado do texto. À direita, ela passa para o outro lado. No centro, ela fica acima das informações. Essa escolha é independente do alinhamento do nome e dos contadores e vale nas áreas em que a foto foi exibida. Em telas estreitas, a foto e o texto se reorganizam para caber. A capa permanece acima das informações do topo.
+
+O tamanho da foto pode ser 64, 96, 128, 160 ou 200 pixels, com 96 pixels no início. Escolha o formato quadrado ou redondo sem mudar seu alinhamento. O recorte vale para a imagem, deixando "Ver arquivo no Commons" inteiro e legível abaixo dela. A largura se adapta a telas menores. Essas escolhas mudam a apresentação da foto, sem pedir outra imagem por causa do ajuste.
+
+Em "Imagem de capa", escolha "Escolher arquivo do Commons" para informar uma imagem fixa, "Imagem do dia da Wikipédia, para visitantes" para acompanhar a escolha diária da Wikipédia em português, ou "Imagem do dia do Commons, na sua sessão" para consultar a escolha do Commons na sessão da própria conta. As duas escolhas diárias podem usar imagens diferentes. O nome do arquivo manual fica guardado ao mudar de opção. Para ficar sem capa, volte ao modo manual e deixe o nome vazio. A imagem ocupa uma faixa acima das informações do topo, com recorte central para preencher a área.
+
+"Imagem do dia da Wikipédia, para visitantes" usa as páginas diárias que já existem na Wikipédia em português. Depois da instalação manual inicial, a data em UTC é recalculada pela própria Wikipédia, sem precisar salvar outra edição a cada dia. Os visitantes não precisam do JavaScript do PerfilWiki, de uma conta conectada ou de consultas à API pelo painel. A troca acompanha a renovação do cache da Wikipédia, sem garantir a mudança à meia-noite nem trocar a imagem de uma aba que já está aberta. Se a página diária ainda não existir, a capa mostra um aviso discreto no lugar de um arquivo inventado. O arquivo exibido conserva sua ligação nativa para consultar os créditos e a licença.<ref>[[Wikipédia:Imagem em destaque]]. [https://www.mediawiki.org/wiki/Help:Magic_words#Date_and_time Palavras mágicas de data e hora do MediaWiki].</ref>
+
+"Imagem do dia do Commons, na sua sessão" conserva o funcionamento anterior. O programa pode consultar a imagem pela data UTC na sessão da própria conta e conserva a última imagem conferida se a consulta falhar. Os visitantes recebem a imagem da última cópia salva manualmente nesse modo. No instalador, todas as capas continuam ilustrativas e locais, sem buscar imagens ou enviar seu código à Wikipédia. O modo da Wikipédia prepara uma chamada dinâmica para o calendário existente, e o modo do Commons começa com um aviso de espera até haver dados conferidos.
+
+"Cor de fundo do topo" usa o mesmo seletor dos outros ajustes e começa em branco. Na opção automática de texto, o programa calcula cores legíveis sobre esse fundo. Uma cor de texto escolhida manualmente permanece como foi informada. O fundo vale somente para o topo, sem mudar o fundo das caixas ou da atividade. Foto, capa e cores acompanham a prévia e os trechos preparados.
+
+"Cor do nome" fica junto do nome de exibição, e "Cor dos rótulos" e "Cor das informações" ficam junto das informações adicionais. Essas opções exigem o programa e os estilos da versão 1.17.0. Cada controle permite manter "Automática" ou escolher uma cor. A escolha vale para os campos do perfil nas áreas em que aparecem, incluindo suas ligações, sem mudar os números das caixas. As cores escolhidas são mantidas como foram informadas. Confira a leitura sobre os fundos que usa ou volte a "Automática" para recuperar as cores preparadas pelo painel.
+
+Junto de cada rótulo, escolha "Cor do rótulo" para mudar só aquele título. Cada item tem seu próprio controle "Cor do item", por isso <nowiki>[[Universidade Federal de Minas Gerais|UFMG]]</nowiki> e <nowiki>[[Universidade de São Paulo|USP]]</nowiki> podem ter cores diferentes sob "Formação". "Padrão do perfil" acompanha a cor geral dos rótulos ou das informações, inclusive quando ela muda depois. Escolher uma cor própria mantém esse campo independente. A cor vale também para as ligações e acompanha o campo nas áreas em que ele aparece. Ao remover um item, os que ficam conservam suas cores. Mudar os separadores ou a disposição também conserva essas escolhas.
+
+A configuração usa <code>coverImage</code> na raiz para guardar o nome manual e <code>appearance.coverSource</code> para escolher <code>manual</code>, <code>daily</code> ou <code>wiki-daily</code>. O modo começa como <code>manual</code>. <code>daily</code> mantém a imagem do Commons da sessão da própria conta e exige a versão 1.16.0. <code>wiki-daily</code> mantém a chamada ao calendário da Wikipédia nos trechos preparados e exige o programa e os estilos da versão 1.17.0. Essa opção usa as páginas existentes e dispensa criar uma predefinição ou um módulo. A capa manual e <code>appearance.topBackground</code> exigem a versão 1.12.0. O nome manual começa vazio e o fundo usa <code>#ffffff</code>. A foto começa no topo, e as escolhas explícitas das configurações anteriores permanecem aceitas.
+
+O modo <code>daily</code> usa o campo <code>image</code> do serviço público Wikifeeds, consultado para a data UTC, e mantém a página do arquivo no Commons junto da apresentação.<ref>[https://www.mediawiki.org/wiki/Wikifeeds Serviço de conteúdo diário Wikifeeds].</ref> Ele reaproveita a resposta válida do dia. Uma falha mantém a imagem anterior e adia outra tentativa por cinco minutos, sem mudar a rotina das métricas ou fazer uma edição. O modo <code>wiki-daily</code> usa uma verificação <code>#ifexist</code> da página diária, contada entre as funções custosas do MediaWiki, e não usa essa consulta ao Wikifeeds.
+
+O tamanho e o formato exigem o programa e os estilos da versão 1.15.0. Use <code>appearance.photoSize</code> com os números <code>64</code>, <code>96</code>, <code>128</code>, <code>160</code> ou <code>200</code>. O formato usa <code>appearance.photoShape</code> com <code>square</code> ou <code>round</code>. Uma configuração anterior sem esses campos conserva a foto quadrada de 96 pixels.
+
+O alinhamento da foto exige o programa e os estilos da versão 1.14.0. Use <code>appearance.photoAlignment</code> com <code>left</code>, <code>center</code> ou <code>right</code>. Quando esse campo não existe em uma configuração anterior, a foto continua à esquerda.
+
+Junto de "Foto do Wikimedia Commons", "Envie uma foto" abre o [https://commons.wikimedia.org/wiki/Special:UploadWizard?uselang=pt-br assistente de envio] em outra aba. O arquivo é enviado pelo Commons, seguindo suas orientações, e seu nome precisa ser copiado depois para o campo da foto.<ref>[https://commons.wikimedia.org/wiki/Commons:Upload Orientações do Wikimedia Commons para enviar arquivos].</ref> O instalador oferece a ligação, sem enviar imagens ou preencher o nome do arquivo automaticamente.
+
+=== Itens, topo e horário local ===
+
+Uma informação adicional pode reunir até oito itens sob o mesmo rótulo, como <nowiki>[[Universidade Federal de Minas Gerais|UFMG]]</nowiki> e <nowiki>[[Universidade de São Paulo|USP]]</nowiki> em "Formação". "Adicionar item" abre outro campo, e "Disposição das informações" fica junto do próprio rótulo, mesmo com um único item. Os itens podem ficar lado a lado, separados por barra vertical, ponto central ou espaço, ou em linhas separadas, com ou sem marcadores. Um rótulo preenchido já aparece na prévia, mesmo sem dado, e pode permanecer assim no painel, sem dois-pontos ou uma lista vazia.
+
+Nome, localização, informações adicionais, data de criação, foto e horário podem aparecer no topo e nas áreas anteriores, conforme a escolha de cada campo. O tamanho do nome pode ser escolhido entre 16 e 36 pixels, com 24 no início. O topo só aparece quando recebe algum conteúdo, sem duplicar o nome por conta própria.
+
+"Mostrar hora local" e o fuso ficam junto de "Localização", em "Seu perfil". O seletor "Posição da hora" aparece quando a opção está marcada. O horário usa o fuso escolhido e mostra sua diferença para UTC, com ajuste de horário de verão. Quando a cidade e o horário aparecem na mesma área, ficam juntos na mesma linha de informações, antes dos outros campos. Se recebem posições diferentes, cada um mantém a escolha. Sem uma cidade visível naquela área, o horário pode aparecer sozinho. A linha mostra apenas a hora e a diferença para UTC, como "11:42 (UTC-3)", sem o texto "Hora local". O horário acompanha os minutos na sessão da própria conta com o programa ativo. A cópia pública conserva a hora do momento em que foi preparada. A dica informa a data e o fuso, distinguindo o horário salvo, e o atributo de data guarda o instante em formato ISO.
+
+A configuração antiga com um valor por rótulo continua aceita. Os grupos de itens, o topo, o tamanho do nome e o horário exigem o programa e os estilos da versão 1.10.0. Rótulos sem dado e os ajustes de itens sempre junto do rótulo exigem o programa 1.13.0. Nos downloads das disposições anteriores, o topo acompanha o primeiro bloco visível. Preserve uma só cópia dele ao substituir os trechos.
+
+=== Estatutos na Wikipédia em português ===
+
+Em "Seu perfil", marque "Mostrar estatutos" para apresentar os grupos públicos da conta na Wikipédia em português e escolha sua posição em "Mostrar estatutos em". A opção começa desmarcada, e "Padrão" acompanha a posição geral das informações. A lista usa os grupos públicos da ptwiki, sem deduzir permissões pelas edições da conta.<ref>[https://pt.wikipedia.org/wiki/Wikip%C3%A9dia:Tipos_de_usu%C3%A1rios Tipos de usuários da Wikipédia em português].</ref>
+
+Quando o campo está ativado e visível, o programa consulta os grupos explícitos e implícitos por <code>list=users</code> e <code>usprop=groups|implicitgroups</code>, com GET anônimo e sem aproveitar o login da conta.<ref>[https://www.mediawiki.org/wiki/API:Users Consulta pública dos grupos de usuários].</ref> Depois de uma resposta conferida, o resultado é reaproveitado por 24 horas. Uma atualização forçada pode antecipar a consulta. Esses dados ficam separados dos contadores e não mudam suas regras ou a identidade do histórico.
+
+Se a lista contém "Autoconfirmado estendido", a apresentação retira "Autoconfirmado" e "Confirmado" para evitar a repetição. Outros estatutos, como "Autorrevisor", "Reversor" e "Administrador", permanecem juntos quando constam na resposta. Sem uma resposta conferida, o campo mostra "Aguardando dados" ou "Estatutos indisponíveis" depois de uma falha. Um erro posterior conserva os últimos dados válidos.
+
+Em cada área do perfil, os estatutos e a data de criação ficam depois das informações adicionais, quando estiverem visíveis naquele local. '''Estatutos''' vem antes de '''Conta criada''', e somente esses rótulos recebem negrito, mantendo os valores com o peso normal do texto. A posição escolhida para cada campo continua valendo.
+
+A cópia pública mantém os estatutos da última consulta salva, com sua data em UTC na dica do campo. Para mostrar uma mudança posterior aos visitantes, prepare e salve outra cópia do painel. O ajuste fica em <code>appearance.showUserGroups</code>, com <code>false</code> no início, e sua posição em <code>appearance.profilePlacements.userGroups</code>, com <code>inherit</code> no início. Esses ajustes exigem o programa da versão 1.13.0.
+
+No código-fonte, <code>UserGroups.js</code> confere a conta, o projeto, a data e os nomes dos grupos antes da apresentação. A prova fica em <code>statistics.userGroups</code>, com <code>version</code>, <code>user</code>, <code>project</code>, <code>checkedAt</code> e <code>groups</code>, separada dos números das caixas.
+
+=== Caixas dentro da atividade ===
+
+A disposição inicial mostra as caixas dentro da atividade, depois do cabeçalho com a sequência e antes do gráfico de 12 semanas. Em "Disposição", "Caixas na atividade" escolhe esse arranjo. As disposições anteriores continuam disponíveis, com ordem própria ou textos entre os blocos separados.
+
+Os campos enviados à atividade ficam no cabeçalho, e os enviados às caixas ficam logo acima dos contadores internos. Escolher os dois locais mantém o campo nas duas posições. Cores, destaques, foto, alinhamentos e ordem das caixas conservam suas opções.
+
+O trecho da página de usuário já contém o painel integrado. "Baixar painel atualizado" reúne as caixas e a atividade no mesmo arquivo. O download dos contadores continua fornecendo somente a parte interna. O convite de instalação aparece uma vez no fim do painel. A disposição integrada exige o programa e os estilos da versão 1.9.0.
+
+=== Conferir os trechos públicos ===
+
+Depois de uma futura instalação manual, "Verificar instalação" compara os trechos públicos com os arquivos da distribuição local e as escolhas preparadas. O botão lê o manifesto local e consulta o common.js da conta, a página de destino, o programa compartilhado e os estilos. Os módulos de informação e revisões fornecem o modelo de conteúdo e o texto público da revisão mais recente.<ref>[https://www.mediawiki.org/wiki/API:Info Informações públicas das páginas].</ref><ref>[https://www.mediawiki.org/wiki/API:Revisions Conteúdo público das revisões].</ref>
+
+A consulta só começa quando o botão é acionado e usa <code>GET</code> com <code>credentials: 'omit'</code>, sem login ou tokens. O código recebido fica como texto e não é executado. O resultado separa o que confere, o que está ausente, o que está diferente e o que não pôde ser conferido. Uma falha de acesso não prova que a página esteja ausente. O verificador não salva correções nem certifica que o programa foi executado no navegador ou que os serviços de estatísticas responderam.
+
+"Arquivos e documentação" abre <code>Arquivos.html</code>, que conserva o conteúdo inteiro, os destinos, os resumos, os downloads e os atalhos aos editores dos arquivos compartilhados. A última etapa fica concentrada nos trechos pessoais e na conferência.
+
+== Ordem de uma futura atualização ==
+
+Os passos desta seção documentam uma publicação manual futura. O candidato continua local até que a atualização seja aprovada.
+
+# Atualize o programa completo em [[Usuário:Daniel G Rego/PerfilWiki.js]].
+# Atualize os estilos completos em [[Usuário:Daniel G Rego/RitmoPU-estilos]], mantendo o modelo "CSS higienizado".
+# Atualize a documentação compartilhada com o arquivo da mesma distribuição.
+# Prepare o carregador da própria conta e os blocos pessoais no instalador, conferindo os destinos e os resumos antes da cópia manual.
+# Depois de salvar os trechos pessoais, encerre as abas antigas e reabra a página em modo de leitura.
+
+O campo <code>appearance</code> exige o programa 1.1.0, e <code>displayName</code> exige o programa 1.1.1. O contador de dias com edições, os fundos personalizados, a ordem dos blocos e o convite único exigem o programa 1.2.0. Atualizar somente o carregador pessoal enquanto o programa compartilhado ainda usa a versão 1.0.1 não instala a personalização. As caixas de edições em artigos, edições em discussões, meses com edições e dia com mais edições, o espaçamento Amplo e a escolha de colunas exigem o programa 1.3.0. As caixas de edições nos últimos 30 dias, média por dia ativo, anos com edições e mês com mais edições exigem o programa 1.4.0. As caixas de agradecimentos enviados, média de bytes acrescentados por edição, maior acréscimo e maior remoção em uma edição exigem o programa 1.5.0. O alinhamento do nome, os campos opcionais abaixo dele e a data de criação da conta exigem o programa 1.6.0. As ligações internas nos campos, a escolha do bloco para essas informações e o período personalizado exigem 1.7.0. A posição individual dos campos, a foto, as informações na mesma linha e cinco colunas exigem 1.8.0. Os estilos e a documentação também precisam acompanhar a mesma versão.
+
+== Instalar na sua conta ==
+
+=== Carregar o programa ===
+
+Entre na sua conta da Wikipédia em português e abra [[Especial:Minha página/common.js|seu common.js]] em "Editar código-fonte". Preserve o código que já estiver no arquivo e acrescente uma só cópia do carregador pessoal preparado na última tela do instalador.<ref>[https://www.mediawiki.org/wiki/Manual:Interface/JavaScript JavaScript pessoal no MediaWiki].</ref>
+
+O arquivo genérico <code>Carregador_PerfilWiki.js</code> do índice de manutenção permite usar os padrões, sem a configuração personalizada. Ele pode iniciar a coleta na página da própria conta, mas não recupera as escolhas da prévia. Use o carregador preparado pelo instalador para conservar foto, campos, cores e seleção das caixas.
+
+O carregador confere a conta e a página antes de buscar o programa. Use o arquivo completo, pois uma importação isolada buscaria o programa também nas páginas onde a rotina não será usada. O destino <code>Usuário:Daniel G Rego/PerfilWiki.js</code> dentro dele aponta para o programa compartilhado. Seus números vêm da conta configurada.
+
+O instalador já prepara a conta informada, o fuso escolhido e as opções de aparência antes do carregador. Em uma configuração escrita manualmente, sem esses campos o programa usa a conta conectada e o fuso do navegador, com UTC como alternativa se o fuso não puder ser obtido. Um exemplo com conta, nome de exibição e fuso é:
+
+<syntaxhighlight lang="javascript">
+window.PerfilWikiConfig = {
+    user: 'SEU_NOME_DE_USUARIO',
+    displayName: 'SEU_NOME_DE_EXIBICAO',
+    timeZone: 'America/Sao_Paulo'
+};
+</syntaxhighlight>
+
+Se o carregador preparado pelo instalador já contiver <code>window.PerfilWikiConfig</code>, altere esse objeto no próprio trecho. Uma segunda configuração pode sobrescrever as opções escolhidas. Preserve as verificações do carregador e mantenha uma só chamada de importação.
+
+O campo opcional <code>user</code> aceita o nome exato da própria conta. O programa só inicia quando a conta conectada corresponde à configurada. <code>displayName</code> escolhe apenas o nome mostrado nos títulos. Retire-o ou deixe-o vazio para usar o nome da conta. Não acrescente campos que não estejam nesta documentação.
+
+=== Colocar as caixas e o painel na página ===
+
+O instalador <code>INICIO.html</code> prepara um trecho conjunto e os blocos independentes das caixas e da atividade. O índice de manutenção <code>Arquivos.html</code> também conserva os arquivos genéricos <code>Contadores_iniciais.wiki</code> e <code>Atividade_inicial.wiki</code>. Abra [[Especial:Minha página|sua página de usuário]] em "Editar código-fonte" e coloque cada trecho onde quiser mostrar as caixas e o painel. Preserve os outros textos e as categorias.
+
+Informe o nome da sua conta no índice antes de copiar ou baixar os trechos. Ele coloca a conta informada na marca <code>data-perfilwiki-user</code> dos blocos e prepara o destino da página ou da subpágina escolhida. Se usar os arquivos diretamente, substitua essa marca manualmente pelo nome exato da conta.
+
+As caixas começam com "Aguardando dados". Não copie os números da página de outra pessoa. O painel de atividade usa o identificador <code>dan-pu-ritmo</code> e deve aparecer uma só vez na mesma página. As caixas também precisam manter uma só ocorrência de cada identificador fornecido pelo índice.
+
+A aparência pública usa a folha compartilhada:
+
+<syntaxhighlight lang="wikitext">
+<templatestyles src="Usuário:Daniel G Rego/RitmoPU-estilos" />
+</syntaxhighlight>
+
+O nome "RitmoPU-estilos" é mantido porque essa folha já usa o modelo "CSS higienizado", cujo nome técnico é <code>sanitized-css</code>, e contém as regras de aparência do PerfilWiki. Não troque esse destino por uma página nova em wikitexto. TemplateStyles aceita um conjunto menor de regras que um navegador comum.<ref>[https://www.mediawiki.org/wiki/Extension:TemplateStyles Estilos de conteúdo com TemplateStyles].</ref>
+
+Salve, feche as abas antigas da Wikipédia e reabra a versão de leitura da sua página. O programa inicia nas páginas do grupo "Usuário" da própria conta, na Wikipédia em português. O editor e a previsão não iniciam essa rotina.
+
+Na primeira consulta, mantenha a página aberta e visível enquanto o histórico e as visualizações são consultados em lotes. Contas com muitos artigos podem precisar de mais tempo. As consultas não continuam depois que a página é fechada.
+
+== Personalizar as caixas e a atividade ==
+
+As escolhas de aparência ficam em <code>window.PerfilWikiConfig.appearance</code>. Em "Disposição", "Cor do painel" ajusta a cor principal e "Cor do destaque das caixas" fica junto das colunas e do alinhamento dos contadores. A estrela de cada caixa continua escolhendo quais recebem esse fundo. As cores de nome, rótulos e informações ficam junto dos campos em "Seu perfil", e o fundo do topo fica junto da capa. O antigo grupo "Cores e destaques" saiu da coluna. A paleta oferece cores com nomes, um campo que aceita clique e arraste, o controle "Clarear ou escurecer" e o código hexadecimal. O seletor fecha ao clicar fora dele, pressionar Escape ou usar o botão de fechar. A cor principal clara continua nos detalhes de destaque, enquanto o programa pode escurecer o texto correspondente sobre branco para manter a leitura. Essa regra da cor principal não modifica as cores de texto escolhidas manualmente.
+
+O espaçamento Confortável mantém a apresentação inicial. Compacto reduz o espaço interno e o tamanho dos números nas caixas. Amplo aumenta o espaço dentro dos componentes. O alinhamento à direita é o padrão das caixas, com opções à esquerda e ao centro. Essa escolha não desloca os títulos dos artigos na lista de visualizações.
+
+No modo automático, Compacto usa até cinco colunas, Confortável até quatro e Amplo até três, quando houver largura suficiente. Você também pode escolher um limite de duas, três, quatro ou cinco colunas. O limite escolhido vale quando há largura suficiente, e telas estreitas reduzem as colunas para manter a leitura. Essa escolha muda apenas as caixas, sem colocar a atividade ao lado delas.
+
+Use "Adicionar caixas" na prévia para marcar os contadores que deseja mostrar. A estrela da própria caixa aplica ou retira o destaque, e o botão × remove a caixa da seleção. Mude a ordem arrastando pela alça ou dê foco a ela e use esquerda ou cima para antecipar a caixa, ou direita ou baixo para colocá-la depois. Se as caixas estiverem visíveis, pelo menos um contador precisa permanecer selecionado. É possível ocultar as caixas ou a atividade, mantendo ao menos um bloco. As alças e os controles do instalador não entram nos trechos exportados.
+
+Escolha as caixas que receberão fundo de destaque e a cor desse fundo. O padrão destaca "Na Wikipédia" com <code>#faf7ef</code>. Você pode destacar outra caixa, mais de uma ou nenhuma. O programa prepara uma cor de texto legível sobre o fundo escolhido.
+
+No modo conjunto, escolha caixas primeiro ou atividade primeiro. O programa só pode inverter a ordem dentro do agrupamento preparado pelo instalador para a mesma conta, marcado com <code>data-perfilwiki-group="true"</code>. No modo separado, coloque os trechos nos pontos desejados do código da página. A rotina conserva os textos que já existem entre eles.
+
+O convite "Gostou deste painel? Veja como adicionar à sua página de usuário." aparece uma vez depois do último bloco visível. Ele também aparece quando somente as caixas são usadas.
+
+A aba inicial pode ser "30 dias", "90 dias", "12 meses", "Total acumulado" ou "Personalizado". Na última opção, escolha uma data inicial e uma data final. Os períodos das outras abas permanecem iguais.
+
+<syntaxhighlight lang="javascript">
+window.PerfilWikiConfig = {
+    user: 'SEU_NOME_DE_USUARIO',
+    displayName: 'SEU_NOME_DE_EXIBICAO',
+    location: '',
+    customFields: [],
+    photo: '',
+    coverImage: '',
+    timeZone: 'America/Sao_Paulo',
+    stylesPage: 'Usuário:Daniel G Rego/RitmoPU-estilos',
+    documentationPage: 'Usuário:Daniel G Rego/PerfilWiki',
+    appearance: {
+        theme: 'blue',
+        accent: '#3366cc',
+        topBackground: '#ffffff',
+        coverSource: 'manual',
+        density: 'comfortable',
+        cardColumns: 'auto',
+        layout: 'integrated',
+        blockOrder: 'cards-first',
+        alignment: 'right',
+        nameAlignment: 'left',
+        photoAlignment: 'left',
+        photoSize: 96,
+        photoShape: 'square',
+        nameFontSize: 24,
+        nameColor: '',
+        labelColor: '',
+        informationColor: '',
+        showLocalTime: false,
+        showUserGroups: false,
+        profilePlacement: 'top',
+        profilePlacements: {name: 'inherit', location: 'inherit', accountCreated: 'inherit', photo: 'top', localTime: 'top', userGroups: 'inherit'},
+        profileDetailsLayout: 'stacked',
+        customRange: null,
+        showAccountCreated: false,
+        highlightedMetrics: ['tenure'],
+        highlightColor: '#faf7ef',
+        metrics: ['tenure', 'bestStreak', 'thanks', 'edits', 'reverts', 'edited', 'articles', 'technicalCreated'],
+        showCards: true,
+        showActivity: true,
+        initialPeriod: '30d'
+    }
+};
+</syntaxhighlight>
+
+Os campos <code>displayName</code>, <code>location</code>, <code>customFields</code>, <code>photo</code> e <code>coverImage</code> ficam fora de <code>appearance</code>, ao lado de <code>user</code>. A conta real deve permanecer em <code>user</code>, mesmo quando os nomes forem diferentes. <code>location</code> recebe texto com ligações internas ou uma string vazia. Os valores de <code>customFields</code> também aceitam ligações internas, e seus rótulos usam apenas texto. <code>customFields</code> recebe até três objetos com <code>label</code> e <code>value</code>, por exemplo <code>[{label: 'Pesquisa', value: 'Bibliotecas e arquivos', placement: 'cards'}]</code>. A opção <code>placement</code> aceita <code>inherit</code>, <code>top</code>, <code>cards</code>, <code>activity</code>, <code>both</code>, <code>top-activity</code>, <code>top-cards</code>, <code>all</code> ou <code>hidden</code>, usando <code>inherit</code> quando ausente. Os limites são 120 pontos de código para a localização, 40 para o rótulo e 160 para o valor, contando também os sinais da marcação das ligações. Esses campos não entram na identidade das consultas ou do cache. Para mostrar apenas um rótulo, use <code>{label: 'Pesquisa'}</code> ou <code>{label: 'Pesquisa', value: ''}</code>. Um grupo com <code>values: []</code> também conserva o rótulo e seus ajustes de disposição.
+
+=== Cores de cada rótulo e item ===
+
+Desde 1.18.0, <code>labelColor</code> escolhe a cor do rótulo de cada objeto de <code>customFields</code>, enquanto <code>valueColor</code> escolhe a cor de um único <code>value</code>. Na forma com <code>values</code>, <code>valueColors</code> traz uma cor por item, na mesma ordem e com a mesma quantidade de entradas. Cada cor pode ser uma string vazia, para seguir o padrão do perfil, ou <code>#</code> com seis dígitos hexadecimais. A ausência desses campos também segue o padrão, preservando as configurações antigas. Sem uma cor própria, o rótulo acompanha <code>appearance.labelColor</code>, e o valor ou item acompanha <code>appearance.informationColor</code>. Não junte <code>value</code> e <code>values</code> nem suas duas formas de cor no mesmo objeto.
+
+<syntaxhighlight lang="javascript">
+customFields: [
+    {
+        label: 'Formação',
+        labelColor: '#4b2d73',
+        values: ['[[Universidade Federal de Minas Gerais|UFMG]]', '[[Universidade de São Paulo|USP]]'],
+        valueColors: ['#285b85', '#7b2d35'],
+        layout: 'inline',
+        separator: 'pipe',
+        placement: 'top'
+    },
+    {
+        label: 'Pesquisa',
+        labelColor: '',
+        value: '[[História]]',
+        valueColor: '',
+        placement: 'cards'
+    }
+]
+</syntaxhighlight>
+
+Neste trecho de configuração, o rótulo "Formação" e cada universidade têm cores próprias. "Pesquisa" segue as cores gerais do perfil, mesmo que elas sejam alteradas depois. O exemplo mostra apenas <code>customFields</code>, e não um arquivo completo para importar. Use o arquivo gerado por "Baixar minhas escolhas" para guardar a configuração inteira.
+
+{| class="wikitable"
+! Campo !! Valores aceitos
+|-
+| <code>theme</code> || <code>blue</code>, <code>forest</code>, <code>violet</code> ou <code>custom</code>
+|-
+| <code>accent</code> || Cor hexadecimal com seis dígitos depois de <code>#</code>
+|-
+| <code>topBackground</code> || Cor hexadecimal com seis dígitos para o fundo do topo, com <code>#ffffff</code> no início
+|-
+| <code>coverSource</code> || <code>manual</code>, o padrão, usa <code>coverImage</code>. <code>daily</code> consulta a imagem do Commons na sessão da própria conta. <code>wiki-daily</code> mantém a chamada ao calendário da Wikipédia para visitantes
+|-
+| <code>density</code> || <code>compact</code>, <code>comfortable</code> ou <code>roomy</code>, chamado Amplo no instalador
+|-
+| <code>cardColumns</code> || <code>auto</code>, <code>2</code>, <code>3</code>, <code>4</code> ou <code>5</code>, como texto, com redução em telas estreitas
+|-
+| <code>layout</code> || <code>integrated</code>, o padrão, <code>together</code> ou <code>separate</code>
+|-
+| <code>blockOrder</code> || <code>cards-first</code> para caixas primeiro ou <code>activity-first</code> para atividade primeiro
+|-
+| <code>highlightedMetrics</code> || Lista dos contadores com fundo de destaque, sem repetição, ou uma lista vazia
+|-
+| <code>highlightColor</code> || Cor hexadecimal com seis dígitos para o fundo escolhido
+|-
+| <code>alignment</code> || <code>right</code>, <code>left</code> ou <code>center</code>, para os números das caixas
+|-
+| <code>profilePlacement</code> || <code>top</code>, o padrão, <code>activity</code>, <code>cards</code>, <code>both</code> ou <code>all</code>, para os campos que usam <code>inherit</code>
+|-
+| <code>profilePlacements</code> || Objeto com <code>name</code>, <code>location</code>, <code>accountCreated</code>, <code>photo</code>, <code>localTime</code> e <code>userGroups</code>. Cada valor aceita <code>inherit</code>, <code>top</code>, <code>cards</code>, <code>activity</code>, <code>both</code>, <code>top-activity</code>, <code>top-cards</code>, <code>all</code> ou <code>hidden</code>. A foto e o horário começam em <code>top</code>, os demais em <code>inherit</code>
+|-
+| <code>profileDetailsLayout</code> || Configuração anterior ainda aceita, com <code>stacked</code> ou <code>inline</code>. Seu seletor saiu do instalador. Os itens de cada informação usam seu próprio <code>layout</code>
+|-
+| <code>customRange</code> || <code>null</code> ou um objeto com datas <code>start</code> e <code>end</code> no formato <code>YYYY-MM-DD</code>, entre 1 de julho de 2015 e o último dia completo em UTC
+|-
+| <code>nameAlignment</code> || <code>left</code>, <code>center</code> ou <code>right</code>, com <code>left</code> no início, para o nome e suas informações
+|-
+| <code>photoAlignment</code> || <code>left</code>, o padrão, <code>center</code> ou <code>right</code>, para a foto, sem mudar o alinhamento do nome ou dos contadores
+|-
+| <code>photoSize</code> || <code>64</code>, <code>96</code>, <code>128</code>, <code>160</code> ou <code>200</code>, como número, com <code>96</code> no início
+|-
+| <code>photoShape</code> || <code>square</code>, o padrão, ou <code>round</code>, com recorte aplicado somente à imagem
+|-
+| <code>nameColor</code>, <code>labelColor</code> e <code>informationColor</code> || String vazia para a cor automática, o padrão, ou cor com seis dígitos depois de <code>#</code>, mantida exatamente como foi escolhida
+|-
+| <code>nameFontSize</code> || <code>16</code>, <code>20</code>, <code>24</code>, <code>28</code>, <code>32</code> ou <code>36</code>, com <code>24</code> no início
+|-
+| <code>showLocalTime</code> || <code>true</code> para mostrar o horário no fuso escolhido ou <code>false</code>, o padrão, para ocultá-lo
+|-
+| <code>showUserGroups</code> || <code>true</code> para mostrar os estatutos públicos da ptwiki ou <code>false</code>, o padrão, para ocultá-los e não pedir essa consulta
+|-
+| <code>showAccountCreated</code> || <code>true</code> para mostrar a data disponível ou <code>false</code>, o padrão, para ocultá-la
+|-
+| <code>metrics</code> || Lista dos contadores na ordem desejada, sem repetição
+|-
+| <code>showCards</code> e <code>showActivity</code> || <code>true</code> para mostrar ou <code>false</code> para ocultar o bloco
+|-
+| <code>initialPeriod</code> || <code>30d</code>, <code>90d</code>, <code>12m</code>, <code>since</code> ou <code>custom</code>, quando <code>customRange</code> está preenchido
+|}
+
+Os nomes dos contadores em <code>metrics</code> seguem a ordem padrão do exemplo. São <code>tenure</code> para os anos na Wikipédia, <code>bestStreak</code> para a melhor sequência, <code>thanks</code> para os agradecimentos, <code>edits</code> para as contribuições, <code>reverts</code> para as reversões, <code>edited</code> para os artigos diferentes editados, <code>articles</code> para os artigos criados e <code>technicalCreated</code> para as criações técnicas. As dezesseis caixas opcionais usam <code>mostEditedArticle</code>, <code>bytesAdded</code>, <code>bytesRemoved</code>, <code>activeDays</code>, <code>articleEdits</code>, <code>talkEdits</code>, <code>activeMonths</code>, <code>busiestDay</code>, <code>edits30</code>, <code>averagePerActiveDay</code>, <code>activeYears</code>, <code>busiestMonth</code>, <code>thanksSent</code>, <code>averageBytesPerEdit</code>, <code>largestAddition</code> e <code>largestRemoval</code>.
+
+Os blocos iniciais e os downloads conservam a conta e as opções de aparência. Mudar o carregador altera a sessão da própria conta. Para que os visitantes recebam a nova aparência, baixe novamente as caixas e a atividade e substitua os blocos correspondentes na página. A configuração não altera sozinha o wikitexto já salvo.
+
+== Migrar do RitmoPU e do EstatisticasPU ==
+
+Guarde uma cópia do trecho atual do seu common.js. Retire apenas as configurações e os carregadores antigos de RitmoPU e EstatisticasPU, inclusive chamadas colocadas dentro de outras funções. Acrescente a chamada única do PerfilWiki e sua configuração opcional. Preserve o RevisaWiki e os outros scripts.
+
+Se as caixas e o painel já estiverem na posição desejada, conserve a disposição e os identificadores compatíveis. Atualize a chamada dos estilos e substitua somente os blocos indicados pelo índice. Não substitua a página pessoal inteira por um modelo de outra conta.
+
+Feche as abas antigas depois de salvar. Um programa antigo ainda aberto pode continuar consultando dados até ser encerrado. O PerfilWiki confere a conta, o projeto e o fuso antes de aceitar um cache anterior. Quando não puder reaproveitá-lo, fará uma nova coleta. As chaves de outros programas não devem ser apagadas para instalar a ferramenta.
+
+== Atualizar os números para visitantes ==
+
+O common.js pessoal atualiza a tela da própria conta. Quem visita a página vê o wikitexto salvo nela.<ref>[https://www.mediawiki.org/wiki/Manual:Interface/JavaScript#Personal_scripts Carregamento dos scripts pessoais].</ref> O PerfilWiki não salva páginas, não pede tokens de edição e não faz edições em seu nome.
+
+No menu "Ferramentas", "Baixar contadores atualizados" prepara <code>PerfilWiki_contadores.wiki</code>, e "Baixar painel atualizado" prepara <code>PerfilWiki_atividade.wiki</code>. Abra o arquivo em um editor de texto e confira a conta, os valores e a data. Substitua somente o bloco correspondente na sua página, usando o texto inteiro do arquivo. Se o trecho já trouxer a chamada dos estilos, evite duplicá-la.
+
+Use "Mostrar previsão" antes de salvar. O download não publica o arquivo, e uma consulta nova no navegador não altera a cópia pública. Você pode atualizar as caixas e o painel em momentos diferentes, por isso confira a data de cada trecho.
+
+Os downloads de todo o painel conservam um único par de marcadores <code>PERFILWIKI-PROFILE-BEGIN</code> e <code>PERFILWIKI-PROFILE-END</code>. Isso vale para o painel integrado e para uma instalação com apenas caixas ou apenas atividade. Quando os dois blocos estão habilitados nas disposições anteriores, os downloads individuais são fragmentos. Ao substituir um desses fragmentos, preserve os marcadores externos, o outro bloco e seus textos pessoais fora da região do painel.
+
+Na sua sessão, "Última edição" usa um tempo relativo que avança enquanto a página fica aberta. A cópia pública usa "Última edição consultada" e uma data completa. Essa data se refere à edição recebida naquela consulta e não muda sozinha depois de salva.
+
+<span id="Como_os_dados_são_contados"></span>
+== O que cada caixa conta ==
+
+{| class="wikitable"
+! Caixa !! Regra
+|-
+| Contribuições || Total de edições informado para a conta global. Pode abranger projetos de outros idiomas e projetos que não são Wikipédias.
+|-
+| Agradecimentos recebidos || Soma dos agradecimentos públicos nos projetos ligados à conta global em que o registro está disponível.
+|-
+| Artigos criados || Contagem do XTools nas Wikipédias ligadas à conta, sem redirecionamentos e incluindo artigos apagados pelo filtro da consulta. As Wikipédias de teste ficam fora, e o campo de apagados não é somado uma segunda vez.
+|-
+| Artigos diferentes editados || Artigos da Wikipédia em português que continuam existentes no domínio principal e não são redirecionamentos. Cada página entra uma vez.
+|-
+| Reversões || Edições da conta na Wikipédia em português com as etiquetas <code>mw-rollback</code>, <code>mw-undo</code> ou <code>mw-manual-revert</code>. A etiqueta <code>mw-reverted</code> não entra, pois pertence à edição desfeita.
+|-
+| Predefinições, módulos e scripts criados || Páginas técnicas distintas criadas pela conta na Wikipédia em português, com conferência da autoria e do tipo atual.
+|-
+| Melhor sequência || Maior sequência de dias com edições públicas na Wikipédia em português, no fuso configurado.
+|-
+| Na Wikipédia || Anos completos desde a menor data pública conferida entre a conta global e as contas vinculadas. A criação local da ptwiki pode ser posterior e não substitui essa data. Sem a prova da criação mais antiga, a caixa aguarda dados. A cópia pública em português usa <code>Tempo decorrido</code> com a mesma data conferida.
+|}
+
+Dez edições no mesmo artigo somam dez contribuições e um artigo diferente. As reversões sem uma das etiquetas aceitas não são descobertas por uma análise do conteúdo das edições. Um grupo que ainda não terminou de consultar todos os projetos conserva seu último total completo.
+
+=== Caixas opcionais ===
+
+"Dias com edições" conta uma vez cada dia com alguma edição aceita no histórico público da Wikipédia em português, no fuso escolhido. Dez edições no mesmo dia contam como um dia. O número usa as mesmas exclusões do calendário, incluindo as antigas atualizações da própria subpágina de estatísticas, e aguarda o histórico completo. Durante uma atualização incompleta, o último valor conferido pode permanecer na caixa.
+
+"Artigo mais editado" conta as edições públicas da conta em cada artigo da Wikipédia em português e mostra o primeiro da classificação. A escolha não depende das visualizações dos artigos.
+
+"Bytes acrescentados" e "Bytes removidos" usam a diferença de tamanho de cada revisão pública em relação à anterior. Uma edição com diferença de +500 soma 500 bytes acrescentados. Uma edição com diferença de -200 soma 200 bytes removidos. As somas percorrem os grupos de páginas da Wikipédia em português, sem se limitar a artigos, e cada revisão entra uma só vez.<ref>[https://www.mediawiki.org/wiki/API:Usercontribs Diferença de tamanho das revisões no histórico público].</ref>
+
+A diferença líquida não conta todos os caracteres substituídos. Trocar um trecho por outro do mesmo tamanho resulta em zero, mesmo que o texto tenha mudado. Esses totais não medem autoria, qualidade ou texto que permaneceu publicado.
+
+Um histórico antigo guardado no navegador pode não ter as diferenças de tamanho. Os valores de bytes ficam desconhecidos até que uma nova passagem complete essa cobertura. Campos ausentes ou inválidos não viram zero. Depois da conferência completa, os dados guardados podem ser reaproveitados nas próximas atualizações.
+
+"Edições em artigos" soma as edições públicas no domínio principal da Wikipédia em português. Uma página pode entrar mais de uma vez quando recebeu mais de uma edição. "Edições em discussões" soma as edições nas páginas de discussão dos grupos de páginas locais. Esses valores contam edições, sem medir quantas páginas diferentes foram alteradas.
+
+"Meses com edições" conta cada mês com alguma edição aceita pelo calendário, no fuso escolhido. "Dia com mais edições" mostra a data que teve o maior total de edições aceitas e o total daquele dia. Esses cálculos seguem as mesmas exclusões dos dias com edições. As quatro caixas aguardam o histórico completo e reutilizam os dados já consultados, sem outro pedido à rede. Uma atualização incompleta conserva o último valor conferido, quando houver.
+
+"Edições nos últimos 30 dias" soma as edições aceitas pelo calendário nos últimos 30 dias, incluindo o dia em andamento, no fuso escolhido. "Média por dia ativo" divide todas as edições aceitas pelo número de dias em que houve alguma edição e mostra uma casa decimal. Os dias sem edição ficam fora dessa divisão.
+
+"Anos com edições" conta cada ano do calendário que teve alguma edição aceita, sem exigir anos seguidos. "Mês com mais edições" mostra o mês e o ano com o maior total e informa quantas edições ele teve. Um empate escolhe o mês mais antigo. As quatro caixas seguem as exclusões do calendário, aguardam o histórico completo e reaproveitam o resumo já calculado, sem novas consultas de rede.
+
+"Média de bytes acrescentados por edição" divide o total de acréscimos pelo número de revisões públicas locais do histórico completo. A divisão abrange as edições que acrescentaram conteúdo, as que removeram e as que não mudaram o tamanho. Com três edições de +600, -200 e zero bytes, o total acrescentado é 600 e a média é 200 bytes por edição. A média aparece com uma casa decimal.
+
+"Maior acréscimo em uma edição" mostra a maior diferença positiva de tamanho. "Maior remoção em uma edição" mostra a maior diferença negativa em valor absoluto. As três caixas reaproveitam as diferenças já consultadas, sem outro percurso do histórico. Um histórico completo sem edições recebe zero. Se alguma diferença estiver ausente ou inválida, o resultado fica desconhecido até completar a cobertura, conservando um valor anterior conferido quando houver. Os valores usam B, KiB, MiB e as unidades seguintes, com cada unidade igual a 1.024 da anterior.
+
+"Agradecimentos enviados" soma os eventos públicos em que a conta enviou um agradecimento na Wikipédia em português. A consulta usa o filtro de autor da ação, chamado <code>leuser</code>, e percorre os lotes antes de concluir o total.<ref>[https://www.mediawiki.org/wiki/Extension:Thanks#SQL_documentation Registro público de agradecimentos na extensão Thanks].</ref><ref>[https://www.mediawiki.org/wiki/API:Logevents Eventos públicos e filtro de autor na API do MediaWiki].</ref> Essa consulta só acontece quando a caixa está selecionada e não abrange outros projetos nem eventos fora do registro público. Uma consulta incompleta conserva o último resultado conferido quando houver. A caixa "Agradecimentos recebidos" mantém seu alcance nos projetos da conta global.
+
+=== Criações técnicas ===
+
+Uma criação precisa ter a marca de página nova e uma revisão sem revisão anterior, além dos números válidos da página e da revisão. O script confere se a página ainda existe, se não virou redirecionamento e qual é seu modelo de conteúdo.<ref>[https://www.mediawiki.org/wiki/API:Usercontribs Campos do histórico público de edições].</ref>
+
+Entram predefinições em wikitexto, módulos Scribunto e JavaScript nos grupos "Usuário" e "MediaWiki". CSS, JSON, páginas apagadas e redirecionamentos ficam fora. Editar código criado por outra pessoa não faz a página entrar nessa caixa.
+
+Os filtros de nome retiram subpáginas de documentação, testes e rascunhos reconhecidas pelo código. Entre os nomes estão <code>doc</code>, <code>documentacao</code>, <code>documentation</code>, <code>teste</code>, <code>test</code>, <code>testcases</code>, <code>sandbox</code> e <code>caixa de areia</code>, com os separadores previstos. Arquivos JavaScript terminados com nomes de teste, como <code>test.js</code>, <code>teste.js</code> e <code>spec.js</code>, também ficam fora. Esses filtros conferem nomes, sem examinar o conteúdo de toda página de teste com um nome diferente.
+
+== Calendário, sequência e metas ==
+
+Um dia entra na atividade quando há pelo menos uma edição pública nele, no fuso escolhido. Entram artigos e os outros grupos de páginas da Wikipédia em português. As antigas atualizações da subpágina <code>Usuário:NOME/PU/Estatísticas</code> da própria conta ficam fora, para que essas atualizações não mantenham uma sequência por conta própria.
+
+Se houve edição ontem e ainda não houve hoje, a sequência permanece até o fim de hoje. A melhor sequência define as metas já alcançadas. A sequência em andamento define o progresso até a próxima meta.
+
+O calendário mostra doze semanas. O resumo dos últimos 30 dias separa o número de edições do número de artigos diferentes editados. O histórico é percorrido por todos os lotes da consulta, usando a continuação devolvida pela API, sem limitar a sequência às edições mais recentes.<ref>[https://www.mediawiki.org/wiki/API:Continue Continuação das consultas da API].</ref>
+
+== Visualizações dos artigos ==
+
+Cada artigo começa no primeiro dia completo em UTC depois da sua primeira edição pública nele. Se a edição foi em 10 de outubro UTC, a contagem começa em 11 de outubro. O dia da edição fica fora, pois a consulta diária não separa acessos anteriores e posteriores à edição. Editar novamente o artigo não reinicia a contagem.
+
+As abas de 30 dias, 90 dias e 12 meses respeitam o início individual de cada artigo e terminam no último dia completo em UTC. Doze meses seguem o calendário e podem abranger 365 ou 366 dias. "Total acumulado" soma a série disponível depois do corte individual. O serviço fornece dados desde 1 de julho de 2015, sem recuperar acessos anteriores a essa data.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html Séries de visualizações da Wikimedia].</ref>
+
+Os totais somam todos os artigos aceitos, existentes no domínio principal e sem redirecionamentos. A lista mostra até 500 por período, com dez linhas no início e mais cem a cada expansão. Concluir a classificação dos artigos mais vistos não significa que a soma de todos os artigos já terminou.
+
+Durante uma primeira coleta grande, até dez artigos com suas séries conferidas podem aparecer antes do fim da classificação dos demais. A indicação "Ordem provisória" informa que outros artigos ainda podem entrar acima deles. O total do período continua pendente até completar a cobertura de todos os artigos elegíveis. Essa antecipação não transforma a lista inicial em um top dez definitivo nem reduz a soma final. As séries de milhares de artigos e os períodos mais antigos ainda podem exigir muitas consultas e continuar por mais tempo que o preenchimento inicial das caixas.
+
+A aba "Personalizado" aceita uma data inicial e uma data final, incluindo esses dois dias na soma, sem contar dias anteriores ao corte de cada artigo. Use datas entre 1 de julho de 2015 e o último dia completo em UTC. O total abrange todos os artigos elegíveis do histórico, e a lista começa com dez, com mais cem por vez até quinhentos. A prévia local usa dez artigos com números de exemplo, e as escolhas de datas mudam somente esses números.
+
+Com o programa ativo na sessão do dono da página, escolha as datas e use "Aplicar período" para consultar o intervalo. As quatro abas fixas conservam seus dados. A cópia de wikitexto mostra o intervalo salvo para os visitantes, sem formulário de datas. O carregador preparado pelo instalador pode guardar esse período como escolha inicial. Baixar ou preparar um trecho não salva a página.
+
+As consultas usam os títulos atuais, todos os meios de acesso e o tráfego classificado pelo serviço como de usuários. Uma pessoa pode abrir a página mais de uma vez. Os números não contam leitores únicos nem permitem afirmar que as visitas aconteceram por causa da sua edição.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/concepts/page-views.html Definição de visualização na Wikimedia].</ref> Uma página que mudou de nome também pode ter acessos antigos no título anterior que não entram na consulta pelo título atual.
+
+Uma falha de conexão não vira zero. O painel conserva o último resultado completo quando há dados novos pendentes. Respostas 404 e dias omitidos exigem conferência de disponibilidade antes de serem aceitos como ausência de acessos.<ref>[https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/troubleshooting.html Disponibilidade e erros da API de visualizações].</ref>
+
+As miniaturas dos primeiros artigos são opcionais e usam a consulta de imagens livres do PageImages.<ref>[https://www.mediawiki.org/wiki/Extension:PageImages Consulta de imagens com PageImages].</ref> Se uma imagem falhar, o título e o valor continuam disponíveis. A imagem não altera a contagem.
+
+== Campos pessoais e cópias no navegador ==
+
+Ocultar nome, localização, formação ou foto muda a apresentação, sem apagar o valor da configuração preparada. Para retirar um dado do carregador público ou do JSON baixado, apague o campo e prepare os trechos novamente. Textos de metas e declarações ficam na página preparada e no arquivo de escolhas, fora da rotina que atualiza as métricas. Uma publicação manual pode conservar esses dados no histórico da página mesmo depois de retirá-los da versão visível.
+
+O instalador pode guardar as escolhas e o wikitexto pessoal na sessão da mesma aba, com um identificador aleatório no endereço. Essa cópia é aceita por até 24 horas desde a gravação. Ao receber uma página publicada, também pode conservar seu código-fonte público e o número da revisão para preparar o rascunho. Uma tentativa de reabrir uma entrada vencida ou inválida procura remover somente aquela entrada. O navegador pode restaurar o armazenamento ao recuperar uma aba fechada, e a validade não equivale a uma proteção por senha. Esse caminho fica restrito aos endereços locais previstos e ao caminho fixo do instalador no GitHub Pages.
+
+O botão "Editar painel" da sessão dona do painel abre o GitHub Pages somente depois do clique. As escolhas seguem por mensagens conferidas entre as janelas, sem colocar o nome da conta ou os textos no endereço. O código-fonte público da página pode acompanhar as escolhas depois de uma consulta de leitura. A ferramenta usa esse código como texto e só prepara a troca de uma região reconhecida do painel. O resultado precisa de cópia, previsão e salvamento pela pessoa no editor da Wikipédia, sem pedido de escrita pelo PerfilWiki.
+
+O programa consulta serviços da Wikimedia, XTools e uma lista pública de exclusões em <code>raw.githubusercontent.com</code>. O endereço fixo dessa lista não contém a conta consultada, mas a conexão vai ao GitHub. Pedidos sem cookies ainda informam dados de rede ao serviço que os recebe. As imagens têm suas próprias autorias e licenças, acessíveis pela página do arquivo.
+
+== Consultas e cópia local ==
+
+O programa faz pedidos públicos de leitura, com <code>GET</code> e <code>credentials: 'omit'</code>. O nome da conta e os títulos consultados fazem parte desses pedidos. O navegador guarda dados para retomar as consultas, separados por conta e fuso, e confere sua identidade antes de usá-los.
+
+As instâncias do PerfilWiki na mesma origem do navegador compartilham uma consulta de dados por vez, com pelo menos 500 milissegundos entre seus inícios. Uma resposta da Action API que demora mais de um segundo impõe uma espera de cinco segundos antes da próxima consulta à Action API. Pausas de limite de uso também valem quando alguém pede atualização manual. O orçamento é de até 40 consultas de dados por ciclo, com a reserva da capa quando necessária, e até uma consulta separada de metadados de imagens.<ref>[https://wikitech.wikimedia.org/wiki/Robot_policy Regras de acesso automático da Wikimedia].</ref>
+
+O histórico da Wikipédia em português é compartilhado pelos cálculos de atividade e pelos contadores que precisam dele. Os outros projetos da conta global são consultados para os números de alcance global. O intervalo regular de atualização é de cinco minutos. Uma coleta incompleta pode continuar em lotes, respeitando as pausas solicitadas pelos serviços.
+
+Na primeira visita sem um cache aproveitável, a conferência da identidade vem antes da passagem completa pelo histórico. O total global de contribuições e a criação mais antiga da conta podem aparecer primeiro, enquanto os contadores que precisam de todas as revisões da ptwiki aguardam. Uma conta com muitas edições pode exigir minutos e mais de um ciclo. Mantenha a página aberta e visível para retomar os lotes, sem pedir atualizações manuais repetidas. O total global pode ser maior que a contagem de edições da Wikipédia em português, pois abrange os projetos vinculados à conta.
+
+Se o navegador impedir o armazenamento, os resultados da sessão podem permanecer em memória, mas uma visita futura talvez precise repetir as consultas. Sair da página cancela os pedidos daquele ciclo. Uma resposta antiga não deve substituir os dados de uma coleta nova.
+
+As cópias aceitas do cache usam <code>localStorage</code> e também podem ser guardadas no IndexedDB, com o mesmo texto compactado. Esse segundo armazenamento permite retomar uma cópia que já ultrapassou o espaço do primeiro, sem aumentar os limites aceitos pelo codec nem acrescentar dados pessoais. A primeira cópia de progresso e a cópia final são gravadas, enquanto as intermediárias ficam espaçadas por pelo menos quinze segundos. Se nenhuma forma de armazenamento funcionar, ou se o codec recusar o tamanho, o programa avisa uma vez e conserva os dados disponíveis na memória da aba. Uma visita futura só usa a cópia recuperada depois de conferir novamente a conta, o projeto, o fuso e as métricas. Retirar o programa da página não apaga sozinho esses dados do navegador.
+
+== Corrigir a chamada dos estilos da versão 1.0.0 ==
+
+Se a página disser que <code>Usuário:Daniel G Rego/PerfilWiki-estilos</code> precisa ter o modelo "CSS higienizado", abra o código-fonte da sua página e troque todas as chamadas desse destino por:
+
+<syntaxhighlight lang="wikitext">
+<templatestyles src="Usuário:Daniel G Rego/RitmoPU-estilos" />
+</syntaxhighlight>
+
+A troca conserva os textos, os números e a disposição dos blocos. Use "Mostrar previsão" para conferir a aparência antes de salvar. Não é necessário mudar o modelo de conteúdo da página criada por engano para usar a folha compartilhada válida.
+
+Atualize o programa compartilhado para a versão 1.0.1 pelo índice. Se sua configuração tiver <code>stylesPage</code>, ajuste esse campo para <code>Usuário:Daniel G Rego/RitmoPU-estilos</code> ou retire-o para usar o destino padrão. Assim, os próximos downloads também usam a folha correta. Feche as abas antigas e reabra a página depois da atualização.
+
+== Manter uma cópia própria ==
+
+Quem quiser hospedar apenas o JavaScript pode publicar o arquivo completo em uma subpágina <code>.js</code> da própria conta e continuar usando a folha compartilhada. A única chamada de importação dentro do carregador completo deve apontar para essa cópia. Preserve as verificações de conta e página.
+
+Uma folha própria precisa ter o modelo "CSS higienizado", cujo nome técnico é <code>sanitized-css</code>. Criar uma subpágina no domínio "Usuário" com o final <code>.css</code> produz CSS comum e não atende a essa exigência. Mudar o modelo exige a permissão <code>editcontentmodel</code>. Se a conta não tiver essa permissão, peça a um administrador para preparar a folha ou continue usando a folha compartilhada.<ref>[https://www.mediawiki.org/wiki/Extension:TemplateStyles#Usage Modelo de conteúdo das folhas de TemplateStyles].</ref>
+
+Depois que a folha própria estiver pronta, ajuste a chamada de <code>templatestyles</code> e o campo opcional <code>stylesPage</code> em <code>PerfilWikiConfig</code>. O campo opcional <code>documentationPage</code> escolhe o destino da documentação nos trechos exportados. Esses campos recebem títulos completos de páginas da Wikipédia, e não URLs.
+
+Atualize os arquivos completos da mesma distribuição. Depois, encerre as abas antigas e reabra a página. O índice traz conteúdo inteiro, resumo de edição, download e ligação direta ao editor para cada arquivo. Essas ligações não fazem a publicação.
+
+== Ideias para outras caixas ==
+
+As ideias abaixo ainda não estão no instalador nem no painel. Elas aproveitariam os cálculos do histórico já consultado, sem outra fonte de dados.
+
+{| class="wikitable"
+! Ideia !! O que contaria
+|-
+| Dias ativos nos últimos 30 dias || Quantos dos últimos 30 dias tiveram edições, incluindo o dia em andamento
+|-
+| Edições na Wikipédia em português || Total local de edições públicas, separado das contribuições da conta global
+|-
+| Média diária de edições || Edições dos últimos 30 dias divididas por 30, incluindo os dias sem edição, com uma casa decimal
+|}
+
+Esses números acompanhariam a frequência e o volume de edições. Eles não mediriam a qualidade do texto nem quantas pessoas abriram um artigo por causa de uma edição.
+
+== Retirar a ferramenta ==
+
+Retire do common.js a configuração e a chamada que importa o PerfilWiki. Feche as abas antigas. Se quiser retirar também a apresentação pública, apague somente os blocos das caixas e do painel. Os outros textos, as categorias e os demais scripts podem permanecer.
+
+== Referências ==
+
+<references />

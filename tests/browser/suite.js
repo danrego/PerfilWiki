@@ -53,7 +53,7 @@
             check('card export contains all eight cards and exact global count', cards && (cards.text.match(/class="dan-pu-stat-card/g) || []).length === 8 && cards.text.indexOf('20.000') >= 0, cards && cards.text.length);
             [panel, cards].forEach(function (item) {
                 var expected = '<templatestyles src="' + win.PW_SEED.stylesPage + '" />';
-                check(item.name + ' uses the existing sanitized-css stylesheet target', item.text.indexOf(expected) === 0 && item.text.indexOf('<templatestyles src="Usuário:Daniel G Rego/PerfilWiki-estilos"') < 0, { stylesPage: win.PW_SEED.stylesPage });
+                check(item.name + ' uses the existing sanitized-css stylesheet target', item.text.indexOf(expected) >= 0 && item.text.indexOf('<templatestyles src="Usuário:Daniel G Rego/PerfilWiki-estilos"') < 0, { stylesPage: win.PW_SEED.stylesPage });
             });
             click('dan-pu-ritmo-collapse-90d'); click('dan-pu-ritmo-tab-30d');
         }

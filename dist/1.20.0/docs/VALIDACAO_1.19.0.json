@@ -1,0 +1,101 @@
+{
+  "version": "1.19.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 701,
+    "pass": 701,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "672 authored message keys across pt-BR, pt-PT, English, Spanish, French and Italian, with placeholder integrity and real renderers",
+    "language persisted through installer choices, activation, local panel session and saved wikitext without changing metric identity or personal text",
+    "55 translated common timezone choices retain IANA values, aliases, seasonal and fractional offsets; new choices start in Brasilia",
+    "context-only Wikipedia account detection without login requests, local manual fallback and cross-account import rejection",
+    "origin-scoped PerfilWiki transport coordination, one active response, spacing, slow-response pause, Retry-After and memory/storage fallbacks",
+    "shared forty-call data budget plus one optional image metadata call, exact partial resumption and last-good retention",
+    "redirect rejection, streamed response byte limits, cancellation and opt-in checker boundaries",
+    "expired or malformed app-owned session removal without deleting unrelated storage",
+    "complete bundled MIT notices, pinned Node/pnpm and clean frozen installation without dependency lifecycle scripts",
+    "production CSP/referrer policy, exact hash for maintenance script, least-privilege nondeployment CI and curated export"
+  ],
+  "build": {
+    "reproducibleCleanBuilds": 2,
+    "identical": true,
+    "dependencyInstall": "clean empty node_modules, frozen lockfile, offline, ignore-scripts",
+    "dependencyPackagesAdded": 65,
+    "dependencyDownloadsInCleanInstall": 0,
+    "vite": "6.4.3",
+    "node": "24.19.0",
+    "pnpm": "11.25.0",
+    "githubCiExecuted": false
+  },
+  "dependencyAdvisories": {
+    "checked": true,
+    "advisories": 0,
+    "totalDependencies": 115,
+    "method": "pnpm audit against public npm advisory service after Vite 6.4.3 update",
+    "scope": "known published advisories at check time, not proof of absence of vulnerabilities"
+  },
+  "browser": {
+    "engines": [
+      "Codex in-app browser, Chromium",
+      "Chrome"
+    ],
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "all six language selections render installer, dashboard, timezone names and footer",
+      "name and internal wiki links unchanged across all languages",
+      "grouped UFMG and USP information stays with its original Formacao label across languages",
+      "local clock immediately follows city as 11:42 (UTC-3)",
+      "Italian installation screen, manual editor links and inert activation editor",
+      "activation keeps language and personal options without local session tokens",
+      "panel/Edit panel/reload restores current choices",
+      "Chrome installation screen and two direct manual editor links",
+      "French mobile layout has outer345px and frame307px, with no horizontal overflow"
+    ],
+    "consoleErrors": [],
+    "boundedNetworkCheck": {
+      "requests": 24,
+      "externalRequests": [],
+      "failedRequests": [],
+      "truncated": false,
+      "hasMore": false
+    },
+    "firefoxSafari": "Unavailable through enabled browser backends, not tested in this release review"
+  },
+  "css": {
+    "stylesheetSha256": "e17639ab571e66813eb6f6f234562f32efc8ffa59f9960776a6aa6f32edb6944",
+    "unchangedFrom": "1.18.0",
+    "reuse": "Exact byte match with the existing actual sanitizer result; no new parser run claimed."
+  },
+  "frozenHistoricalFiles": 1061,
+  "publication": {
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubWrites": 0,
+    "clipboardWrites": 0,
+    "uploads": 0
+  },
+  "limitations": [
+    "Synthetic local browser data and inert local editors only.",
+    "Firefox and Safari require a real browser check before a stable public release.",
+    "Live Wikimedia loading and public account-session behavior were not tested by using any account.",
+    "The Edit panel recovery route remains local-only, not a completed live hosted integration.",
+    "Curated public export and audits require final human diff review before public publication.",
+    "Neither local tests nor advisory scans certify full security or Wikimedia policy approval."
+  ],
+  "evidence": {
+    "fullSuite": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "reproducibility": "node scripts/verify-reproducible.cjs",
+    "publicExport": "python3 scripts/export_public.py --output NEW_DIRECTORY",
+    "notices": "THIRD_PARTY_NOTICES.txt",
+    "toolchain": "BUILD_TOOLCHAIN.json",
+    "manualPublication": "docs/PUBLICACAO.md"
+  }
+}

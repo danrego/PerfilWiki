@@ -1,0 +1,46 @@
+name: Validate local release
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perfilwiki-validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Read checkout without retained credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Use the pinned Node release
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          check-latest: false
+          package-manager-cache: false
+      - name: Install the pinned package manager without lifecycle scripts
+        run: npm install --global pnpm@11.25.0 --ignore-scripts --no-audit --no-fund
+      - name: Install integrity-locked dependencies without lifecycle scripts
+        run: pnpm --dir installer install --frozen-lockfile --ignore-scripts
+      - name: Check current dependency advisories without changing the lockfile
+        run: pnpm --dir installer audit --audit-level moderate
+      - name: Check public inputs
+        run: npm run check:public
+      - name: Build and compare two complete distributions
+        run: npm run verify:reproducible
+      - name: Test offline contracts and release files
+        run: npm test
+      - name: Export and scan only the reviewed public file set
+        run: python3 scripts/export_public.py --output "$RUNNER_TEMP/PerfilWiki-public"
+
+# No deployment, release upload, Wiki operation, token export or write permission.

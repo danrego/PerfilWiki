@@ -1,0 +1,91 @@
+{
+  "version": "1.4.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 246,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "finalRegressionPending": false,
+    "expectedCases": 246,
+    "addedRegressions": [
+      "Cancel drop outside the card grid",
+      "Clamp per-card options menus to the visible viewport"
+    ]
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": true,
+    "unchangedSince": "1.3.0",
+    "validatedSha256": "59cd87ef015da715c1defb89a535ad3094bad654a9a1c9bc9d3a96bf785f7e67",
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "desktopWidth": 1100,
+    "narrowWidth": 360,
+    "horizontalOverflow": false,
+    "mobileChooserWidth": 332,
+    "mobileChooserHeight": 560,
+    "allTwentyRoomyMobileFrameHeight": 6013,
+    "maximumPreviewHeight": 12000,
+    "mobileFrameBodyWidth": 307,
+    "mobileFrameBodyScrollWidth": 307,
+    "mobileParentWidth": 345,
+    "checks": [
+      "Etapa 1 shows 21 usual timezones and no search field",
+      "Three adjustment groups keep one open at a time",
+      "Desktop adjustments use bounded independent scrolling with visible preview",
+      "Adding, removing and re-adding cards works directly beside or inside the preview",
+      "All twenty choices appear in the card chooser",
+      "The remaining card cannot be unchecked or removed",
+      "Position changes by keyboard and per-card highlighting update the preview",
+      "Native Chrome mouse dragging swaps tenure and bestStreak directly in the preview",
+      "Native dragging leaves window scrollY at zero before and after",
+      "Roomy spacing uses four columns at 1100 pixels",
+      "Twenty roomy cards fit one responsive column at 360 pixels without horizontal overflow",
+      "Mobile card chooser fits inside the 360-pixel viewport",
+      "The local editor preview contains no card editing controls",
+      "Final Chrome native valid drop reorders while an outside drop cancels",
+      "First-column options menu is clamped to x=8 within the iframe",
+      "All twenty choices reach activation code and generated profile markup contains no local editing controls"
+    ],
+    "nativeMouseDrag": {
+      "verified": true,
+      "swappedMetrics": [
+        "tenure",
+        "bestStreak"
+      ],
+      "scrollYBefore": 0,
+      "scrollYAfter": 0
+    },
+    "notTested": [
+      "Native touch drag gesture"
+    ],
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "errorsObserved": 0,
+    "warningsObserved": 0,
+    "screenshots": [
+      "../../qa_140/02-desktop.jpg",
+      "../../qa_140/03-mobile-chooser.jpg",
+      "../../qa_140/05-final-preview.jpg"
+    ],
+    "finalScreenshotPending": false
+  },
+  "publication": {
+    "wikipediaEdits": false,
+    "authenticatedWikiActions": false,
+    "githubPush": false
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "node": "24.19.0",
+  "packageManager": "pnpm@11.25.0",
+  "python": ">=3.9",
+  "dependencyInstall": "pnpm --dir installer install --frozen-lockfile --ignore-scripts",
+  "dependencyLifecycleScripts": "disabled",
+  "runtimeComponents": [
+    {
+      "name": "React",
+      "version": "19.2.0",
+      "license": "MIT",
+      "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    },
+    {
+      "name": "React DOM",
+      "version": "19.2.0",
+      "license": "MIT",
+      "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    },
+    {
+      "name": "Scheduler",
+      "version": "0.27.0",
+      "license": "MIT",
+      "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    },
+    {
+      "name": "Vite generated module-preload helper",
+      "version": "6.4.3",
+      "license": "MIT",
+      "licenseSha256": "e373c2e74cd342b9e74d0b8813a8fddf3c9788515669a79c2ac238195673d38b"
+    }
+  ],
+  "verifiedOn": "2026-10-15",
+  "officialReferences": {
+    "node": "https://nodejs.org/download/release/v24.19.0/SHASUMS256.txt",
+    "pnpm": "https://github.com/pnpm/pnpm/releases/tag/v11.25.0",
+    "viteSecurity": "https://github.com/vitejs/vite/security/advisories/GHSA-fx2h-pf6j-xcff",
+    "viteRelease": "https://github.com/vitejs/vite/releases/tag/v6.4.3"
+  },
+  "actions": [
+    {
+      "repository": "actions/checkout",
+      "version": "v7.0.1",
+      "sha": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "source": "https://github.com/actions/checkout/releases/tag/v7.0.1"
+    },
+    {
+      "repository": "actions/setup-node",
+      "version": "v7.1.0",
+      "sha": "949feb2413d6458794dcd2491c4babbbce0c15c1",
+      "source": "https://github.com/actions/setup-node/releases/tag/v7.1.0"
+    }
+  ],
+  "claims": {
+    "ciExecuted": false,
+    "cleanDependencyInstallVerified": true,
+    "publicationPerformed": false
+  },
+  "cleanInstallEvidence": {
+    "mode": "offline-frozen-ignore-scripts",
+    "vite": "6.4.3",
+    "packagesAdded": 65,
+    "downloaded": 0,
+    "lockfileSha256": "ed3a3054202e61201112b37e670bc4ca6628933ed799a526407b2c9b320d59bb",
+    "platformBinaryProbePassed": true
+  }
+}

@@ -24,7 +24,11 @@ test('tenure uses the anniversary and never substitutes another account registra
     assert.equal(Cards.years('2010-08-20T00:00:00Z',NOW),14);
     assert.equal(Cards.years(null,NOW),null);
     assert.equal(Cards.years('2030-01-01T00:00:00Z',NOW),null);
-    assert.match(Cards.wikitext({user,metrics:{registration:'2010-08-20T00:00:00Z'}},null,{user,now:NOW}),/\{\{Tempo decorrido\|20\|8\|2010\|prec=ano\}\}/);
+    const first = '2010-08-20T00:00:00Z';
+    const statistics = {user,metrics:{registration:'2014-01-01T00:00:00Z',earliestRegistration:first},
+        metricUpdatedAt:{earliestRegistration:NOW},registrationCoverage:{version:1,user,checkedAt:NOW,
+            complete:true,globalRegistration:first,accounts:[]}};
+    assert.match(Cards.wikitext(statistics,null,{user,now:NOW}),/\{\{Tempo decorrido\|20\|8\|2010\|prec=ano\}\}/);
 });
 test('shared activity decides the card streak and exported blocks retain independent roots', () => {
     const a=activity();

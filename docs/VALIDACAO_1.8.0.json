@@ -1,0 +1,77 @@
+{
+  "version": "1.8.0",
+  "date": "2026-10-15",
+  "status": "local-candidate",
+  "node": {
+    "passed": 391,
+    "failed": 0,
+    "skipped": 0,
+    "command": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs"
+  },
+  "build": {
+    "entry": "node scripts/build-all.cjs",
+    "result": "passed"
+  },
+  "templateStyles": {
+    "stylesheetUnchanged": false,
+    "validatedSha256": "be6db008c8f9ab5c6b0c73d42ce4d4f7710e5837dd7808fd542030168bbfc3d4",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "networkAttempts": [],
+    "evidence": "CSS_VALIDATION.json"
+  },
+  "browser": {
+    "tested": [
+      "Chrome",
+      "Codex in-app browser"
+    ],
+    "syntheticOnly": true,
+    "account": "Marina Exemplo",
+    "desktopWidth": 1280,
+    "desktopCompactColumns": 5,
+    "mobileWidth": 360,
+    "mobileParentWidth": 345,
+    "mobileFrameBodyWidth": 307,
+    "mobileFrameBodyScrollWidth": 307,
+    "mobileCompactColumns": 2,
+    "photoWidth": 96,
+    "horizontalOverflow": false,
+    "checks": [
+      "Independent name/location/custom/photo placement",
+      "No synthetic outer heading or duplicate card display name",
+      "Linked Washington and História values remain visibly linked",
+      "Activating a local profile link leaves the URL unchanged and produces zero external network requests",
+      "Inline detail divider and visual separators wrap on mobile",
+      "Automatic five-column compact layout and responsive reduction",
+      "Cards-only mode has one profile header and one installation invitation",
+      "Generated personal activation and profile preserve placements, Commons filename and wiki links",
+      "Prepared output omits all local preview controls",
+      "No observed browser errors or warnings"
+    ],
+    "notRerun": [
+      "Firefox",
+      "Safari"
+    ],
+    "notTested": [
+      "Live Commons photo availability or image redirects",
+      "Native touch drag"
+    ],
+    "screenshots": [
+      "../../qa_180/01-independent-fields.jpg",
+      "../../qa_180/02-mobile-inline-photo.jpg"
+    ]
+  },
+  "independentReview": {
+    "syntheticExportCombinations": 360,
+    "fixed": [
+      "Set anonymous CORS and no-referrer attributes before DOM image src"
+    ],
+    "remainingActionableFindings": 0
+  },
+  "publication": {
+    "wikipediaEdits": 0,
+    "authenticatedWikiActions": 0,
+    "githubPushes": 0,
+    "remotePhotoRequestsInPreview": 0
+  }
+}

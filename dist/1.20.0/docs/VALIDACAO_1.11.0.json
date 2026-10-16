@@ -1,0 +1,64 @@
+{
+  "version": "1.11.0",
+  "status": "local-candidate",
+  "date": "2026-10-15",
+  "automatedTests": {
+    "tests": 465,
+    "pass": 465,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "coverage": [
+    "inherited top placement in shared runtime and installer",
+    "explicit previous placements retained",
+    "top header ownership in integrated and legacy separate exports",
+    "profile formatting controls beside the fields they affect",
+    "accessible exclusive left center right icon controls",
+    "preview and export parity without changing metrics"
+  ],
+  "browser": {
+    "engine": "Codex in-app browser, Chromium",
+    "viewports": [
+      "desktop default",
+      "360x800"
+    ],
+    "checks": [
+      "new default fields above the panel without duplication",
+      "name size and alignment beside the display name",
+      "information layout beside profile fields",
+      "icon clicks and arrow key selection with focus",
+      "independent name and counter alignment",
+      "inherited placement label tracks global placement",
+      "complete export preserves existing local text",
+      "internal wikilinks and saved dated clock retained",
+      "HTTP 200 installer and installation index"
+    ],
+    "externalRequests": [],
+    "consoleErrors": [],
+    "wikipediaEdits": 0,
+    "authenticatedWikimediaUse": false,
+    "githubPushes": 0,
+    "clipboardWrites": 0,
+    "firefoxSafari": "Not rerun in this round"
+  },
+  "css": {
+    "stylesheetSha256": "02588e7a927e3081d8c472e4943e759a717c2036d07fbd901ac6b1ec90639838",
+    "unchangedSince": "1.10.0",
+    "sanitizerRerun": false,
+    "reuseReason": "TemplateStyles stylesheet bytes are unchanged. SHA-256 compared again for 1.11.0. New alignment UI styles are installer-only.",
+    "parserErrors": [],
+    "sanitizerErrors": [],
+    "originalEvidence": "../../qa_1100/validation_summary.json"
+  },
+  "frozenPreviousFiles": 546,
+  "limitations": [
+    "Synthetic local data only. No public APIs or real Commons photos were used.",
+    "Native Firefox and Safari were not rerun."
+  ],
+  "evidence": {
+    "automated": "node --test tests/*.test.cjs tests/inherited_metrics.cjs installer/tests/*.test.mjs",
+    "browser": "../../qa_1110/browser-verification.json",
+    "css": "CSS_VALIDATION.json"
+  }
+}
